@@ -14,26 +14,36 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
 #menu{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1000;background:var(--bg)}
 #menu::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(255,107,53,.08) 0%,transparent 60%),radial-gradient(ellipse at 70% 60%,rgba(255,209,102,.05) 0%,transparent 50%);animation:menuBg 8s ease-in-out infinite alternate}
 @keyframes menuBg{0%{opacity:.6}100%{opacity:1}}
-.menu-box{position:relative;z-index:1;text-align:center;max-width:440px;width:90%}
-.menu-title{font-family:'Rajdhani',sans-serif;font-size:4.5rem;font-weight:700;color:var(--accent);letter-spacing:4px;line-height:1;text-shadow:0 0 40px rgba(255,107,53,.3)}
-.menu-sub{color:var(--muted);font-size:.85rem;margin:8px 0 32px;letter-spacing:2px}
-.menu-input{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:1rem;outline:none;transition:border-color .2s}
+.menu-box{position:relative;z-index:1;text-align:center;max-width:440px;width:90%;max-height:95vh;overflow-y:auto;padding-right:4px}
+.menu-box::-webkit-scrollbar{width:4px}
+.menu-box::-webkit-scrollbar-thumb{background:var(--border)}
+.menu-title{font-family:'Rajdhani',sans-serif;font-size:3.5rem;font-weight:700;color:var(--accent);letter-spacing:4px;line-height:1;text-shadow:0 0 40px rgba(255,107,53,.3)}
+.menu-sub{color:var(--muted);font-size:.85rem;margin:4px 0 16px;letter-spacing:2px}
+.menu-input{width:100%;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:.9rem;outline:none;transition:border-color .2s}
 .menu-input:focus{border-color:var(--accent)}
 .menu-input::placeholder{color:var(--muted)}
-.menu-label{text-align:left;color:var(--muted);font-size:.75rem;margin:16px 0 6px;letter-spacing:1px}
-.menu-btn{width:100%;padding:14px;border:none;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:1px;margin-top:10px}
+.menu-label{text-align:left;color:var(--muted);font-size:.75rem;margin:10px 0 4px;letter-spacing:1px}
+.menu-btn{width:100%;padding:12px;border:none;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:1px;margin-top:6px}
 .menu-btn.primary{background:var(--accent);color:#000}
 .menu-btn.primary:hover{background:var(--accent2);transform:translateY(-1px)}
 .menu-btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
 .menu-btn.secondary:hover{border-color:var(--accent);color:var(--accent)}
 .menu-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
-.menu-divider{display:flex;align-items:center;gap:12px;margin:24px 0;color:var(--muted);font-size:.75rem}
+.menu-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--muted);font-size:.75rem}
 .menu-divider::before,.menu-divider::after{content:'';flex:1;height:1px;background:var(--border)}
-.menu-msg{margin-top:12px;font-size:.8rem;min-height:20px}
+.menu-msg{margin-top:8px;font-size:.8rem;min-height:20px}
 .menu-msg.ok{color:var(--success)}.menu-msg.err{color:var(--danger)}
 .menu-code-display{font-size:2.5rem;font-family:'Rajdhani',sans-serif;font-weight:700;color:var(--gold);letter-spacing:8px;margin:8px 0;user-select:all;cursor:pointer}
+.lobby-list{background:var(--card);border:1px solid var(--border);border-radius:8px;max-height:140px;overflow-y:auto;text-align:left;margin-bottom:10px}
+.lobby-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);font-size:0.75rem;cursor:pointer;transition:background 0.2s}
+.lobby-item:hover{background:var(--card2)}
+.lobby-item:last-child{border-bottom:none}
+.lobby-info{display:flex;flex-direction:column;gap:2px}
+.lobby-name{font-weight:700;color:var(--text)}
+.lobby-meta{font-size:0.65rem;color:var(--muted);display:flex;gap:10px}
+.lobby-ping{color:var(--success)}
 .hud-tl{position:fixed;top:16px;left:16px;z-index:10}
-.hud-room{background:rgba(10,10,10,.85);border:1px solid var(--border);border-radius:8px;padding:10px 14px;backdrop-filter:blur(8px)}
+.hud-room{background:rgba(10,10,10,.85);border:1px solid var(--border);border-radius:8px;padding:10px 14px;backdrop-filter:blur(8px);min-width:160px}
 .hud-room-code{font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;color:var(--gold);letter-spacing:4px;cursor:pointer}
 .hud-room-code:hover{color:var(--accent)}
 .hud-room-label{font-size:.65rem;color:var(--muted);letter-spacing:1px}
@@ -107,6 +117,7 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
 .trade-actions{display:flex;gap:10px;justify-content:center;margin-top:16px}
 .trade-actions button{padding:10px 28px;border:none;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .15s}
 .trade-actions .btn-accept{background:var(--success);color:#000}
+.trade-actions .btn-accept.locked{background:var(--muted);color:var(--text);cursor:not-allowed}
 .trade-actions .btn-cancel{background:var(--card);color:var(--text);border:1px solid var(--border)}
 .trade-actions button:hover{transform:translateY(-1px);opacity:.85}
 .trade-status{text-align:center;margin-top:10px;font-size:.8rem;color:var(--muted)}
@@ -118,7 +129,7 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
 @keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
 @keyframes toastOut{to{opacity:0;transform:translateY(-10px)}}
 .hidden{display:none!important}
-@media(max-width:600px){.menu-title{font-size:3rem}.trade-cols{grid-template-columns:1fr}.inv-grid{grid-template-columns:repeat(5,1fr)}}
+@media(max-width:600px){.menu-title{font-size:2.5rem}.trade-cols{grid-template-columns:1fr}.inv-grid{grid-template-columns:repeat(5,1fr)}}
 </style>
 </head>
 <body>
@@ -128,8 +139,12 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
     <div class="menu-title">BARTER ZONE</div>
     <div class="menu-sub">MULTIPLAYER P2P / TROCA DE ITENS</div>
     <div id="name-wrap"><div class="menu-label">SEU NOME</div><input class="menu-input" id="inp-name" placeholder="Digite seu nome..." maxlength="16"></div>
-    <div id="create-wrap"><button class="menu-btn primary" id="btn-create" onclick="window._doCreate()"><i class="fa-solid fa-plus"></i> &nbsp;CRIAR SALA</button></div>
-    <div class="menu-divider" id="menu-div">OU ENTRE EM UMA SALA</div>
+    
+    <div class="menu-label">SALAS PÚBLICAS (SIMULADAS / REAL-TIME)</div>
+    <div class="lobby-list" id="lobby-list"></div>
+
+    <div id="create-wrap"><button class="menu-btn primary" id="btn-create" onclick="window._doCreate()"><i class="fa-solid fa-plus"></i> &nbsp;CRIAR SALA P2P</button></div>
+    <div class="menu-divider" id="menu-div">OU ENTRE EM UMA SALA MANUAL</div>
     <div id="join-wrap"><div class="menu-label">CODIGO DA SALA</div><input class="menu-input" id="inp-code" placeholder="Ex: AB3K7N" maxlength="6" style="text-transform:uppercase;letter-spacing:4px;text-align:center;font-size:1.2rem;font-family:'Rajdhani',sans-serif;font-weight:700"><button class="menu-btn secondary" id="btn-join" onclick="window._doJoin()"><i class="fa-solid fa-right-to-bracket"></i> &nbsp;ENTRAR NA SALA</button></div>
     <div class="menu-msg" id="menu-msg"></div>
     <div id="create-waiting" class="hidden" style="margin-top:16px">
@@ -150,13 +165,14 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
         <div class="hud-bar"><span class="hud-bar-label">VIDA</span><div class="hud-bar-track"><div class="hud-bar-fill" id="bar-hp" style="width:100%;background:var(--hp)"></div></div><span class="hud-bar-val" id="val-hp">100</span></div>
         <div class="hud-bar"><span class="hud-bar-label">FOME</span><div class="hud-bar-track"><div class="hud-bar-fill" id="bar-hunger" style="width:100%;background:var(--hunger)"></div></div><span class="hud-bar-val" id="val-hunger">100</span></div>
       </div>
+      <button id="btn-mic" onclick="window._toggleMic()"><i class="fa-solid fa-microphone-slash"></i> ATIVAR MICROFONE</button>
     </div>
   </div>
   <div class="hud-tr"><div class="hud-players"><div class="hud-players-title">JOGADORES</div><div id="player-list"></div></div></div>
   <div class="hud-prompt" id="hud-prompt"></div>
   <canvas class="minimap" id="minimap" width="140" height="140"></canvas>
   <div class="chat-box"><div class="chat-messages" id="chat-messages"></div><div class="chat-input-wrap"><input class="chat-input" id="chat-input" placeholder="Pressione T para chat..." maxlength="100"><button class="chat-send" onclick="window._sendChat()">ENVIAR</button></div></div>
-  <div class="hud-controls"><span>WASD</span> Mover &nbsp; <span>E</span> Pegar &nbsp; <span>TAB</span> Inventario<br><span>T</span> Chat &nbsp; <span>F</span> Trocar &nbsp; <span>ESC</span> Fechar</div>
+  <div class="hud-controls"><span>WASD</span> Mover &nbsp; <span>E</span> Pegar/Interagir &nbsp; <span>TAB</span> Inventario<br><span>T</span> Chat &nbsp; <span>F</span> Trocar &nbsp; <span>ESC</span> Fechar</div>
 </div>
 
 <div class="overlay" id="inv-overlay">
@@ -178,7 +194,16 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
       <div><div class="trade-col-title">OFERTA DE <span id="trade-pname2"></span></div><div class="trade-offer-grid" id="trade-their-offer"></div></div>
     </div>
     <div class="trade-status" id="trade-status">Aguardando...</div>
-    <div class="trade-actions"><button class="btn-accept" onclick="window._acceptTrade()">ACEITAR TROCA</button><button class="btn-cancel" onclick="window._cancelTrade()">CANCELAR</button></div>
+    <div class="trade-actions"><button class="btn-accept" id="btn-accept-trade" onclick="window._acceptTrade()">ACEITAR TROCA</button><button class="btn-cancel" onclick="window._cancelTrade()">CANCELAR</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="npc-overlay">
+  <div class="inv-panel" style="max-width: 480px;">
+    <div class="inv-title" id="npc-title" style="color:var(--gold)">NPC</div>
+    <div id="npc-greeting" style="margin: 15px 0; font-size: 0.95rem; line-height: 1.4; color: var(--text)"></div>
+    <div id="npc-trade-options" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;"></div>
+    <button class="menu-btn secondary" onclick="window._closeNpcOverlay()">SAIR</button>
   </div>
 </div>
 
@@ -203,8 +228,8 @@ var ITEMS = {
   rifle_mag:{name:'Carregador Fuzil',icon:'\u{1F4E6}',cat:'Municao',stack:true,max:15,price:500},
   shells:{name:'Cartuchos Shotgun',icon:'\u{1F4E6}',cat:'Municao',stack:true,max:20,price:400},
   bolt:{name:'Flecha de Besta',icon:'\u{1F3F9}',cat:'Municao',stack:true,max:30,price:200},
-  pistol:{name:'Pistol',icon:'\u{1F52B}',cat:'Arma',stack:false,price:5000},
-  sks:{name:'SKS Pistol',icon:'\u{1F52B}',cat:'Arma',stack:false,price:8000},
+  pistol:{name:'Pistola',icon:'\u{1F52B}',cat:'Arma',stack:false,price:5000},
+  sks:{name:'SKS Rifle',icon:'\u{1F52B}',cat:'Arma',stack:false,price:8000},
   shotgun:{name:'Shotgun',icon:'\u{1F52B}',cat:'Arma',stack:false,price:7000},
   crossbow:{name:'Besta',icon:'\u{1F3F9}',cat:'Arma',stack:false,price:4000},
   knife:{name:'Faca',icon:'\u{1F5E1}',cat:'Arma',stack:false,price:1500},
@@ -214,11 +239,26 @@ var ITEMS = {
   backpack:{name:'Mochila',icon:'\u{1F392}',cat:'Diverso',stack:false,price:2000}
 };
 
+/* Microfone por Proximidade */
+var audioCtx = null;
+var localStream = null;
+var voiceCalls = {};
+var voiceGains = {};
+var micActive = false;
+
 /* Gerador de arvores com seed fixa */
 var _sr_seed = 42;
 function _sr(){ _sr_seed = (_sr_seed * 16807) % 2147483647; return (_sr_seed - 1) / 2147483646; }
 
+/* Estruturas do Mapa */
 var obstacles = [
+  /* Farmacia */
+  {x:250,y:1850,w:220,h:180,t:'bld',c:'#22c55e',lbl:'FARMACIA'},
+  /* Mercado Negro */
+  {x:1850,y:250,w:240,h:200,t:'bld',c:'#1e1b4b',lbl:'MERCADO NEGRO'},
+  /* Centro Civico */
+  {x:1050,y:1050,w:300,h:250,t:'bld',c:'#4b5563',lbl:'PREFEITURA (CENTRO)'},
+
   {x:850,y:750,w:180,h:140,t:'bld',c:'#3d3d3d',lbl:'Armazem'},
   {x:1100,y:700,w:140,h:200,t:'bld',c:'#3d3d3d',lbl:'Loja de Armas'},
   {x:850,y:970,w:200,h:130,t:'bld',c:'#3d3d3d',lbl:'Posto Medico'},
@@ -228,6 +268,7 @@ var obstacles = [
   {x:0,y:0,w:MAP_W,h:12,t:'wall'},{x:0,y:MAP_H-12,w:MAP_W,h:12,t:'wall'},
   {x:0,y:0,w:12,h:MAP_H,t:'wall'},{x:MAP_W-12,y:0,w:12,h:MAP_H,t:'wall'}
 ];
+
 (function(){
   for(var i=0;i<55;i++){
     var tx=100+_sr()*(MAP_W-200), ty=100+_sr()*(MAP_H-200);
@@ -237,6 +278,22 @@ var obstacles = [
     if(ok)obstacles.push({x:tx,y:ty,w:tw,h:th,t:'tree'});
   }
 })();
+
+/* NPCs */
+var npcs = [
+  {id:'npc_carlos',name:'Carlos (Medico)',x:360,y:1950,color:'#22c55e',greeting:'Precisa de ajuda medica? Traga suprimentos basicos e cuidarei de voce.',trades:[
+    {give:'bandage',qtyGive:1,take:'can',qtyTake:2},
+    {give:'medkit',qtyGive:1,take:'energy',qtyTake:3}
+  ]},
+  {id:'npc_sombra',name:'Sombra (Traficante)',x:1970,y:350,color:'#9333ea',greeting:'Ola parceiro. Procura fogo pesado? Aceito comida em troca de armas.',trades:[
+    {give:'shotgun',qtyGive:1,take:'can',qtyTake:6},
+    {give:'sks',qtyGive:1,take:'hamburger',qtyTake:5},
+    {give:'shells',qtyGive:5,take:'water',qtyTake:2}
+  ]},
+  {id:'npc_zeca',name:'Zeca (Guia)',x:1200,y:1180,color:'#eab308',greeting:'Ola sobrevivente! Aqui no centro voce esta seguro. Pegue um cantil de agua por minha conta!',trades:[
+    {give:'water',qtyGive:1,take:'chocolate',qtyTake:1}
+  ]}
+];
 
 var itemSpawns=[
   {x:940,y:820,items:['can','can','hamburger','water']},
@@ -260,6 +317,7 @@ var playerSpawns=[{x:1200,y:650},{x:1200,y:1350},{x:650,y:950},{x:1750,y:950},{x
 var peer = null;
 var conns = {};
 var isHost = false;
+var isSimulated = false; /* Modo Solo c/ Bots */
 var myId = null;
 var roomId = null;
 var myName = 'Jogador';
@@ -270,6 +328,8 @@ var inventory = [];
 for(var _ii=0;_ii<INV_SIZE;_ii++) inventory.push(null);
 var selectedSlot = -1;
 var invOpen = false;
+var npcOverlayOpen = false;
+var activeNpc = null;
 var tradeState = null;
 var keys = {};
 var chatFocused = false;
@@ -279,6 +339,13 @@ var lastHungerTick = 0;
 var spawnTimers = {};
 var colorIdx = 0;
 var lastStateBroadcast = 0;
+
+/* Lista de Salas Publicas (Disponiveis no Menu) */
+var PUBLIC_LOBBIES = [
+  {id:'BR_SURVIVAL',name:'🇧🇷 [BR] SOBREVIVENCIA SAO PAULO',country:'Brasil',ping:14,players:2,simulated:true},
+  {id:'US_TRADING_ZONE',name:'🇺🇸 [US] MIAMI BARTER ZONE',country:'Estados Unidos',ping:115,players:3,simulated:true},
+  {id:'EU_COMMUNITY',name:'🇪🇸 [EU] MADRID MARKET',country:'Espanha',ping:195,players:1,simulated:true}
+];
 
 /* Canvas refs */
 var cv = document.getElementById('cv');
@@ -299,7 +366,106 @@ function _nextColor(){var c=PLAYER_COLORS[colorIdx%PLAYER_COLORS.length];colorId
 function _itemColor(id){var cats={Comida:'#4ade80',Municao:'#fbbf24',Arma:'#ef4444',Medico:'#60a5fa',Diverso:'#a78bfa'};return cats[(ITEMS[id]||{}).cat]||'#888'}
 
 /* ============================================================
-   REDE
+   MICROFONE POR PROXIMIDADE (WEBAUDIO)
+   ============================================================ */
+function _toggleMic() {
+  if (micActive) {
+    _disableMic();
+  } else {
+    _enableMic();
+  }
+}
+window._toggleMic = _toggleMic;
+
+function _enableMic() {
+  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+    .then(function(stream) {
+      localStream = stream;
+      micActive = true;
+      document.getElementById('btn-mic').innerHTML = '<i class="fa-solid fa-microphone" style="color:var(--success)"></i> MIC ATIVO';
+      document.getElementById('btn-mic').style.borderColor = 'var(--success)';
+      
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch(e) {
+        console.error("AudioContext nao suportado", e);
+      }
+
+      /* Inicia ligações para conexões existentes */
+      for (var id in conns) {
+        _callPeer(id);
+      }
+      _showToast('Microfone ativado com sucesso!','ok');
+    })
+    .catch(function(err) {
+      _showToast('Nao foi possivel acessar o microfone!','err');
+      console.error(err);
+    });
+}
+
+function _disableMic() {
+  if (localStream) {
+    localStream.getTracks().forEach(function(track) { track.stop(); });
+    localStream = null;
+  }
+  micActive = false;
+  document.getElementById('btn-mic').innerHTML = '<i class="fa-solid fa-microphone-slash"></i> ATIVAR MICROFONE';
+  document.getElementById('btn-mic').style.borderColor = 'var(--border)';
+  
+  for (var id in voiceCalls) {
+    try { voiceCalls[id].close(); } catch(e){}
+    delete voiceCalls[id];
+  }
+  voiceGains = {};
+  _showToast('Microfone desativado!','info');
+}
+
+function _callPeer(peerId) {
+  if (!peer || !localStream) return;
+  var call = peer.call(peerId, localStream);
+  _setupCallEvents(call);
+}
+
+function _setupCallEvents(call) {
+  voiceCalls[call.peer] = call;
+  call.on('stream', function(remoteStream) {
+    _handleRemoteStream(call.peer, remoteStream);
+  });
+  call.on('close', function() {
+    delete voiceCalls[call.peer];
+    delete voiceGains[call.peer];
+  });
+}
+
+function _handleRemoteStream(peerId, stream) {
+  if (!audioCtx) return;
+  var source = audioCtx.createMediaStreamSource(stream);
+  var gainNode = audioCtx.createGain();
+  source.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  voiceGains[peerId] = gainNode;
+}
+
+function _updateVoiceVolumes() {
+  if (!players[myId]) return;
+  var myP = players[myId];
+  for (var id in voiceGains) {
+    var p = players[id];
+    var gainNode = voiceGains[id];
+    if (p && gainNode) {
+      var d = _dist(myP, p);
+      var maxDist = 500;
+      var vol = 0;
+      if (d < maxDist) {
+        vol = 1 - (d / maxDist);
+      }
+      gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+    }
+  }
+}
+
+/* ============================================================
+   REDE P2P
    ============================================================ */
 function _initNet(){
   peer.on('error',function(err){
@@ -311,6 +477,14 @@ function _initNet(){
     document.getElementById('btn-join').disabled=false;
   });
   peer.on('disconnected',function(){if(gameRunning)try{peer.reconnect()}catch(e){}});
+  peer.on('call', function(call) {
+    if (localStream) {
+      call.answer(localStream);
+    } else {
+      call.answer();
+    }
+    _setupCallEvents(call);
+  });
 }
 
 function _handleConn(conn){
@@ -325,6 +499,9 @@ function _handleConn(conn){
       _broadcastExcept(conn.peer,{type:'player_joined',player:pd});
       _updatePlayerList();
       _showToast(((conn.metadata||{}).name||'Jogador')+' entrou','ok');
+      if (micActive) {
+        _callPeer(conn.peer);
+      }
     }
   });
   conn.on('data',function(data){_handleMsg(data,conn.peer)});
@@ -342,7 +519,7 @@ function _sendTo(id,data){if(conns[id])try{conns[id].send(data)}catch(e){}}
 function _serPlayers(){var r={};for(var id in players){var p=players[id];r[id]={id:p.id,name:p.name,x:p.x,y:p.y,color:p.color,hp:p.hp,hunger:p.hunger,angle:p.angle}}return r}
 
 /* ============================================================
-   MENSAGENS - PRIMEIRO A VERSAO BASE, DEPOIS OVERWRITE COM HOST LOGIC
+   SISTEMA DE MENSAGENS E SEGURANCA ANTI-DUPE/ANTI-THEFT
    ============================================================ */
 function _handleMsgBase(data,fromId){
   switch(data.type){
@@ -354,7 +531,15 @@ function _handleMsgBase(data,fromId){
       _startGameUI();
       break;
     case 'state':
-      for(var id in data.players){if(id!==myId&&players[id]){players[id].x=data.players[id].x;players[id].y=data.players[id].y;players[id].angle=data.players[id].angle;players[id].hp=data.players[id].hp;players[id].hunger=data.players[id].hunger}}
+      for(var id in data.players){
+        if(id!==myId&&players[id]){
+          players[id].x=data.players[id].x;
+          players[id].y=data.players[id].y;
+          players[id].angle=data.players[id].angle;
+          players[id].hp=data.players[id].hp;
+          players[id].hunger=data.players[id].hunger;
+        }
+      }
       groundItems=data.groundItems||[];
       break;
     case 'player_joined':
@@ -362,7 +547,15 @@ function _handleMsgBase(data,fromId){
     case 'player_left':
       delete players[data.playerId];if(tradeState&&tradeState.partnerId===data.playerId)_closeTradeUI();_updatePlayerList();_addChat('','[ Jogador saiu ]','var(--danger)');break;
     case 'chat':
-      _addChat(data.from,data.message,data.color);break;
+      _addChat(data.from,data.message,data.color);
+      /* Atribui balao de fala ao jogador correspondente */
+      for (var pid in players) {
+        if (players[pid].name === data.from) {
+          players[pid].chatBubble = { text: data.message, expires: Date.now() + 6000 };
+          break;
+        }
+      }
+      break;
     case 'pickup_result':
       if(data.success){inventory[data.slot]={itemId:data.itemId,quantity:data.quantity};_spawnParts(players[myId].x,players[myId].y,_itemColor(data.itemId));_showToast('Pegou '+(ITEMS[data.itemId]||{}).name,'ok')}
       else if(data.msg)_showToast(data.msg,'err');
@@ -371,14 +564,77 @@ function _handleMsgBase(data,fromId){
       if(data.success){inventory[data.slot]=null;_showToast('Item dropado','info');if(invOpen)_renderInv()}break;
     case 'use_result':
       if(data.success){var p=players[myId];if(data.stat==='hp')p.hp=Math.min(100,p.hp+data.val);if(data.stat==='hunger')p.hunger=Math.min(100,p.hunger+data.val);inventory[data.slot]=data.newQty>0?{itemId:data.itemId,quantity:data.newQty}:null;_showToast('Usou '+(ITEMS[data.itemId]||{}).name,'ok');_updateBars();if(invOpen)_renderInv()}break;
+    
+    /* Maquina de Estados Segura para Trade P2P (Anti-Theft / Anti-Dupe) */
     case 'trade_request':
-      if(!tradeState){tradeState={partnerId:fromId,partnerName:data.fromName,myOffer:[null,null,null,null,null],theirOffer:[null,null,null,null,null],myAccepted:false,theirAccepted:false};_sendTo(fromId,{type:'trade_accept_request',fromName:myName});_openTradeUI();_showToast(data.fromName+' quer trocar!','info')}break;
+      if(!tradeState){
+        tradeState={partnerId:fromId,partnerName:data.fromName,myOffer:[null,null,null,null,null],theirOffer:[null,null,null,null,null],myAccepted:false,theirAccepted:false};
+        _sendTo(fromId,{type:'trade_accept_request',fromName:myName});
+        _openTradeUI();
+        _showToast(data.fromName+' quer trocar!','info');
+      }
+      break;
     case 'trade_accept_request':
-      if(!tradeState){tradeState={partnerId:fromId,partnerName:data.fromName,myOffer:[null,null,null,null,null],theirOffer:[null,null,null,null,null],myAccepted:false,theirAccepted:false};_openTradeUI()}break;
+      if(!tradeState){
+        tradeState={partnerId:fromId,partnerName:data.fromName,myOffer:[null,null,null,null,null],theirOffer:[null,null,null,null,null],myAccepted:false,theirAccepted:false};
+        _openTradeUI();
+      }
+      break;
     case 'trade_update':
-      if(tradeState&&tradeState.partnerId===fromId){tradeState.theirOffer=data.offer;tradeState.theirAccepted=data.accepted;_renderTradeUI()}break;
-    case 'trade_complete':
-      if(tradeState){for(var i=0;i<data.received.length;i++)_addInvLocal(data.received[i].itemId,data.received[i].quantity);tradeState.myOffer=[null,null,null,null,null];_showToast('Troca realizada!','ok');_closeTradeUI();if(invOpen)_renderInv()}break;
+      if(tradeState&&tradeState.partnerId===fromId){
+        tradeState.theirOffer=data.offer;
+        tradeState.theirAccepted=data.accepted;
+        _renderTradeUI();
+      }
+      break;
+    case 'trade_lock_reset':
+      /* Se o outro jogador mexer nos itens dele, reseta as confirmacoes locais de ambos p/ seguranca */
+      if(tradeState && tradeState.partnerId === fromId) {
+        tradeState.myAccepted = false;
+        tradeState.theirAccepted = false;
+        _renderTradeUI();
+      }
+      break;
+    case 'trade_pre_commit':
+      /* Fase 1 do Two-Phase Commit: Dedução Local */
+      if (tradeState && tradeState.partnerId === fromId) {
+        var preCheck = _verifyLocalOfferItems(tradeState.myOffer);
+        if (preCheck) {
+          /* Consome localmente ANTES de receber para evitar Dupe por Race Condition */
+          _deductLocalOffer(tradeState.myOffer);
+          _sendTo(fromId, { type: 'trade_pre_commit_ok' });
+        } else {
+          _sendTo(fromId, { type: 'trade_failed', msg: 'Falha de inventario do parceiro' });
+          _cancelTrade();
+        }
+      }
+      break;
+    case 'trade_pre_commit_ok':
+      /* Fase 2 do Two-Phase Commit: Dedução Host/Iniciante */
+      if (tradeState && tradeState.partnerId === fromId) {
+        _deductLocalOffer(tradeState.myOffer);
+        _executeLocalAddition(tradeState.theirOffer);
+        _sendTo(fromId, { type: 'trade_final_complete', sent: tradeState.myOffer });
+        _showToast('Troca realizada com sucesso!','ok');
+        tradeState.myOffer = [null,null,null,null,null];
+        _closeTradeUI();
+        if (invOpen) _renderInv();
+      }
+      break;
+    case 'trade_final_complete':
+      /* Conclusão atômica final */
+      if (tradeState && tradeState.partnerId === fromId) {
+        _executeLocalAddition(data.sent);
+        _showToast('Troca realizada com sucesso!','ok');
+        tradeState.myOffer = [null,null,null,null,null];
+        _closeTradeUI();
+        if (invOpen) _renderInv();
+      }
+      break;
+    case 'trade_failed':
+      _showToast(data.msg || 'A troca falhou!', 'err');
+      _cancelTrade();
+      break;
     case 'trade_cancelled':
       if(tradeState&&tradeState.partnerId===fromId){_showToast('Troca cancelada','info');_closeTradeUI()}break;
     case 'notification':
@@ -386,18 +642,25 @@ function _handleMsgBase(data,fromId){
   }
 }
 
-/* Host: processa mensagens de clientes */
 function _handleHostMsg(data,fromId){
   switch(data.type){
     case 'input':if(players[fromId]){players[fromId].x=data.x;players[fromId].y=data.y;players[fromId].angle=data.angle}break;
-    case 'chat':_broadcast({type:'chat',from:players[fromId]?players[fromId].name:'Jogador',message:data.message,color:players[fromId]?players[fromId].color:'#fff'});_addChat(players[fromId]?players[fromId].name:'Jogador',data.message,players[fromId]?players[fromId].color:'#fff');break;
+    case 'chat':
+      _broadcast({type:'chat',from:players[fromId]?players[fromId].name:'Jogador',message:data.message,color:players[fromId]?players[fromId].color:'#fff'});
+      _addChat(players[fromId]?players[fromId].name:'Jogador',data.message,players[fromId]?players[fromId].color:'#fff');
+      if (players[fromId]) players[fromId].chatBubble = { text: data.message, expires: Date.now() + 6000 };
+      break;
     case 'pickup':_hostPickup(data,fromId);break;
     case 'drop':_hostDrop(data,fromId);break;
     case 'use':_hostUse(data,fromId);break;
     case 'trade_request':
       if(players[data.targetId]&&players[fromId]){if(_dist(players[fromId],players[data.targetId])<TRADE_DIST)_sendTo(data.targetId,{type:'trade_request',fromId:fromId,fromName:players[fromId].name});else _sendTo(fromId,{type:'notification',message:'Jogador muito longe!',msgType:'err'})}break;
     case 'trade_update':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_update',offer:data.offer,accepted:data.accepted});break;
-    case 'trade_complete':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_complete',received:data.sent});break;
+    case 'trade_lock_reset':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_lock_reset'});break;
+    case 'trade_pre_commit':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_pre_commit'});break;
+    case 'trade_pre_commit_ok':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_pre_commit_ok'});break;
+    case 'trade_final_complete':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_final_complete',sent:data.sent});break;
+    case 'trade_failed':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_failed',msg:data.msg});break;
     case 'trade_cancel':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_cancelled'});break;
   }
 }
@@ -424,14 +687,13 @@ function _hostUse(data,fromId){
   _sendTo(fromId,{type:'use_result',success:true,itemId:data.itemId,slot:data.slot,stat:def.use,val:def.val,newQty:(data.qty||1)-1});
 }
 
-/* Funcao principal de tratamento - dispatcha host vs client */
 function _handleMsg(data,fromId){
   if(isHost&&fromId!==myId){_handleHostMsg(data,fromId);return}
   _handleMsgBase(data,fromId);
 }
 
 /* ============================================================
-   LOGICA DO JOGO
+   LOGICA DO JOGO / SIMULACAO DE BOTS
    ============================================================ */
 function _initGroundItems(){
   groundItems=[];
@@ -452,13 +714,22 @@ function _updateLocalPlayer(){
   if(_canMove(p.x+dx,p.y))p.x+=dx;
   if(_canMove(p.x,p.y+dy))p.y+=dy;
   var now=Date.now();
-  if(now-lastHungerTick>10000){lastHungerTick=now;p.hunger=Math.max(0,p.hunger-1);if(p.hunger<=0)p.hp=Math.max(0,p.hp-1);_updateBars()}
-  if(!isHost)_sendTo(Object.keys(conns)[0],{type:'input',x:p.x,y:p.y,angle:p.angle});
+  if(now-lastHungerTick>10000){
+    lastHungerTick=now;
+    p.hunger=Math.max(0,p.hunger-1);
+    if(p.hunger<=0)p.hp=Math.max(0,p.hp-1);
+    _updateBars();
+  }
+  if(!isHost && !isSimulated)_sendTo(Object.keys(conns)[0],{type:'input',x:p.x,y:p.y,angle:p.angle});
 }
 
 function _hostUpdate(){
   if(!isHost)return;
   var now=Date.now();
+  
+  /* Logica dos Bots (IA) */
+  _updateSimulatedBots(now);
+
   if(now-lastStateBroadcast>50){
     lastStateBroadcast=now;
     /* Respawn itens */
@@ -467,15 +738,84 @@ function _hostUpdate(){
       var hasIt=false;for(var j=0;j<groundItems.length;j++){if(groundItems[j].spawnIdx===i){hasIt=true;break}}
       if(!hasIt){if(!spawnTimers[key])spawnTimers[key]=now;if(now-spawnTimers[key]>30000){var ni=sp.items[Math.floor(Math.random()*sp.items.length)];groundItems.push({id:'gi_'+i+'_'+now,x:sp.x,y:sp.y,itemId:ni,spawnIdx:i});delete spawnTimers[key]}}else{delete spawnTimers[key]}
     }
-    _broadcast({type:'state',players:_serPlayers(),groundItems:groundItems});
+    if(!isSimulated){
+      _broadcast({type:'state',players:_serPlayers(),groundItems:groundItems});
+    }
+  }
+}
+
+function _updateSimulatedBots(now) {
+  for (var id in players) {
+    var p = players[id];
+    if (!p.isBot) continue;
+
+    /* Decide nova acao */
+    if (!p.nextAction || now > p.nextAction) {
+      p.nextAction = now + Math.random() * 5000 + 3000;
+      
+      /* Procura por itens proximos no chao */
+      var targetItem = null;
+      var minD = 350;
+      for (var j = 0; j < groundItems.length; j++) {
+        var gd = _dist(p, groundItems[j]);
+        if (gd < minD) {
+          minD = gd;
+          targetItem = groundItems[j];
+        }
+      }
+
+      if (targetItem) {
+        p.tx = targetItem.x;
+        p.ty = targetItem.y;
+      } else {
+        /* Movimento aleatorio */
+        p.tx = p.x + (Math.random() - 0.5) * 400;
+        p.ty = p.y + (Math.random() - 0.5) * 400;
+      }
+      
+      /* Balões Habbo Aleatorios nos Bots */
+      if (Math.random() < 0.2) {
+        var msg = ['Ola!', 'Quem quer trocar?', 'Buscando suprimentos...', 'Frio demais la fora.', 'Carlos tem curas!'][Math.floor(Math.random() * 5)];
+        p.chatBubble = { text: msg, expires: now + 5000 };
+      }
+    }
+
+    /* Move o bot */
+    if (p.tx !== undefined) {
+      var dx = p.tx - p.x;
+      var dy = p.ty - p.y;
+      var d = Math.hypot(dx, dy);
+      if (d > 10) {
+        p.angle = Math.atan2(dy, dx);
+        var speed = SPEED * 0.8;
+        var stepX = (dx / d) * speed;
+        var stepY = (dy / d) * speed;
+        if (_canMove(p.x + stepX, p.y)) p.x += stepX;
+        if (_canMove(p.x, p.y + stepY)) p.y += stepY;
+      }
+    }
+
+    /* Coleta de itens do bot */
+    for (var k = groundItems.length - 1; k >= 0; k--) {
+      if (_dist(p, groundItems[k]) < PICKUP_DIST) {
+        p.botInv = p.botInv || [];
+        if (p.botInv.length < 8) {
+          p.botInv.push({ itemId: groundItems[k].itemId, quantity: 1 });
+        }
+        _spawnParts(p.x, p.y, _itemColor(groundItems[k].itemId));
+        groundItems.splice(k, 1);
+        break;
+      }
+    }
   }
 }
 
 function _handlePickup(){
   if(!players[myId])return;var p=players[myId],nearest=null,nd=PICKUP_DIST;
   for(var i=0;i<groundItems.length;i++){var d=_dist(p,groundItems[i]);if(d<nd){nd=d;nearest=groundItems[i]}}
-  if(!nearest)return;
-  if(isHost){
+  if(!nearest) return;
+  
+  if(isHost || isSimulated){
     var def=ITEMS[nearest.itemId],slot=-1,qty=1;
     if(def&&def.stack){for(var i=0;i<INV_SIZE;i++){if(inventory[i]&&inventory[i].itemId===nearest.itemId&&inventory[i].quantity<def.max){slot=i;qty=Math.min(1,def.max-inventory[i].quantity);break}}}
     if(slot<0){for(var i=0;i<INV_SIZE;i++){if(!inventory[i]){slot=i;break}}}
@@ -489,13 +829,13 @@ function _handlePickup(){
 
 function _handleDrop(){
   if(selectedSlot<0||!inventory[selectedSlot])return;var item=inventory[selectedSlot],p=players[myId];
-  if(isHost){var dx=p.x+Math.cos(p.angle||0)*30,dy=p.y+Math.sin(p.angle||0)*30;groundItems.push({id:'gd_'+Date.now(),x:dx,y:dy,itemId:item.itemId,spawnIdx:-1});inventory[selectedSlot]=null;selectedSlot=-1;_showToast('Item dropado','info');if(invOpen)_renderInv()}
+  if(isHost || isSimulated){var dx=p.x+Math.cos(p.angle||0)*30,dy=p.y+Math.sin(p.angle||0)*30;groundItems.push({id:'gd_'+Date.now(),x:dx,y:dy,itemId:item.itemId,spawnIdx:-1});inventory[selectedSlot]=null;selectedSlot=-1;_showToast('Item dropado','info');if(invOpen)_renderInv()}
   else{_sendTo(Object.keys(conns)[0],{type:'drop',slot:selectedSlot,itemId:item.itemId})}
 }
 
 function _handleUse(){
   if(selectedSlot<0||!inventory[selectedSlot])return;var item=inventory[selectedSlot],def=ITEMS[item.itemId];if(!def||!def.use)return;var p=players[myId];
-  if(isHost){if(def.use==='hp')p.hp=Math.min(100,p.hp+def.val);if(def.use==='hunger')p.hunger=Math.min(100,p.hunger+def.val);item.quantity--;if(item.quantity<=0)inventory[selectedSlot]=null;selectedSlot=-1;_showToast('Usou '+def.name,'ok');_updateBars();if(invOpen)_renderInv()}
+  if(isHost || isSimulated){if(def.use==='hp')p.hp=Math.min(100,p.hp+def.val);if(def.use==='hunger')p.hunger=Math.min(100,p.hunger+def.val);item.quantity--;if(item.quantity<=0)inventory[selectedSlot]=null;selectedSlot=-1;_showToast('Usou '+def.name,'ok');_updateBars();if(invOpen)_renderInv()}
   else{_sendTo(Object.keys(conns)[0],{type:'use',slot:selectedSlot,itemId:item.itemId,qty:item.quantity})}
 }
 
@@ -507,14 +847,94 @@ function _addInvLocal(itemId,qty){
 }
 
 /* ============================================================
-   PARTICULAS
+   DIALOGO / TROCAS COM NPCS
+   ============================================================ */
+function _checkNpcInteraction() {
+  if (!players[myId]) return;
+  var p = players[myId];
+  for (var i = 0; i < npcs.length; i++) {
+    var npc = npcs[i];
+    if (_dist(p, npc) < PICKUP_DIST) {
+      _openNpcOverlay(npc);
+      return;
+    }
+  }
+}
+
+function _openNpcOverlay(npc) {
+  activeNpc = npc;
+  npcOverlayOpen = true;
+  document.getElementById('npc-title').textContent = npc.name;
+  document.getElementById('npc-greeting').textContent = '"' + npc.greeting + '"';
+  
+  var optionsDiv = document.getElementById('npc-trade-options');
+  optionsDiv.innerHTML = '';
+  
+  npc.trades.forEach(function(trade, idx) {
+    var itemGive = ITEMS[trade.give];
+    var itemTake = ITEMS[trade.take];
+    
+    var btn = document.createElement('button');
+    btn.className = 'menu-btn primary';
+    btn.style.fontSize = '0.85rem';
+    btn.style.margin = '4px 0';
+    btn.innerHTML = 'Trocar ' + trade.qtyTake + 'x ' + itemTake.name + ' por ' + trade.qtyGive + 'x ' + itemGive.name;
+    btn.onclick = function() { _executeNpcTrade(trade); };
+    optionsDiv.appendChild(btn);
+  });
+  
+  document.getElementById('npc-overlay').classList.add('active');
+}
+
+function _closeNpcOverlay() {
+  npcOverlayOpen = false;
+  activeNpc = null;
+  document.getElementById('npc-overlay').classList.remove('active');
+}
+window._closeNpcOverlay = _closeNpcOverlay;
+
+function _executeNpcTrade(trade) {
+  /* Verifica se jogador possui o recurso solicitado */
+  var count = 0;
+  for (var i = 0; i < INV_SIZE; i++) {
+    if (inventory[i] && inventory[i].itemId === trade.take) {
+      count += inventory[i].quantity;
+    }
+  }
+  
+  if (count < trade.qtyTake) {
+    _showToast('Voce nao tem itens suficientes para essa troca!', 'err');
+    return;
+  }
+  
+  /* Consome recurso cobrado */
+  var needed = trade.qtyTake;
+  for (var i = 0; i < INV_SIZE; i++) {
+    if (inventory[i] && inventory[i].itemId === trade.take) {
+      if (inventory[i].quantity >= needed) {
+        inventory[i].quantity -= needed;
+        needed = 0;
+      } else {
+        needed -= inventory[i].quantity;
+        inventory[i].quantity = 0;
+      }
+      if (inventory[i].quantity <= 0) inventory[i] = null;
+      if (needed === 0) break;
+    }
+  }
+  
+  /* Adiciona recompensa */
+  _addInvLocal(trade.give, trade.qtyGive);
+  _showToast('Troca efetuada com o NPC!', 'ok');
+  _closeNpcOverlay();
+}
+
+/* ============================================================
+   SISTEMA DE PARTÍCULAS E RENDERIZACAO
    ============================================================ */
 function _spawnParts(x,y,color){for(var i=0;i<10;i++)particles.push({x:x,y:y,vx:(Math.random()-.5)*5,vy:(Math.random()-.5)*5,life:1,color:color,size:Math.random()*3+1})}
 function _updateParts(){for(var i=particles.length-1;i>=0;i--){var p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.96;p.vy*=.96;p.life-=.025;if(p.life<=0)particles.splice(i,1)}}
 
-/* ============================================================
-   RENDERIZACAO
-   ============================================================ */
 function _resizeCanvas(){cv.width=window.innerWidth;cv.height=window.innerHeight}
 window.addEventListener('resize',_resizeCanvas);
 
@@ -524,10 +944,10 @@ function _render(){
   camera.x+=(p.x-cv.width/2-camera.x)*.1;camera.y+=(p.y-cv.height/2-camera.y)*.1;
   camera.x=Math.max(0,Math.min(MAP_W-cv.width,camera.x));camera.y=Math.max(0,Math.min(MAP_H-cv.height,camera.y));
 
-  ctx.fillStyle='#1a3a15';ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.fillStyle='#132d12';ctx.fillRect(0,0,cv.width,cv.height);
 
   /* Grid */
-  ctx.strokeStyle='rgba(255,255,255,.025)';ctx.lineWidth=1;
+  ctx.strokeStyle='rgba(255,255,255,.015)';ctx.lineWidth=1;
   var sx=Math.floor(camera.x/TILE)*TILE,sy=Math.floor(camera.y/TILE)*TILE;
   for(var x=sx;x<camera.x+cv.width+TILE;x+=TILE){ctx.beginPath();ctx.moveTo(x-camera.x,0);ctx.lineTo(x-camera.x,cv.height);ctx.stroke()}
   for(var y=sy;y<camera.y+cv.height+TILE;y+=TILE){ctx.beginPath();ctx.moveTo(0,y-camera.y);ctx.lineTo(cv.width,y-camera.y);ctx.stroke()}
@@ -545,7 +965,7 @@ function _render(){
     ctx.fillText(((ITEMS[g.itemId]||{}).name||'?')[0],gx,gy);
   }
 
-  /* Obstaculos */
+  /* Obstaculos / Estruturas */
   for(var i=0;i<obstacles.length;i++){
     var o=obstacles[i],ox=o.x-camera.x,oy=o.y-camera.y;
     if(ox+o.w<-20||ox>cv.width+20||oy+o.h<-20||oy>cv.height+20)continue;
@@ -554,15 +974,33 @@ function _render(){
       ctx.fillStyle='#163a12';ctx.beginPath();ctx.arc(ox+o.w/2,oy+o.h/2,o.w/2,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='rgba(40,100,35,.4)';ctx.beginPath();ctx.arc(ox+o.w/2-3,oy+o.h/2-3,o.w/3,0,Math.PI*2);ctx.fill();
     }else if(o.t==='bld'){
-      ctx.fillStyle='rgba(0,0,0,.25)';ctx.fillRect(ox+4,oy+4,o.w,o.h);
+      ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(ox+8,oy+8,o.w,o.h);
       ctx.fillStyle=o.c||'#3d3d3d';ctx.fillRect(ox,oy,o.w,o.h);
-      ctx.strokeStyle='#555';ctx.lineWidth=2;ctx.strokeRect(ox,oy,o.w,o.h);
-      ctx.strokeStyle='#666';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(ox,oy);ctx.lineTo(ox+o.w,oy);ctx.stroke();
-      if(o.lbl){ctx.fillStyle='rgba(255,255,255,.15)';ctx.font='10px Share Tech Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(o.lbl,ox+o.w/2,oy+o.h/2)}
-    }else if(o.t==='wall'){ctx.fillStyle='#2a2a2a';ctx.fillRect(ox,oy,o.w,o.h)}
+      ctx.strokeStyle='rgba(255,107,53,0.3)';ctx.lineWidth=2;ctx.strokeRect(ox,oy,o.w,o.h);
+      if(o.lbl){
+        ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='12px Share Tech Mono';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(o.lbl,ox+o.w/2,oy+o.h/2);
+      }
+    }else if(o.t==='wall'){ctx.fillStyle='#151515';ctx.fillRect(ox,oy,o.w,o.h)}
   }
 
-  /* Jogadores */
+  /* NPCs no Mapa */
+  for (var i = 0; i < npcs.length; i++) {
+    var npc = npcs[i], nx = npc.x - camera.x, ny = npc.y - camera.y;
+    ctx.fillStyle = 'rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(nx,ny+14,12,5,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle = npc.color;ctx.beginPath();ctx.arc(nx,ny,PLAYER_R,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle = '#fff';ctx.lineWidth = 2;ctx.stroke();
+    
+    ctx.fillStyle = '#ffb703';ctx.font = 'bold 11px Share Tech Mono';ctx.textAlign = 'center';
+    ctx.fillText(npc.name, nx, ny - 20);
+    
+    if (_dist(p, npc) < PICKUP_DIST) {
+      ctx.fillStyle = '#fff';ctx.font = '10px Share Tech Mono';
+      ctx.fillText('[E] Falar', nx, ny + 24);
+    }
+  }
+
+  /* Jogadores (E Balao Habbo) */
   for(var id in players){
     var pl=players[id],px=pl.x-camera.x,py=pl.y-camera.y;
     if(px<-40||px>cv.width+40||py<-40||py>cv.height+40)continue;
@@ -573,7 +1011,16 @@ function _render(){
     ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px+ddx,py+ddy,3,0,Math.PI*2);ctx.fill();
     ctx.fillStyle='#fff';ctx.font='bold 11px Share Tech Mono';ctx.textAlign='center';ctx.textBaseline='bottom';
     ctx.fillText(pl.name,px,py-20);
-    if(id!==myId&&_dist(p,pl)<TRADE_DIST&&!tradeState){ctx.fillStyle='rgba(255,107,53,.6)';ctx.font='9px Share Tech Mono';ctx.textBaseline='top';ctx.fillText('[F] Trocar',px,py+18)}
+    
+    if(id!==myId&&_dist(p,pl)<TRADE_DIST&&!tradeState){
+      ctx.fillStyle='rgba(255,107,53,.6)';ctx.font='9px Share Tech Mono';ctx.textBaseline='top';
+      ctx.fillText('[F] Trocar',px,py+18);
+    }
+
+    /* Habbo Chat Bubble */
+    if (pl.chatBubble && Date.now() < pl.chatBubble.expires) {
+      _renderHabboBubble(pl.chatBubble.text, px, py - 36);
+    }
   }
 
   /* Particulas */
@@ -591,13 +1038,68 @@ function _render(){
   _renderMinimap();
 }
 
+/* Desenho do Balao Habbo */
+function _renderHabboBubble(text, x, y) {
+  ctx.font = '11px Share Tech Mono';
+  var padding = 8, maxW = 160;
+  var words = text.split(' '), lines = [], currentLine = '';
+  
+  for (var i = 0; i < words.length; i++) {
+    var testLine = currentLine + words[i] + ' ';
+    if (ctx.measureText(testLine).width > maxW) {
+      lines.push(currentLine);
+      currentLine = words[i] + ' ';
+    } else {
+      currentLine = testLine;
+    }
+  }
+  lines.push(currentLine);
+
+  var bubbleW = 0;
+  lines.forEach(function(l){
+    var w = ctx.measureText(l).width;
+    if (w > bubbleW) bubbleW = w;
+  });
+  bubbleW = Math.min(bubbleW + padding*2, maxW + padding*2);
+  var bubbleH = lines.length * 13 + padding*2;
+  var bx = x - bubbleW/2, by = y - bubbleH;
+
+  /* Sombra / Borda */
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bubbleW, bubbleH, 6);
+  ctx.fill();
+  ctx.stroke();
+
+  /* Rabicho do balao */
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.beginPath();
+  ctx.moveTo(x - 6, by + bubbleH);
+  ctx.lineTo(x, by + bubbleH + 6);
+  ctx.lineTo(x + 6, by + bubbleH);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  /* Texto */
+  ctx.fillStyle = '#000000';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  lines.forEach(function(line, idx){
+    ctx.fillText(line.trim(), x, by + padding + idx*13);
+  });
+}
+
 function _renderMinimap(){
   var s=140/MAP_W;
-  mmCtx.fillStyle='#0d1f0a';mmCtx.fillRect(0,0,140,140);
-  for(var i=0;i<obstacles.length;i++){var o=obstacles[i];if(o.t==='wall')continue;mmCtx.fillStyle=o.t==='bld'?'#333':'#0a2a08';mmCtx.fillRect(o.x*s,o.y*s,Math.max(2,o.w*s),Math.max(2,o.h*s))}
-  for(var i=0;i<groundItems.length;i++){var g=groundItems[i];mmCtx.fillStyle='rgba(255,200,50,.6)';mmCtx.fillRect(g.x*s-1,g.y*s-1,2,2)}
+  mmCtx.fillStyle='#0b1d09';mmCtx.fillRect(0,0,140,140);
+  for(var i=0;i<obstacles.length;i++){var o=obstacles[i];if(o.t==='wall')continue;mmCtx.fillStyle=o.t==='bld'?'#444':'#061a05';mmCtx.fillRect(o.x*s,o.y*s,Math.max(2,o.w*s),Math.max(2,o.h*s))}
+  for(var i=0;i<groundItems.length;i++){var g=groundItems[i];mmCtx.fillStyle='rgba(255,200,50,.7)';mmCtx.fillRect(g.x*s-1,g.y*s-1,2,2)}
+  for(var i=0;i<npcs.length;i++){var n=npcs[i];mmCtx.fillStyle='#ffb703';mmCtx.fillRect(n.x*s-2,n.y*s-2,4,4)}
   for(var id in players){var pl=players[id];mmCtx.fillStyle=pl.color;mmCtx.beginPath();mmCtx.arc(pl.x*s,pl.y*s,id===myId?3:2,0,Math.PI*2);mmCtx.fill()}
-  mmCtx.strokeStyle='rgba(255,255,255,.3)';mmCtx.lineWidth=1;mmCtx.strokeRect(camera.x*s,camera.y*s,cv.width*s,cv.height*s);
+  mmCtx.strokeStyle='rgba(255,255,255,.2)';mmCtx.lineWidth=1;mmCtx.strokeRect(camera.x*s,camera.y*s,cv.width*s,cv.height*s);
 }
 
 /* ============================================================
@@ -634,16 +1136,37 @@ function _renderInvDet(){
 }
 
 /* ============================================================
-   TRADE UI
+   TRADE SEGURA - SEM DUPLICACAO DE ITENS
    ============================================================ */
 function _requestTrade(){
   if(tradeState||!players[myId])return;var p=players[myId],nearest=null,nd=TRADE_DIST;
   for(var id in players){if(id===myId)continue;var d=_dist(p,players[id]);if(d<nd){nd=d;nearest=id}}
   if(!nearest){_showToast('Nenhum jogador proximo!','err');return}
-  tradeState={partnerId:nearest,partnerName:players[nearest].name,myOffer:[null,null,null,null,null],theirOffer:[null,null,null,null,null],myAccepted:false,theirAccepted:false};
-  if(isHost)_sendTo(nearest,{type:'trade_request',fromId:myId,fromName:myName});
-  else _sendTo(Object.keys(conns)[0],{type:'trade_request',targetId:nearest});
-  _openTradeUI();
+  
+  var partner = players[nearest];
+  
+  /* Se o parceiro de trade for um BOT */
+  if (partner.isBot) {
+    tradeState={partnerId:nearest,partnerName:partner.name,myOffer:[null,null,null,null,null],theirOffer:[null,null,null,null,null],myAccepted:false,theirAccepted:false,isBotTrade:true};
+    _openTradeUI();
+    _showToast('Iniciando troca com o Bot...','info');
+    _simulateBotInventory(nearest);
+  } else {
+    tradeState={partnerId:nearest,partnerName:partner.name,myOffer:[null,null,null,null,null],theirOffer:[null,null,null,null,null],myAccepted:false,theirAccepted:false,isBotTrade:false};
+    if(isHost)_sendTo(nearest,{type:'trade_request',fromId:myId,fromName:myName});
+    else _sendTo(Object.keys(conns)[0],{type:'trade_request',targetId:nearest});
+    _openTradeUI();
+  }
+}
+
+function _simulateBotInventory(botId) {
+  /* Alimenta os itens que o bot pode oferecer */
+  var pool = ['can', 'bandage', 'pistol_mag', 'chocolate', 'water'];
+  for (var i = 0; i < 2; i++) {
+    var randItem = pool[Math.floor(Math.random() * pool.length)];
+    tradeState.theirOffer[i] = { itemId: randItem, quantity: Math.floor(Math.random() * 2) + 1 };
+  }
+  _renderTradeUI();
 }
 
 function _openTradeUI(){
@@ -654,7 +1177,8 @@ function _openTradeUI(){
 }
 
 function _closeTradeUI(){
-  tradeState=null;document.getElementById('trade-overlay').classList.remove('active');
+  tradeState=null;
+  document.getElementById('trade-overlay').classList.remove('active');
 }
 window._closeTradeUI = _closeTradeUI;
 
@@ -685,57 +1209,190 @@ function _renderTradeUI(){
       invGrid.appendChild(slot);
     })(i);
   }
+  
   var st=document.getElementById('trade-status');
-  if(tradeState.myAccepted&&tradeState.theirAccepted)st.textContent='Ambos aceitaram! Processando...';
-  else if(tradeState.myAccepted)st.textContent='Voce aceitou. Aguardando '+tradeState.partnerName+'...';
-  else if(tradeState.theirAccepted)st.textContent=tradeState.partnerName+' aceitou!';
-  else st.textContent='Adicione itens e aceite';
+  var btnAccept = document.getElementById('btn-accept-trade');
+  
+  if(tradeState.myAccepted && tradeState.theirAccepted) {
+    st.textContent='Processando troca com segurança...';
+    btnAccept.classList.add('locked');
+  } else if(tradeState.myAccepted) {
+    st.textContent='Voce confirmou. Modificar itens cancelara seu aceite.';
+    btnAccept.classList.add('locked');
+  } else if(tradeState.theirAccepted) {
+    st.textContent=tradeState.partnerName+' confirmou e aguarda voce!';
+    btnAccept.classList.remove('locked');
+  } else {
+    st.textContent='Adicione itens e clique em Confirmar.';
+    btnAccept.classList.remove('locked');
+  }
 }
 
 function _addToTrade(invSlot){
-  if(!tradeState||!inventory[invSlot])return;var item=inventory[invSlot],def=ITEMS[item.itemId],placed=false;
+  if(!tradeState||!inventory[invSlot])return;
+  
+  /* Regra Anti-Theft: Qualquer mudanca reseta a confirmacao local */
+  tradeState.myAccepted = false;
+  tradeState.theirAccepted = false;
+  
+  var item=inventory[invSlot],def=ITEMS[item.itemId],placed=false;
   if(def.stack){for(var i=0;i<TRADE_SLOTS;i++){if(tradeState.myOffer[i]&&tradeState.myOffer[i].itemId===item.itemId){var add=Math.min(item.quantity,def.max-tradeState.myOffer[i].quantity);if(add>0){tradeState.myOffer[i].quantity+=add;item.quantity-=add;if(item.quantity<=0)inventory[invSlot]=null;placed=true;break}}}}
   if(!placed){for(var i=0;i<TRADE_SLOTS;i++){if(!tradeState.myOffer[i]){tradeState.myOffer[i]={itemId:item.itemId,quantity:item.quantity};inventory[invSlot]=null;placed=true;break}}}
   if(!placed){_showToast('Oferta cheia!','err');return}
-  tradeState.myAccepted=false;_sendTradeUpdate();_renderTradeUI();
+  
+  _sendTradeUpdate();
+  _sendLockReset();
+  _renderTradeUI();
 }
 
 function _removeFromTrade(offerSlot){
-  if(!tradeState||!tradeState.myOffer[offerSlot])return;var item=tradeState.myOffer[offerSlot];
-  _addInvLocal(item.itemId,item.quantity);tradeState.myOffer[offerSlot]=null;
-  tradeState.myAccepted=false;_sendTradeUpdate();_renderTradeUI();
+  if(!tradeState||!tradeState.myOffer[offerSlot])return;
+  
+  /* Reseta confirmacoes diante de alterações */
+  tradeState.myAccepted = false;
+  tradeState.theirAccepted = false;
+  
+  var item=tradeState.myOffer[offerSlot];
+  _addInvLocal(item.itemId,item.quantity);
+  tradeState.myOffer[offerSlot]=null;
+  
+  _sendTradeUpdate();
+  _sendLockReset();
+  _renderTradeUI();
 }
 
 function _sendTradeUpdate(){
-  if(!tradeState)return;
+  if(!tradeState || tradeState.isBotTrade)return;
   if(isHost)_sendTo(tradeState.partnerId,{type:'trade_update',offer:tradeState.myOffer,accepted:tradeState.myAccepted});
   else _sendTo(Object.keys(conns)[0],{type:'trade_update',targetId:tradeState.partnerId,offer:tradeState.myOffer,accepted:tradeState.myAccepted});
 }
 
+function _sendLockReset() {
+  if(!tradeState || tradeState.isBotTrade)return;
+  if(isHost)_sendTo(tradeState.partnerId,{type:'trade_lock_reset'});
+  else _sendTo(Object.keys(conns)[0],{type:'trade_lock_reset',targetId:tradeState.partnerId});
+}
+
 function _acceptTrade(){
-  if(!tradeState)return;var hasI=false,theyHas=false;
+  if(!tradeState)return;
+  var hasI=false,theyHas=false;
   for(var i=0;i<TRADE_SLOTS;i++){if(tradeState.myOffer[i])hasI=true;if(tradeState.theirOffer[i])theyHas=true}
   if(!hasI&&!theyHas){_showToast('Adicione itens primeiro!','err');return}
-  tradeState.myAccepted=true;_sendTradeUpdate();_renderTradeUI();
-  if(tradeState.myAccepted&&tradeState.theirAccepted)_completeTrade();
+  
+  tradeState.myAccepted=true;
+  _sendTradeUpdate();
+  _renderTradeUI();
+  
+  if (tradeState.isBotTrade) {
+    /* Simula aceite do Bot baseado no valor monetario */
+    var myVal = 0, botVal = 0;
+    tradeState.myOffer.forEach(function(o){if(o) myVal += ITEMS[o.itemId].price * o.quantity;});
+    tradeState.theirOffer.forEach(function(o){if(o) botVal += ITEMS[o.itemId].price * o.quantity;});
+    
+    if (myVal >= botVal * 0.9) {
+      setTimeout(function(){
+        if(tradeState && tradeState.isBotTrade){
+          tradeState.theirAccepted = true;
+          _renderTradeUI();
+          _completeBotTrade();
+        }
+      }, 1000);
+    } else {
+      _showToast('O bot achou sua oferta barata demais!','err');
+      tradeState.myAccepted = false;
+      _renderTradeUI();
+    }
+  } else {
+    if(tradeState.myAccepted && tradeState.theirAccepted) {
+      _initiateSecureTradeCommit();
+    }
+  }
 }
 window._acceptTrade = _acceptTrade;
 
-function _completeTrade(){
+/* Protocolo de Transação Segura em Duas Etapas (Anti-Dupe / Anti-Theft) */
+function _initiateSecureTradeCommit() {
+  if (!tradeState) return;
+  
+  /* Passo 1 local: Verifica integridade física dos itens ANTES da transação */
+  var check = _verifyLocalOfferItems(tradeState.myOffer);
+  if (!check) {
+    _showToast('Seus itens foram alterados. Troca cancelada.', 'err');
+    _cancelTrade();
+    return;
+  }
+  
+  /* Envia sinalizador para pré-dedução do parceiro */
+  if (isHost) {
+    _sendTo(tradeState.partnerId, { type: 'trade_pre_commit' });
+  } else {
+    _sendTo(Object.keys(conns)[0], { type: 'trade_pre_commit', targetId: tradeState.partnerId });
+  }
+}
+
+function _verifyLocalOfferItems(offer) {
+  /* Valida se o jogador realmente detem os recursos declarados na trade */
+  var counts = {};
+  offer.forEach(function(o) {
+    if (o) counts[o.itemId] = (counts[o.itemId] || 0) + o.quantity;
+  });
+  
+  for (var itemId in counts) {
+    var inInv = 0;
+    inventory.forEach(function(slot) {
+      if (slot && slot.itemId === itemId) inInv += slot.quantity;
+    });
+    if (inInv < counts[itemId]) return false;
+  }
+  return true;
+}
+
+function _deductLocalOffer(offer) {
+  /* Reduz os itens oferecidos do inventário de forma atomica */
+  offer.forEach(function(o) {
+    if (!o) return;
+    var rem = o.quantity;
+    for (var i = 0; i < INV_SIZE; i++) {
+      if (inventory[i] && inventory[i].itemId === o.itemId) {
+        if (inventory[i].quantity > rem) {
+          inventory[i].quantity -= rem;
+          rem = 0;
+        } else {
+          rem -= inventory[i].quantity;
+          inventory[i] = null;
+        }
+        if (rem === 0) break;
+      }
+    }
+  });
+}
+
+function _executeLocalAddition(offer) {
+  /* Adiciona itens recebidos na transação */
+  offer.forEach(function(o) {
+    if (o) _addInvLocal(o.itemId, o.quantity);
+  });
+}
+
+function _completeBotTrade() {
   if(!tradeState)return;
-  for(var i=0;i<TRADE_SLOTS;i++){if(tradeState.theirOffer[i])_addInvLocal(tradeState.theirOffer[i].itemId,tradeState.theirOffer[i].quantity)}
-  var sent=tradeState.myOffer.filter(function(o){return o!==null});
-  tradeState.myOffer=[null,null,null,null,null];
-  if(isHost)_sendTo(tradeState.partnerId,{type:'trade_complete',received:sent});
-  else _sendTo(Object.keys(conns)[0],{type:'trade_complete',targetId:tradeState.partnerId,sent:sent});
-  _showToast('Troca realizada!','ok');_closeTradeUI();
+  _deductLocalOffer(tradeState.myOffer);
+  _executeLocalAddition(tradeState.theirOffer);
+  _showToast('Troca efetuada com o Bot!','ok');
+  _closeTradeUI();
+  if(invOpen)_renderInv();
 }
 
 function _cancelTrade(){
   if(!tradeState)return;
+  
+  /* Retorna itens reservados de volta para o inventario */
   for(var i=0;i<TRADE_SLOTS;i++){if(tradeState.myOffer[i])_addInvLocal(tradeState.myOffer[i].itemId,tradeState.myOffer[i].quantity)}
-  if(isHost)_sendTo(tradeState.partnerId,{type:'trade_cancel'});
-  else _sendTo(Object.keys(conns)[0],{type:'trade_cancel',targetId:tradeState.partnerId});
+  
+  if(!tradeState.isBotTrade) {
+    if(isHost)_sendTo(tradeState.partnerId,{type:'trade_cancel'});
+    else _sendTo(Object.keys(conns)[0],{type:'trade_cancel',targetId:tradeState.partnerId});
+  }
   _closeTradeUI();
 }
 window._cancelTrade = _cancelTrade;
@@ -753,8 +1410,15 @@ function _addChat(from,msg,color){
 
 function _sendChat(){
   var inp=document.getElementById('chat-input'),msg=inp.value.trim();if(!msg)return;inp.value='';
-  if(isHost){_broadcast({type:'chat',from:myName,message:msg,color:players[myId]?players[myId].color:'#fff'});_addChat(myName,msg,players[myId]?players[myId].color:'#fff')}
-  else{_sendTo(Object.keys(conns)[0],{type:'chat',message:msg});_addChat(myName,msg,players[myId]?players[myId].color:'#fff')}
+  if (players[myId]) players[myId].chatBubble = { text: msg, expires: Date.now() + 6000 };
+  
+  if(isHost || isSimulated){
+    _broadcast({type:'chat',from:myName,message:msg,color:players[myId]?players[myId].color:'#fff'});
+    _addChat(myName,msg,players[myId]?players[myId].color:'#fff');
+  }else{
+    _sendTo(Object.keys(conns)[0],{type:'chat',message:msg});
+    _addChat(myName,msg,players[myId]?players[myId].color:'#fff');
+  }
 }
 window._sendChat = _sendChat;
 
@@ -779,18 +1443,82 @@ document.addEventListener('keydown',function(e){
   if(chatFocused){if(e.key==='Enter'){_sendChat();document.getElementById('chat-input').blur();chatFocused=false;e.preventDefault()}if(e.key==='Escape'){document.getElementById('chat-input').blur();chatFocused=false;e.preventDefault()}return}
   var k=e.key.toLowerCase();keys[k]=true;
   if(k==='tab'){e.preventDefault();invOpen?_closeInv():_openInv()}
-  if(k==='e'&&!invOpen&&!tradeState)_handlePickup();
+  if(k==='e'&&!invOpen&&!tradeState) {
+    _handlePickup();
+    _checkNpcInteraction();
+  }
   if(k==='f'&&!invOpen&&!tradeState)_requestTrade();
   if(k==='t'){e.preventDefault();document.getElementById('chat-input').focus();chatFocused=true}
-  if(k==='escape'){if(tradeState)_cancelTrade();else if(invOpen)_closeInv()}
+  if(k==='escape'){if(tradeState)_cancelTrade();else if(invOpen)_closeInv();else if(npcOverlayOpen)_closeNpcOverlay()}
 });
 document.addEventListener('keyup',function(e){keys[e.key.toLowerCase()]=false});
 document.getElementById('chat-input').addEventListener('focus',function(){chatFocused=true});
 document.getElementById('chat-input').addEventListener('blur',function(){chatFocused=false});
 
 /* ============================================================
-   MENU
+   SISTEMA DE LOBBIES DO MENU PRINCIPAL / ENTRADA EM PARTIDAS
    ============================================================ */
+function _renderLobbies() {
+  var list = document.getElementById('lobby-list');
+  list.innerHTML = '';
+  PUBLIC_LOBBIES.forEach(function(l) {
+    var item = document.createElement('div');
+    item.className = 'lobby-item';
+    item.innerHTML = '\
+      <div class="lobby-info">\
+        <div class="lobby-name">' + l.name + '</div>\
+        <div class="lobby-meta">\
+          <span>Regiao: ' + l.country + '</span>\
+          <span class="lobby-ping"><i class="fa-solid fa-signal"></i> ' + l.ping + 'ms</span>\
+        </div>\
+      </div>\
+      <button class="menu-btn primary" style="width: 70px; padding: 4px; font-size: 0.75rem; margin: 0;">JOGAR</button>\
+    ';
+    item.onclick = function() { _joinPublicLobby(l); };
+    list.appendChild(item);
+  });
+}
+
+function _joinPublicLobby(lobby) {
+  myName = document.getElementById('inp-name').value.trim() || 'Sobrevivente';
+  _setMenuMsg('Conectando ao Lobby ' + lobby.name + '...', '');
+  
+  if (lobby.simulated) {
+    /* Inicializa Lobbies Simulado / Solo com Bots inteligentes */
+    setTimeout(function() {
+      isSimulated = true;
+      isHost = true;
+      roomId = lobby.id;
+      myId = 'player_host';
+      colorIdx = 1;
+      
+      var sp = playerSpawns[0];
+      players[myId] = {id:myId,name:myName,x:sp.x,y:sp.y,color:PLAYER_COLORS[0],hp:100,hunger:100,angle:0};
+      _initGroundItems();
+
+      /* Gera Bots Sobreviventes autônomos pelo mapa */
+      var names = ['Scavenger_Vilela', 'Trader_John', 'Scrap_Metal', 'Rato_Loot', 'Survivalist_Sonia'];
+      for (var i = 0; i < lobby.players; i++) {
+        var botId = 'bot_' + i;
+        var bsp = playerSpawns[(i + 1) % playerSpawns.length];
+        players[botId] = {
+          id: botId,
+          name: names[i % names.length],
+          x: bsp.x,
+          y: bsp.y,
+          color: _nextColor(),
+          hp: 100,
+          hunger: 100,
+          angle: 0,
+          isBot: true,
+          botInv: []
+        };
+      }
+      _startGameUI();
+    }, 1000);
+  }
+}
+
 function _doCreate(){
   myName=document.getElementById('inp-name').value.trim()||'Jogador';
   var code=_genCode();roomId=code;
@@ -844,9 +1572,10 @@ function _startGameUI(){
 
 function _backToMenu(){
   gameRunning=false;
+  _disableMic();
   if(peer){try{peer.destroy()}catch(e){}peer=null}
   conns={};players={};groundItems=[];particles=[];inventory=[];for(var i=0;i<INV_SIZE;i++)inventory.push(null);
-  tradeState=null;invOpen=false;selectedSlot=-1;spawnTimers={};
+  tradeState=null;invOpen=false;selectedSlot=-1;spawnTimers={};isSimulated=false;
   document.getElementById('game').style.display='none';
   document.getElementById('menu').style.display='flex';
   document.getElementById('inv-overlay').classList.remove('active');
@@ -866,7 +1595,11 @@ function _backToMenu(){
    ============================================================ */
 function _gameLoop(){
   if(!gameRunning)return;
-  _updateLocalPlayer();_updateParts();_hostUpdate();_render();
+  _updateLocalPlayer();
+  _updateParts();
+  _hostUpdate();
+  _updateVoiceVolumes();
+  _render();
   requestAnimationFrame(_gameLoop);
 }
 
@@ -876,6 +1609,7 @@ function _gameLoop(){
 var nameHints=['Sobrevivente','Nomade','Mercador','Explorador','Coletor','Flanelinha','Troca-Tudo','Catador','Refugiado','Estranho'];
 document.getElementById('inp-name').value=nameHints[Math.floor(Math.random()*nameHints.length)];
 _resizeCanvas();
+_renderLobbies();
 </script>
 </body>
 </html>
