@@ -3,1410 +3,819 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebRTC Sandbox & FiveM Inventory P2P</title>
-    <!-- Tailwind CSS -->
+    <title>Multiplayer P2P Game & Trade</title>
+    <!-- Tailwind CSS para estilização moderna e rápida -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- PeerJS -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <!-- PeerJS para conexão multiplayer P2P direta -->
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <style>
-        #chatMessages::-webkit-scrollbar, #nearbyPlayersList::-webkit-scrollbar {
-            width: 6px;
+        /* Estilos customizados adicionais para o clima FiveM */
+        .fivem-bg {
+            background-color: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(10px);
         }
-        #chatMessages::-webkit-scrollbar-track, #nearbyPlayersList::-webkit-scrollbar-track {
-            background: #0f172a;
+        .inventory-slot {
+            background: rgba(35, 35, 35, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
         }
-        #chatMessages::-webkit-scrollbar-thumb, #nearbyPlayersList::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 3px;
+        .inventory-slot:hover {
+            border-color: rgba(255, 165, 0, 0.6);
+            background: rgba(45, 45, 45, 0.9);
         }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-500/30 overflow-x-hidden">
+<body class="bg-zinc-900 text-white font-sans overflow-hidden select-none">
 
-    <!-- MENU INICIAL / SETUP DE AVATAR & SALAS -->
-    <div id="setupModal" class="fixed inset-0 bg-slate-950/98 flex items-center justify-center z-50 p-4">
-        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
-            
-            <div id="loadingOverlay" class="hidden absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center rounded-2xl z-50">
-                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mb-4"></div>
-                <p id="loadingText" class="text-indigo-300 font-semibold text-sm">Conectando ao sinal WebRTC...</p>
-            </div>
-
-            <h2 class="text-2xl font-bold mb-1 text-center text-indigo-400">🎮 WebRTC RP Sandbox</h2>
-            <p class="text-slate-400 text-xs mb-6 text-center">Multiplayer 2D com Inventário FiveM e Trocas P2P</p>
+    <!-- TELA DE MENU INICIAL -->
+    <div id="menu-screen" class="fixed inset-0 flex flex-col items-center justify-center bg-zinc-950 z-50">
+        <div class="bg-zinc-900 p-8 rounded-lg border border-zinc-800 shadow-2xl max-w-md w-full text-center">
+            <h1 class="text-3xl font-extrabold tracking-wider text-orange-500 mb-6 uppercase">P2P Survival & Trade</h1>
+            <p class="text-sm text-zinc-400 mb-8">Conecte-se com jogadores de qualquer lugar do mundo de forma direta.</p>
             
             <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Seu Apelido</label>
-                    <input id="usernameInput" type="text" maxlength="12" value="Cidadão" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
-                </div>
-                
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Sua Cor</label>
-                    <div class="grid grid-cols-6 gap-2" id="colorContainer"></div>
-                    <div class="flex items-center gap-2 mt-3">
-                        <span class="text-xs text-slate-400">Customizada:</span>
-                        <input id="customColorInput" type="color" value="#6366f1" class="w-8 h-8 rounded border border-zinc-700 bg-zinc-800 cursor-pointer">
-                    </div>
-                </div>
-
-                <div class="border-t border-zinc-800 pt-4 flex flex-col gap-2">
-                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Acesso ao Servidor</label>
-                    
-                    <!-- Botões principais de salas -->
-                    <div class="grid grid-cols-2 gap-2" id="mainLobbyActions">
-                        <button id="btnCreateRoomOpt" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-lg text-sm transition">
-                            Criar Sala
-                        </button>
-                        <button id="btnSearchRoomOpt" class="bg-zinc-800 hover:bg-zinc-700 text-slate-200 font-semibold py-2.5 rounded-lg text-sm transition">
-                            Buscar Sala
-                        </button>
-                    </div>
-
-                    <!-- Input para buscar sala (oculto por padrão) -->
-                    <div id="searchRoomForm" class="hidden space-y-2 mt-2">
-                        <input id="roomCodeInput" type="text" placeholder="Código da Sala (ex: B8K3R9)" maxlength="6" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase tracking-widest font-mono text-sm">
-                        <div class="flex gap-2">
-                            <button id="btnConnectByCode" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 rounded-lg text-xs transition">
-                                Conectar
-                            </button>
-                            <button id="btnBackToMenu" class="bg-zinc-800 hover:bg-zinc-700 text-slate-400 font-semibold py-2 px-3 rounded-lg text-xs transition">
-                                Voltar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- NOTIFICAÇÃO DE TROCA RECEBIDA (POPUP) -->
-    <div id="tradeInvitePopup" class="hidden fixed bottom-6 right-6 bg-zinc-900 border-2 border-indigo-500 rounded-xl p-4 shadow-2xl text-white max-w-xs z-50 animate-bounce">
-        <p class="text-xs text-zinc-400">🤝 Proposta de Negócio</p>
-        <p id="tradeInviteText" class="text-sm font-bold mt-1">Jogador deseja trocar com você.</p>
-        <div class="flex gap-2 mt-3">
-            <button id="btnAcceptInvite" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded text-xs transition">Aceitar</button>
-            <button id="btnDeclineInvite" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 rounded text-xs transition">Recusar</button>
-        </div>
-    </div>
-
-    <!-- TELA DE NEGOCIAÇÃO (TRADE SYSTEM) -->
-    <div id="tradeModal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-40 p-4">
-        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl text-white flex flex-col gap-4">
-            <h3 class="text-lg font-bold text-center text-indigo-400 border-b border-zinc-800 pb-3 flex items-center justify-center gap-2">
-                🤝 Negociação Direta
-            </h3>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Esquerda: Sua Oferta -->
-                <div class="bg-zinc-950/40 p-4 rounded-xl border border-zinc-800 flex flex-col gap-2">
-                    <h4 class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Sua Oferta</h4>
-                    <div id="myOfferGrid" class="grid grid-cols-3 gap-2 p-2 bg-zinc-900/50 rounded-lg min-h-[90px]"></div>
-                    <button id="btnConfirmTrade" class="mt-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 rounded-lg transition text-xs">
-                        Confirmar Oferta
-                    </button>
-                    <span id="myTradeStatus" class="text-center text-[9px] text-zinc-500 font-bold uppercase mt-1">Aguardando</span>
-                </div>
-                
-                <!-- Direita: Oferta do Parceiro -->
-                <div class="bg-zinc-950/40 p-4 rounded-xl border border-zinc-800 flex flex-col gap-2">
-                    <h4 id="partnerOfferTitle" class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Oferta de Parceiro</h4>
-                    <div id="partnerOfferGrid" class="grid grid-cols-3 gap-2 p-2 bg-zinc-900/50 rounded-lg min-h-[90px]"></div>
-                    <button id="btnCancelTrade" class="mt-2 w-full bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2 rounded-lg transition text-xs">
-                        Cancelar Negócio
-                    </button>
-                    <span id="partnerTradeStatus" class="text-center text-[9px] text-zinc-500 font-bold uppercase mt-1">Aguardando</span>
-                </div>
-            </div>
-            
-            <!-- Selecionador de Itens para Troca -->
-            <div class="border-t border-zinc-800 pt-3">
-                <p class="text-[11px] text-zinc-400 mb-2">Selecione um item do seu inventário abaixo para colocar na mesa:</p>
-                <div id="tradeInventoryGrid" class="flex gap-2 overflow-x-auto pb-2 h-20"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- INVENTÁRIO ESTILO FIVEM (GRID OVERLAY) -->
-    <div id="inventoryOverlay" class="hidden fixed inset-0 bg-slate-950/80 flex items-center justify-center z-30 p-4 backdrop-blur-sm">
-        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-3xl w-full p-6 shadow-2xl text-white flex flex-col gap-4 relative">
-            <button onclick="toggleInventory()" class="absolute top-4 right-4 text-zinc-500 hover:text-zinc-200">✕</button>
-            
-            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
-                <h3 class="text-lg font-bold text-indigo-400 flex items-center gap-2">🎒 Inventário do Cidadão</h3>
-                <span class="text-xs text-zinc-500">[TAB] ou [I] para Fechar</span>
-            </div>
-            
-            <div class="flex flex-col md:flex-row gap-6">
-                <!-- Grid de Itens (Esquerda) -->
-                <div class="grid grid-cols-4 gap-2 bg-zinc-950/40 p-4 rounded-xl border border-zinc-800 max-w-lg w-full" id="inventoryGrid">
-                    <!-- Gerado de forma dinâmica por JS -->
-                </div>
-                
-                <!-- Interações / Trocas (Direita) -->
-                <div class="flex-1 bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 flex flex-col justify-between">
-                    <div>
-                        <h4 class="text-xs font-bold text-zinc-400 border-b border-zinc-800 pb-2 mb-3 uppercase tracking-wider">🤝 Jogadores Conectados</h4>
-                        <div class="space-y-2 max-h-48 overflow-y-auto pr-1" id="nearbyPlayersList"></div>
-                    </div>
-                    
-                    <div class="mt-4 pt-3 border-t border-zinc-800 text-xs text-zinc-400 space-y-1">
-                        <p>🎒 Equipado: <span id="equipIndicator" class="text-indigo-400 font-bold">Nenhum</span></p>
-                        <p>💵 Saldo Total: <span id="moneyIndicator" class="text-emerald-400 font-bold">$500</span></p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- FLOATING ACTIONS DO ITEM CLICADO -->
-    <div id="actionMenu" class="hidden absolute bg-zinc-950 border border-zinc-700 rounded-lg shadow-2xl p-2 z-50 flex flex-col gap-1 w-28">
-        <button id="actionBtnUse" class="hover:bg-zinc-800 text-left px-2 py-1 text-xs font-semibold rounded"></button>
-        <button id="actionBtnDrop" class="hover:bg-rose-950 hover:text-rose-300 text-left px-2 py-1 text-xs font-semibold rounded">Descartar</button>
-        <button id="actionBtnCancel" class="hover:bg-zinc-800 text-left px-2 py-1 text-xs rounded text-zinc-500">Voltar</button>
-    </div>
-
-    <!-- UI PRINCIPAL -->
-    <header class="p-4 border-b border-slate-900 bg-slate-900/50 backdrop-blur">
-        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
-            <h1 class="text-md font-bold text-slate-100 flex items-center gap-2">
-                🟢 <span class="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">P2P RP Sandbox</span>
-            </h1>
-            <div class="flex items-center gap-3">
-                <span id="roomStatus" class="px-3 py-1 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">Iniciando...</span>
-                <span id="playerCount" class="text-xs text-slate-400 font-medium">Jogadores: 1</span>
-            </div>
-        </div>
-    </header>
-
-    <main class="flex-1 max-w-6xl w-full mx-auto p-4 flex flex-col lg:flex-row gap-4 justify-center items-stretch relative">
-        <div class="flex-1 flex flex-col">
-            <div class="flex justify-between items-center mb-2">
-                <!-- Botão de Inventário -->
-                <button onclick="toggleInventory()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-indigo-500/10">
-                    🎒 Abrir Inventário [I]
+                <button id="btn-create-room" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 px-6 rounded transition">
+                    Criar Nova Sala
                 </button>
-                <button id="btnCopyLink" class="hidden px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-slate-300 rounded-lg text-xs font-medium transition border border-zinc-800 flex items-center gap-1.5">
-                    🔗 Código da Sala: <span id="copyCodeText" class="font-mono font-bold text-indigo-400">------</span>
-                </button>
+                
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-zinc-800"></div>
+                    <span class="flex-shrink mx-4 text-zinc-500 text-xs uppercase">Ou</span>
+                    <div class="flex-grow border-t border-zinc-800"></div>
+                </div>
+
+                <div class="space-y-2">
+                    <input type="text" id="join-code" placeholder="Insira o código da sala" 
+                           class="w-full bg-zinc-800 border border-zinc-700 rounded px-4 py-3 text-center text-white focus:outline-none focus:border-orange-500 tracking-widest uppercase">
+                    <button id="btn-join-room" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-6 rounded border border-zinc-700 transition">
+                        Entrar por Código
+                    </button>
+                </div>
             </div>
-            <canvas id="gameCanvas" width="800" height="500" class="w-full h-auto bg-slate-950 border border-slate-800 rounded-xl shadow-2xl cursor-pointer"></canvas>
+
+            <div id="connection-status" class="mt-6 text-sm text-zinc-500"></div>
         </div>
+    </div>
+
+    <!-- TELA DO JOGO (INTERACTION HUD) -->
+    <div id="game-screen" class="hidden h-screen w-screen flex flex-col md:flex-row relative">
         
-        <div class="w-full lg:w-80 bg-slate-900 border border-slate-800 rounded-xl flex flex-col h-[280px] lg:h-auto shadow-2xl">
-            <div class="p-3 border-b border-slate-800 font-bold text-sm text-slate-300 flex justify-between items-center bg-slate-950/20">
-                <span>💬 Chat da Sala</span>
+        <!-- Área Esquerda: Jogo 2D -->
+        <div class="flex-grow h-full relative flex items-center justify-center p-4">
+            <canvas id="gameCanvas" width="800" height="600" class="bg-zinc-950 rounded border border-zinc-800 shadow-inner w-full max-w-4xl h-auto aspect-[4/3]"></canvas>
+            
+            <!-- Controles / Dicas Flutuantes -->
+            <div class="absolute bottom-6 left-6 bg-black/60 p-3 rounded text-xs text-zinc-400 space-y-1">
+                <p>🎮 Use <span class="text-white font-bold">WASD</span> ou <span class="text-white font-bold">Setas</span> para se mover</p>
+                <p>🎒 Pressione <span class="text-white font-bold">I</span> ou clique em <span class="text-white font-bold">Inventário</span></p>
             </div>
-            <div id="chatMessages" class="flex-1 p-3 overflow-y-auto space-y-2 text-xs font-mono"></div>
-            <form id="chatForm" class="p-3 border-t border-slate-800 flex gap-2">
-                <input id="chatInput" type="text" autocomplete="off" placeholder="Mensagem..." class="flex-1 bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500">
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded text-xs transition">Enviar</button>
+            
+            <!-- Barra de Ações Superior -->
+            <div class="absolute top-6 left-6 flex space-x-2">
+                <button id="btn-open-inventory" class="bg-orange-600 hover:bg-orange-500 text-white font-semibold py-2 px-4 rounded text-sm transition">
+                    Inventário (I)
+                </button>
+                <button id="btn-request-trade" class="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-2 px-4 rounded text-sm border border-zinc-700 transition hidden">
+                    🤝 Negociar
+                </button>
+            </div>
+
+            <!-- Código da Sala Flutuante -->
+            <div class="absolute top-6 right-6 bg-zinc-900/90 border border-zinc-800 p-2 rounded text-xs">
+                Sala: <span id="display-room-code" class="font-bold text-orange-500 select-all">Carregando...</span>
+            </div>
+        </div>
+
+        <!-- Área Direita: Chat Lateral -->
+        <div class="w-full md:w-80 h-1/3 md:h-full bg-zinc-900 border-t md:border-t-0 md:border-l border-zinc-800 flex flex-col">
+            <div class="p-4 border-b border-zinc-800 bg-zinc-950/50">
+                <h2 class="text-sm font-bold tracking-wider uppercase text-zinc-400">Chat Global / P2P</h2>
+            </div>
+            
+            <!-- Listagem de mensagens -->
+            <div id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-2 text-sm">
+                <div class="text-zinc-500 italic">Bem-vindo à sala! Seu companheiro aparecerá aqui assim que conectar.</div>
+            </div>
+
+            <!-- Entrada de chat -->
+            <form id="chat-form" class="p-3 border-t border-zinc-800 bg-zinc-950/30 flex space-x-2">
+                <input type="text" id="chat-input" placeholder="Digite uma mensagem..." autocomplete="off"
+                       class="flex-grow bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500">
+                <button type="submit" class="bg-orange-600 hover:bg-orange-500 px-4 py-2 rounded text-sm font-bold transition">Enviar</button>
             </form>
         </div>
-    </main>
+    </div>
 
-    <footer class="text-center py-4 text-[10px] text-slate-600 max-w-6xl mx-auto w-full">
-        RP Sandbox P2P - Feito para rodar diretamente do GitHub Pages.
-    </footer>
+    <!-- INVENTÁRIO (MODAL FIVE-M STYLE) -->
+    <div id="inventory-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black/70 z-40 p-4">
+        <div class="fivem-bg p-6 rounded-lg border border-zinc-700 shadow-2xl max-w-xl w-full">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-xl font-extrabold uppercase tracking-widest text-orange-500">Mochila</h2>
+                    <p class="text-xs text-zinc-400">Clique em um item para interagir (ou negociar se a troca estiver aberta)</p>
+                </div>
+                <button id="btn-close-inventory" class="text-zinc-400 hover:text-white text-lg font-bold">&times;</button>
+            </div>
 
-    <!-- JavaScript do Jogo -->
+            <!-- Grade de Inventário (4 colunas x 3 linhas = 12 slots) -->
+            <div id="inventory-grid" class="grid grid-cols-4 gap-3 mb-4">
+                <!-- Inserido dinamicamente via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- PAINEL DE TROCA (TRADE) -->
+    <div id="trade-modal" class="hidden fixed inset-0 flex items-center justify-center bg-black/85 z-40 p-4">
+        <div class="fivem-bg p-6 rounded-lg border border-orange-500/30 shadow-2xl max-w-2xl w-full flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-extrabold uppercase tracking-widest text-orange-500 flex items-center gap-2">
+                    🤝 Negociação Segura
+                </h2>
+                <button id="btn-cancel-trade" class="text-zinc-400 hover:text-white text-lg font-bold">&times;</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <!-- Lado Esquerdo: Minha Oferta -->
+                <div class="bg-zinc-950/60 p-4 rounded border border-zinc-800">
+                    <h3 class="text-xs font-bold uppercase text-zinc-400 mb-2 text-center">Seus Itens Oferecidos</h3>
+                    <div id="my-trade-slots" class="grid grid-cols-2 gap-2 h-24 content-center">
+                        <!-- slots de oferta -->
+                    </div>
+                    <button id="btn-toggle-my-ready" class="w-full mt-4 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 py-2 rounded text-xs font-bold transition uppercase">
+                        Confirmar Oferta
+                    </button>
+                    <div id="my-ready-indicator" class="text-center mt-2 text-xs font-bold text-red-500">AGUARDANDO CONFIRMAÇÃO</div>
+                </div>
+
+                <!-- Lado Direito: Oferta do Parceiro -->
+                <div class="bg-zinc-950/60 p-4 rounded border border-zinc-800">
+                    <h3 class="text-xs font-bold uppercase text-zinc-400 mb-2 text-center">Itens do Parceiro</h3>
+                    <div id="peer-trade-slots" class="grid grid-cols-2 gap-2 h-24 content-center">
+                        <!-- slots de oferta do outro -->
+                    </div>
+                    <div class="h-[34px] mt-4 flex items-center justify-center bg-zinc-900 border border-zinc-800 rounded">
+                        <span class="text-xs text-zinc-500 font-semibold uppercase">Status do Parceiro</span>
+                    </div>
+                    <div id="peer-ready-indicator" class="text-center mt-2 text-xs font-bold text-red-500">AGUARDANDO CONFIRMAÇÃO</div>
+                </div>
+            </div>
+
+            <!-- Mochila de apoio para colocar itens na mesa de troca -->
+            <div class="border-t border-zinc-800 pt-4">
+                <p class="text-xs text-zinc-400 mb-2 text-center">Clique em um item do seu inventário abaixo para adicioná-lo à oferta</p>
+                <div id="trade-inventory-grid" class="grid grid-cols-6 gap-2">
+                    <!-- Mochila simplificada na troca -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICAÇÃO POPUP DE SOLICITAÇÃO DE TROCA -->
+    <div id="trade-request-toast" class="hidden fixed bottom-6 left-6 bg-zinc-950 border-2 border-orange-500 p-4 rounded-lg shadow-2xl z-50 max-w-sm">
+        <p class="text-sm mb-3">O outro jogador solicitou uma negociação com você.</p>
+        <div class="flex space-x-2">
+            <button id="btn-accept-trade-request" class="bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-4 rounded text-xs transition">Aceitar</button>
+            <button id="btn-decline-trade-request" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-2 px-4 rounded text-xs transition">Recusar</button>
+        </div>
+    </div>
+
     <script>
-        // DECLARAÇÕES GLOBAIS ESSENCIAIS
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const presetColors = ['#f87171', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#c084fc'];
-        const speed = 4;
-
-        // Configuração de servidores ICE (STUN e TURN gratuitos para atravessar firewalls estritos de VPN)
-        const customIceConfig = {
+        // CONFIGURAÇÕES DO PEERJS (Utilizando servidores STUN públicos para cruzar NATs de operadoras) [1]
+        const peerConfig = {
             config: {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:openrelay.metered.ca:80' },
-                    { 
-                        urls: 'turn:openrelay.metered.ca:80', 
-                        username: 'openrelayproject', 
-                        credential: 'openrelayproject' 
-                    },
-                    { 
-                        urls: 'turn:openrelay.metered.ca:443', 
-                        username: 'openrelayproject', 
-                        credential: 'openrelayproject' 
-                    },
-                    { 
-                        urls: 'turn:openrelay.metered.ca:443?transport=tcp', 
-                        username: 'openrelayproject', 
-                        credential: 'openrelayproject' 
-                    }
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' }
                 ]
             }
         };
 
-        // Tabelas de Drops e Itens Possíveis
-        const possibleDrops = [
-            { id: 'burger', name: 'Hambúrguer', emoji: '🍔' },
-            { id: 'chocolate', name: 'Chocolate', emoji: '🍫' },
-            { id: 'bk_meal', name: 'Combo BK', emoji: '🍱' },
-            { id: 'pistol_mag', name: 'Pente Pistol', emoji: '🔋' },
-            { id: 'ar_mag', name: 'Pente AR', emoji: '💣' },
-            { id: 'bat', name: 'Bastão', emoji: '🏏' },
-            { id: 'pistol', name: 'Pistola Glock', emoji: '🔫' },
-            { id: 'ar_pistol', name: 'Fuzil M4', emoji: '🔌' },
-            { id: 'sns_pistol', name: 'Pistola SNS', emoji: '🔫' }
+        // ESTADO GLOBAL DO JOGO
+        let peer = null;
+        let conn = null;
+        let isHost = false;
+        let roomCode = "";
+        
+        // Jogadores e Posições (Simplificado para 2 jogadores)
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let localPlayer = {
+            x: 200,
+            y: 300,
+            color: '#f97316', // Laranja
+            name: 'Você',
+            speed: 5
+        };
+        
+        let remotePlayer = null; // Preenchido quando o outro jogador conecta
+
+        const keysPressed = {};
+
+        // INVENTÁRIO (Estilo FiveM)
+        let inventory = [
+            { id: 1, name: 'Dinheiro ($500)', emoji: '💵', qty: 1 },
+            { id: 2, name: 'Bastão', emoji: '🏏', qty: 1 },
+            { id: 3, name: 'Hambúrguer BK', emoji: '🍔', qty: 3 },
+            { id: 4, name: 'Barra de Chocolate', emoji: '🍫', qty: 5 },
+            { id: 5, name: 'Pistola Glock', emoji: '🔫', qty: 1 },
+            { id: 6, name: 'Munição de Pistola', emoji: '📦', qty: 2 },
+            { id: 7, name: null, emoji: null, qty: 0 },
+            { id: 8, name: null, emoji: null, qty: 0 },
+            { id: 9, name: null, emoji: null, qty: 0 },
+            { id: 10, name: null, emoji: null, qty: 0 },
+            { id: 11, name: null, emoji: null, qty: 0 },
+            { id: 12, name: null, emoji: null, qty: 0 }
         ];
 
-        // Lógica de Lobby / Setup
-        let peer = null;
-        let myId = null;
-        let isHost = false;
-        let hostConnection = null;
-        let currentTradeId = null;
-        let pendingTradePartnerId = null;
+        // SISTEMA DE TROCA (TRADE)
+        let inTrade = false;
+        let myOffer = [null, null, null, null]; // Máximo 4 slots na negociação
+        let peerOffer = [null, null, null, null];
+        let myReady = false;
+        let peerReady = false;
 
-        const localPlayer = {
-            name: '',
-            color: presetColors[0],
-            x: Math.floor(Math.random() * 500) + 150,
-            y: Math.floor(Math.random() * 300) + 100,
-            score: 0,
-            equipped: null,
-            inventory: [
-                { id: 'money', name: 'Dinheiro', emoji: '💵', qty: 500 },
-                { id: 'burger', name: 'Hambúrguer', emoji: '🍔', qty: 1 },
-                { id: 'bat', name: 'Bastão', emoji: '🏏', qty: 1 }
-            ]
-        };
+        // SELEÇÃO DE ELEMENTOS DOM
+        const menuScreen = document.getElementById('menu-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const btnCreateRoom = document.getElementById('btn-create-room');
+        const btnJoinRoom = document.getElementById('btn-join-room');
+        const inputJoinCode = document.getElementById('join-code');
+        const connectionStatus = document.getElementById('connection-status');
+        const displayRoomCode = document.getElementById('display-room-code');
+        
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+        
+        const btnOpenInventory = document.getElementById('btn-open-inventory');
+        const btnCloseInventory = document.getElementById('btn-close-inventory');
+        const inventoryModal = document.getElementById('inventory-modal');
+        const inventoryGrid = document.getElementById('inventory-grid');
+        
+        const btnRequestTrade = document.getElementById('btn-request-trade');
+        const tradeModal = document.getElementById('trade-modal');
+        const btnCancelTrade = document.getElementById('btn-cancel-trade');
+        const btnToggleMyReady = document.getElementById('btn-toggle-my-ready');
+        const myReadyIndicator = document.getElementById('my-ready-indicator');
+        const peerReadyIndicator = document.getElementById('peer-ready-indicator');
+        const myTradeSlots = document.getElementById('my-trade-slots');
+        const peerTradeSlots = document.getElementById('peer-trade-slots');
+        const tradeInventoryGrid = document.getElementById('trade-inventory-grid');
+        const tradeRequestToast = document.getElementById('trade-request-toast');
+        const btnAcceptTradeRequest = document.getElementById('btn-accept-trade-request');
+        const btnDeclineTradeRequest = document.getElementById('btn-decline-trade-request');
 
-        const players = {}; 
-        const connections = {}; 
-        const activeTrades = {}; 
-        let coin = { x: 400, y: 250 };
-        let droppedItems = []; // Itens no chão
-        const keys = {};
-        let targetX = null, targetY = null;
-
-        // Variáveis de tempo para controle de rede
-        let lastX = 0;
-        let lastY = 0;
-        let lastBroadcastTime = 0;
-        let lastSendTime = 0;
-
-        // Gerenciamento de Inputs do Setup
-        document.getElementById('btnSearchRoomOpt').onclick = () => {
-            document.getElementById('mainLobbyActions').classList.add('hidden');
-            document.getElementById('searchRoomForm').classList.remove('hidden');
-        };
-        document.getElementById('btnBackToMenu').onclick = () => {
-            document.getElementById('searchRoomForm').classList.add('hidden');
-            document.getElementById('mainLobbyActions').classList.remove('hidden');
-        };
-
-        document.getElementById('btnCreateRoomOpt').onclick = () => {
-            localPlayer.name = document.getElementById('usernameInput').value.trim() || 'Cidadão';
-            localPlayer.color = selectedColor;
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-            initNetwork(true);
-        };
-
-        document.getElementById('btnConnectByCode').onclick = () => {
-            const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
-            if (code.length !== 6) {
-                alert('O código de sala precisa conter exatamente 6 dígitos!');
-                return;
-            }
-            localPlayer.name = document.getElementById('usernameInput').value.trim() || 'Cidadão';
-            localPlayer.color = selectedColor;
-            document.getElementById('loadingOverlay').classList.remove('hidden');
-            window.location.hash = code;
-            initNetwork(false);
-        };
-
-        // Verifica hash da URL para pular o menu
-        window.onload = () => {
-            const code = window.location.hash.substring(1).toUpperCase();
-            // Apenas auto-preenche se o código possuir o comprimento exato de 6 caracteres
-            if (code && code.length === 6) {
-                document.getElementById('roomCodeInput').value = code;
-                document.getElementById('mainLobbyActions').classList.add('hidden');
-                document.getElementById('searchRoomForm').classList.remove('hidden');
-            } else if (code && code.length > 0) {
-                // Se colaram um hash inválido (ex: incompleto), limpa-o para evitar loops de erro
-                window.location.hash = '';
-            }
-        };
-
-        // Gerador de códigos curtos (6 dígitos)
-        function generateRoomCode() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let res = '';
-            for (let i = 0; i < 6; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
-            return res;
+        // FUNÇÃO DE INICIALIZAÇÃO DE SESSÃO PEER
+        function initPeer(customId = null) {
+            return new Peer(customId, peerConfig);
         }
 
-        // Conexão WebRTC
-        function initNetwork(createNow) {
-            let roomCode = "";
-
-            if (createNow) {
-                // Modo Host: cria uma nova sala e registra o ID gerado de 6 caracteres
+        // CRIAR SALA (HOST)
+        btnCreateRoom.addEventListener('click', () => {
+            const idRandom = 'ROOM-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+            connectionStatus.textContent = "Iniciando servidor de matchmaking...";
+            
+            peer = initPeer(idRandom);
+            
+            peer.on('open', (id) => {
                 isHost = true;
-                roomCode = generateRoomCode();
-
-                peer = new Peer(roomCode, customIceConfig);
-
-                peer.on('open', (id) => {
-                    myId = id;
-                    document.getElementById('loadingOverlay').classList.add('hidden');
-                    document.getElementById('setupModal').classList.add('hidden');
-                    
-                    window.location.hash = id;
-                    document.getElementById('roomStatus').textContent = 'Hospedando';
-                    document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-[10px] font-bold bg-indigo-900/40 text-indigo-300 border border-indigo-800';
-                    document.getElementById('btnCopyLink').classList.remove('hidden');
-                    document.getElementById('copyCodeText').textContent = id;
-                    initHostLogic();
-                });
-
-                peer.on('error', (err) => {
-                    document.getElementById('loadingOverlay').classList.add('hidden');
-                    if (err.type === 'unavailable-id') {
-                        initNetwork(true); // tenta outro código se houver colisão
-                    } else {
-                        alert('Erro na conexão do Host: ' + err.message);
-                    }
-                });
-            } else {
-                // Modo Cliente: gera um ID aleatório temporário e tenta conectar ao host informado
-                isHost = false;
+                roomCode = id;
+                displayRoomCode.textContent = id;
+                localPlayer.name = "Host (Laranja)";
                 
-                // Prioriza a entrada de texto do input do usuário
-                roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
-                if (!roomCode) {
-                    // Se o input estiver vazio, tenta ler o código diretamente do hash da URL
-                    roomCode = window.location.hash.substring(1).toUpperCase();
-                }
+                connectionStatus.textContent = `Aguardando conexão em: ${id}`;
+                transitionToGame();
+            });
 
-                if (roomCode.length !== 6) {
-                    alert('Código de sala incompleto ou incorreto! O código deve conter exatamente 6 caracteres.');
-                    document.getElementById('loadingOverlay').classList.add('hidden');
+            peer.on('connection', (connection) => {
+                if (conn) {
+                    connection.close(); // Limitar a 2 jogadores por simplicidade
                     return;
                 }
-
-                // Sincroniza a barra de endereço com o código que o cliente está tentando conectar
-                window.location.hash = roomCode;
-
-                peer = new Peer(undefined, customIceConfig);
-
-                peer.on('open', (clientId) => {
-                    myId = clientId;
-                    document.getElementById('loadingOverlay').classList.add('hidden');
-                    document.getElementById('setupModal').classList.add('hidden');
-
-                    document.getElementById('roomStatus').textContent = 'Iniciando Conexão';
-                    document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-[10px] font-bold bg-amber-900/40 text-amber-300 border border-amber-800';
-
-                    const conn = peer.connect(roomCode);
-
-                    conn.on('open', () => {
-                        document.getElementById('roomStatus').textContent = 'Conectado (Jogador)';
-                        document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-[10px] font-bold bg-green-900/40 text-green-300 border border-green-800';
-                        document.getElementById('btnCopyLink').classList.remove('hidden');
-                        document.getElementById('copyCodeText').textContent = roomCode;
-                        initClientLogic(conn);
-                        requestAnimationFrame(gameLoop);
-                    });
-
-                    conn.on('error', (err) => {
-                        alert('Erro ao conectar ao Host: ' + err.message);
-                        window.location.hash = '';
-                        location.reload();
-                    });
-
-                    // Mecanismo de timeout de 10 segundos
-                    setTimeout(() => {
-                        const status = document.getElementById('roomStatus').textContent;
-                        if (status === 'Iniciando Conexão') {
-                            alert('Tempo limite de conexão esgotado! Certifique-se de que o código da sala está completo e correto, ou se o Host encerrou o jogo.');
-                            window.location.hash = '';
-                            location.reload();
-                        }
-                    }, 10000);
-                });
-
-                peer.on('error', (err) => {
-                    document.getElementById('loadingOverlay').classList.add('hidden');
-                    alert('Erro no PeerJS (Cliente): ' + err.message);
-                });
-            }
-        }
-
-        // Autoridade do Host
-        function initHostLogic() {
-            players['host'] = localPlayer;
-            spawnCoin();
-            addChatMessage('Sistema', '#38bdf8', `Sala criada! Divulgue o código ${myId} para seus amigos.`, true);
-            
-            peer.on('connection', (conn) => {
-                conn.on('open', () => {
-                    connections[conn.peer] = conn;
-                    players[conn.peer] = {
-                        name: 'Conectando...',
-                        color: '#cccccc',
-                        x: 400,
-                        y: 250,
-                        score: 0,
-                        equipped: null,
-                        inventory: JSON.parse(JSON.stringify(localPlayer.inventory)) // deep copy
-                    };
-                    
-                    conn.send({
-                        type: 'init',
-                        id: conn.peer,
-                        coin: coin,
-                        players: players,
-                        droppedItems: droppedItems
-                    });
-                });
-                
-                conn.on('data', (data) => {
-                    if (data.type === 'join') {
-                        players[conn.peer].name = data.name;
-                        players[conn.peer].color = data.color;
-                        const msg = `${data.name} entrou na cidade.`;
-                        addChatMessage('Sistema', '#64748b', msg, true);
-                        broadcast({ type: 'chat', sender: 'Sistema', color: '#64748b', text: msg, isSystem: true });
-                        updatePlayerCount();
-                    }
-                    if (data.type === 'move') {
-                        if (players[conn.peer]) {
-                            players[conn.peer].x = data.x;
-                            players[conn.peer].y = data.y;
-                        }
-                    }
-                    if (data.type === 'chat') {
-                        if (players[conn.peer]) {
-                            addChatMessage(players[conn.peer].name, players[conn.peer].color, data.text);
-                            broadcast({ type: 'chat', sender: players[conn.peer].name, color: players[conn.peer].color, text: data.text });
-                        }
-                    }
-                    // Itens & Ações
-                    if (data.type === 'drop_item') handleP2PDrop(conn.peer, data.slotIndex);
-                    if (data.type === 'use_item') handleP2PUse(conn.peer, data.slotIndex);
-
-                    // Sistema de Trocas (P2P Handshake)
-                    if (data.type === 'trade_request') {
-                        if (data.targetId === 'host') showTradeInvite(conn.peer, players[conn.peer].name);
-                        else if (connections[data.targetId]) {
-                            connections[data.targetId].send({ type: 'trade_invite', fromId: conn.peer, fromName: players[conn.peer].name });
-                        }
-                    }
-                    if (data.type === 'trade_accept') handleTradeAccept(conn.peer, data.partnerId);
-                    if (data.type === 'trade_decline') {
-                        if (connections[data.partnerId]) connections[data.partnerId].send({ type: 'trade_declined', fromName: players[conn.peer].name });
-                    }
-                    if (data.type === 'trade_add_item') handleTradeAddItem(conn.peer, data.tradeId, data.slotIndex);
-                    if (data.type === 'trade_remove_item') handleTradeRemoveItem(conn.peer, data.tradeId, data.itemId);
-                    if (data.type === 'trade_confirm') handleTradeConfirm(conn.peer, data.tradeId);
-                    if (data.type === 'trade_cancel') handleTradeCancel(conn.peer, data.tradeId);
-                });
-                
-                conn.on('close', () => {
-                    if (players[conn.peer]) {
-                        const msg = `${players[conn.peer].name} saiu da cidade.`;
-                        addChatMessage('Sistema', '#64748b', msg, true);
-                        broadcast({ type: 'chat', sender: 'Sistema', color: '#64748b', text: msg, isSystem: true });
-                        delete players[conn.peer];
-                        delete connections[conn.peer];
-                        updatePlayerCount();
-                    }
-                });
+                conn = connection;
+                setupConnectionHandlers();
             });
-            requestAnimationFrame(gameLoop);
-        }
 
-        // Conexão dos Clientes
-        function initClientLogic(conn) {
-            hostConnection = conn;
-            addChatMessage('Sistema', '#38bdf8', 'Você entrou na cidade. Abra o inventário em [I] ou [TAB].', true);
-            
-            conn.on('data', (data) => {
-                if (data.type === 'init') {
-                    myId = data.id;
-                    coin = data.coin;
-                    droppedItems = data.droppedItems || [];
-                    players[myId] = localPlayer;
-                    
-                    for (const id in data.players) {
-                        if (id !== myId) players[id] = data.players[id];
-                    }
-                    
-                    conn.send({ type: 'join', name: localPlayer.name, color: localPlayer.color });
-                    updatePlayerCount();
-                }
-                
-                if (data.type === 'state') {
-                    coin = data.coin;
-                    droppedItems = data.droppedItems || [];
-                    for (const id in data.players) {
-                        if (id === myId) {
-                            localPlayer.score = data.players[id].score;
-                            localPlayer.inventory = data.players[id].inventory;
-                            localPlayer.equipped = data.players[id].equipped;
-                        } else {
-                            players[id] = data.players[id];
-                        }
-                    }
-                    for (const id in players) {
-                        if (!data.players[id]) delete players[id];
-                    }
-                    updatePlayerCount();
-                    if (!document.getElementById('inventoryOverlay').classList.contains('hidden')) {
-                        renderInventoryUI();
-                    }
-                }
-                
-                if (data.type === 'chat') addChatMessage(data.sender, data.color, data.text, data.isSystem);
-                if (data.type === 'trade_invite') showTradeInvite(data.fromId, data.fromName);
-                
-                if (data.type === 'trade_start') {
-                    currentTradeId = data.tradeId;
-                    openTradeUI(data.partnerId, data.partnerName);
-                }
-                if (data.type === 'trade_sync') {
-                    updateTradeUI(data.myOffer, data.partnerOffer, data.myConfirmed, data.partnerConfirmed);
-                }
-                if (data.type === 'trade_complete') {
-                    closeTradeUI('completed');
-                }
-                if (data.type === 'trade_aborted') {
-                    closeTradeUI('aborted');
-                }
-                if (data.type === 'trade_declined') {
-                    alert(`O convite de negociação foi recusado por ${data.fromName}.`);
-                }
-            });
-            
-            conn.on('close', () => {
-                alert('Servidor encerrado pelo host.');
-                window.location.hash = '';
+            peer.on('error', (err) => {
+                alert("Erro ao criar sala: " + err.type);
                 location.reload();
             });
-        }
+        });
 
-        // LÓGICA DE EXECUÇÃO DE ITENS COM AUTORIDADE
-        function addItemToInv(player, itemToAdd) {
-            const existing = player.inventory.find(i => i.id === itemToAdd.id);
-            if (existing && itemToAdd.id === 'money') {
-                existing.qty += itemToAdd.qty;
-            } else if (existing && itemToAdd.id !== 'money' && itemToAdd.id !== 'pistol' && itemToAdd.id !== 'ar_pistol' && itemToAdd.id !== 'bat' && itemToAdd.id !== 'sns_pistol') {
-                existing.qty += itemToAdd.qty;
-            } else {
-                if (player.inventory.length < 12) {
-                    player.inventory.push({ id: itemToAdd.id, name: itemToAdd.name, emoji: itemToAdd.emoji, qty: itemToAdd.qty });
-                }
-            }
-        }
-
-        function handleP2PDrop(peerId, slotIndex) {
-            const p = players[peerId];
-            if (p && p.inventory[slotIndex]) {
-                const item = p.inventory[slotIndex];
-                
-                // Spawn físico do item no chão
-                droppedItems.push({
-                    id: 'drop_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5),
-                    item: { id: item.id, name: item.name, emoji: item.emoji, qty: 1 },
-                    x: p.x + (Math.random() * 40 - 20),
-                    y: p.y + (Math.random() * 40 - 20)
-                });
-
-                item.qty -= 1;
-                if (item.qty <= 0) p.inventory.splice(slotIndex, 1);
-
-                const msg = `${p.name} descartou ${item.name}.`;
-                addChatMessage('Sistema', '#f43f5e', msg, true);
-                broadcast({ type: 'chat', sender: 'Sistema', color: '#f43f5e', text: msg, isSystem: true });
-                broadcastGameState();
-            }
-        }
-
-        function handleP2PUse(peerId, slotIndex) {
-            const p = players[peerId];
-            if (p && p.inventory[slotIndex]) {
-                const item = p.inventory[slotIndex];
-                let isWeapon = ['pistol', 'ar_pistol', 'bat', 'sns_pistol'].includes(item.id);
-                let useText = '';
-
-                if (isWeapon) {
-                    if (p.equipped === item.name) {
-                        p.equipped = null;
-                        useText = `${p.name} guardou o(a) ${item.name}.`;
-                    } else {
-                        p.equipped = item.name;
-                        useText = `${p.name} equipou o(a) ${item.name}!`;
-                    }
-                } else {
-                    item.qty -= 1;
-                    if (item.qty <= 0) p.inventory.splice(slotIndex, 1);
-                    useText = `${p.name} consumiu um ${item.name}!`;
-                }
-
-                addChatMessage('Sistema', '#10b981', useText, true);
-                broadcast({ type: 'chat', sender: 'Sistema', color: '#10b981', text: useText, isSystem: true });
-                broadcastGameState();
-            }
-        }
-
-        // LÓGICA DE MOVIMENTAÇÃO E CANVAS (DESENHO)
-        function checkCoinAndDrops() {
-            // Moedas autoritativas do Host
-            for (const id in players) {
-                const p = players[id];
-                const coinDist = Math.hypot(p.x - coin.x, p.y - coin.y);
-                if (coinDist < 15 + 10) {
-                    p.score += 1;
-                    spawnCoin();
-
-                    // Adiciona grana
-                    const reward = Math.floor(Math.random() * 150) + 100;
-                    addItemToInv(p, { id: 'money', name: 'Dinheiro', emoji: '💵', qty: reward });
-
-                    // 40% chance de drop
-                    let dropMsg = '';
-                    if (Math.random() < 0.40) {
-                        const template = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
-                        addItemToInv(p, { ...template, qty: 1 });
-                        dropMsg = ` e encontrou um(a) ${template.name}`;
-                    }
-
-                    const pickMsg = `🎉 ${p.name} coletou a moeda, ganhou $${reward}${dropMsg}!`;
-                    addChatMessage('Sistema', '#eab308', pickMsg, true);
-                    broadcast({ type: 'chat', sender: 'Sistema', color: '#eab308', text: pickMsg, isSystem: true });
-                    broadcastGameState();
-                }
-
-                // Drops coletados do chão
-                for (let i = droppedItems.length - 1; i >= 0; i--) {
-                    const drop = droppedItems[i];
-                    const dropDist = Math.hypot(p.x - drop.x, p.y - drop.y);
-                    if (dropDist < 15 + 15) {
-                        addItemToInv(p, drop.item);
-                        const grabMsg = `${p.name} coletou ${drop.item.name} do chão.`;
-                        addChatMessage('Sistema', '#10b981', grabMsg, true);
-                        broadcast({ type: 'chat', sender: 'Sistema', color: '#10b981', text: grabMsg, isSystem: true });
-                        droppedItems.splice(i, 1);
-                        broadcastGameState();
-                        break;
-                    }
-                }
-            }
-        }
-
-        function isInputFocused() {
-            const active = document.activeElement;
-            return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
-        }
-
-        function gameLoop() {
-            const hasMoved = updateLocalMovement();
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // ENTRAR NA SALA (CLIENT)
+        btnJoinRoom.addEventListener('click', () => {
+            const code = inputJoinCode.value.trim().toUpperCase();
+            if (!code) return alert("Por favor, digite o código da sala.");
             
-            // Desenhar Grid
-            ctx.strokeStyle = '#18181b';
-            ctx.lineWidth = 1;
-            for (let x = 0; x < canvas.width; x += 40) {
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-            }
-            for (let y = 0; y < canvas.height; y += 40) {
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-            }
+            connectionStatus.textContent = "Conectando ao par...";
+            peer = initPeer();
+            
+            peer.on('open', () => {
+                conn = peer.connect(code, { reliable: true });
+                isHost = false;
+                roomCode = code;
+                displayRoomCode.textContent = code;
+                localPlayer.name = "Convidado (Azul)";
+                localPlayer.color = '#3b82f6'; // Azul
+                localPlayer.x = 600; // Começa do outro lado
 
-            // Desenhar itens do chão
-            droppedItems.forEach(drop => {
-                ctx.font = '16px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(drop.item.emoji, drop.x, drop.y);
-
-                ctx.fillStyle = 'rgba(9, 9, 11, 0.75)';
-                ctx.fillRect(drop.x - 20, drop.y + 6, 40, 10);
-                ctx.fillStyle = '#a1a1aa';
-                ctx.font = 'bold 7px monospace';
-                ctx.fillText(drop.item.name.substring(0, 8), drop.x, drop.y + 13);
+                setupConnectionHandlers();
             });
-            
-            // Desenhar Moeda
-            if (coin) {
-                const pulse = 10 + Math.sin(Date.now() / 150) * 1.5;
-                ctx.shadowColor = '#eab308';
-                ctx.shadowBlur = 12;
-                ctx.fillStyle = '#facc15';
-                ctx.beginPath();
-                ctx.arc(coin.x, coin.y, pulse, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-            
-            // Desenhar Jogadores
-            for (const id in players) {
-                const p = players[id];
-                ctx.fillStyle = p.color;
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = p.equipped ? 4 : 2;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 15, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-                
-                // Nametag + Arma
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 11px sans-serif';
-                ctx.textAlign = 'center';
-                let tag = `${p.name} [${p.score}]`;
-                if (p.equipped) tag += ` (🔫 ${p.equipped})`;
-                ctx.fillText(tag, p.x, p.y - 22);
-            }
-            
-            // Desenhar Tabela de Liderança (Leaderboard) no Canvas
-            drawLeaderboard();
-            
-            // Controle de Rede (Throttled)
-            const now = Date.now();
-            if (isHost) {
-                checkCoinAndDrops();
-                if (now - lastBroadcastTime > 33) {
-                    broadcastGameState();
-                    lastBroadcastTime = now;
-                }
-            } else {
-                if (hasMoved && now - lastSendTime > 33) {
-                    if (hostConnection && hostConnection.open) {
-                        hostConnection.send({ type: 'move', x: localPlayer.x, y: localPlayer.y });
-                    }
-                    lastSendTime = now;
-                }
-            }
+
+            peer.on('error', (err) => {
+                alert("Erro ao conectar à sala. Verifique o código. Detalhes: " + err.type);
+                location.reload();
+            });
+        });
+
+        function transitionToGame() {
+            menuScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
             requestAnimationFrame(gameLoop);
         }
 
-        function drawLeaderboard() {
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-            ctx.fillRect(15, 15, 180, 115);
-            ctx.strokeStyle = '#334155';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(15, 15, 180, 115);
-            
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = 'bold 10px monospace';
-            ctx.textAlign = 'left';
-            ctx.fillText('🏆 TOP PLACAR', 25, 33);
-            
-            const sorted = Object.values(players).sort((a, b) => b.score - a.score).slice(0, 4);
-            ctx.font = '11px monospace';
-            sorted.forEach((p, index) => {
-                ctx.fillStyle = p.color;
-                ctx.fillText(`${index + 1}. ${p.name.substring(0, 10)}: ${p.score}`, 25, 55 + index * 16);
+        // EVENTOS DE REDE / COMUNICAÇÃO P2P
+        function setupConnectionHandlers() {
+            conn.on('open', () => {
+                transitionToGame();
+                appendChatMessage("Sistema", "Conexão estabelecida com sucesso!");
+                btnRequestTrade.classList.remove('hidden');
+
+                // Envia dados iniciais
+                sendData({
+                    type: 'handshake',
+                    name: localPlayer.name,
+                    x: localPlayer.x,
+                    y: localPlayer.y
+                });
+            });
+
+            conn.on('data', (data) => {
+                handleNetworkMessage(data);
+            });
+
+            conn.on('close', () => {
+                appendChatMessage("Sistema", "Seu companheiro saiu da conexão.");
+                remotePlayer = null;
+                btnRequestTrade.classList.add('hidden');
+                closeTrade();
             });
         }
 
-        // RENDEREZAR INVENTÁRIO FIVE M (AESTHETIC)
-        function toggleInventory() {
-            const overlay = document.getElementById('inventoryOverlay');
-            if (overlay.classList.contains('hidden')) {
-                overlay.classList.remove('hidden');
-                renderInventoryUI();
-            } else {
-                overlay.classList.add('hidden');
-                closeActionMenu();
-            }
-        }
-
-        // RENDERIZAÇÃO DO GRID DE INVENTÁRIO (FIVE M LOOK)
-        function renderInventoryUI() {
-            const grid = document.getElementById('inventoryGrid');
-            grid.innerHTML = '';
-            
-            const inv = players[myId] ? players[myId].inventory : [];
-            
-            for (let i = 0; i < 12; i++) {
-                const item = inv[i];
-                const slot = document.createElement('div');
-                
-                if (item) {
-                    slot.className = "relative bg-zinc-800/90 border border-zinc-700 hover:border-indigo-500 rounded-lg flex flex-col items-center justify-center h-24 w-20 p-2 select-none cursor-pointer transition";
-                    slot.innerHTML = `
-                        <span class="absolute top-1 left-1 bg-white text-zinc-950 text-[9px] font-bold px-1 rounded-sm">${i + 1}</span>
-                        <span class="absolute top-1 right-1 text-zinc-400 text-[9px] font-medium">x${item.qty}</span>
-                        <span class="text-2xl my-auto">${item.emoji}</span>
-                        <div class="absolute bottom-0 inset-x-0 bg-black/70 text-[8px] text-center py-0.5 rounded-b-lg font-semibold truncate px-1">
-                            ${item.name}
-                        </div>
-                    `;
-                    slot.onclick = (e) => showItemMenu(e, item, i);
-                } else {
-                    slot.className = "relative bg-zinc-900/40 border border-dashed border-zinc-800 rounded-lg h-24 w-20 flex items-center justify-center select-none";
-                    slot.innerHTML = `
-                        <span class="absolute top-1 left-1 text-zinc-700 text-[9px] font-bold">${i + 1}</span>
-                        <span class="text-zinc-800 text-[10px]">Vazio</span>
-                    `;
-                }
-                grid.appendChild(slot);
-            }
-            renderNearbyPlayers();
-        }
-
-        function showItemMenu(e, item, index) {
-            e.stopPropagation();
-            const menu = document.getElementById('actionMenu');
-            menu.classList.remove('hidden');
-            menu.style.left = e.pageX + 'px';
-            menu.style.top = e.pageY + 'px';
-
-            const useBtn = document.getElementById('actionBtnUse');
-            const isWeapon = ['pistol', 'ar_pistol', 'bat', 'sns_pistol'].includes(item.id);
-            
-            if (isWeapon) {
-                const local = players[myId];
-                const isEquipped = local && local.equipped === item.name;
-                useBtn.textContent = isEquipped ? 'Guardar' : 'Equipar';
-            } else {
-                useBtn.textContent = 'Consumir';
-            }
-
-            useBtn.onclick = () => {
-                triggerLocalAction('use_item', index);
-                closeActionMenu();
-            };
-
-            document.getElementById('actionBtnDrop').onclick = () => {
-                triggerLocalAction('drop_item', index);
-                closeActionMenu();
-            };
-
-            document.getElementById('actionBtnCancel').onclick = () => closeActionMenu();
-        }
-
-        function triggerLocalAction(type, index) {
-            if (isHost) {
-                if (type === 'drop_item') handleP2PDrop('host', index);
-                if (type === 'use_item') handleP2PUse('host', index);
-            } else {
-                if (hostConnection && hostConnection.open) {
-                    hostConnection.send({ type: type, slotIndex: index });
-                }
-            }
-        }
-
-        function closeActionMenu() {
-            document.getElementById('actionMenu').classList.add('hidden');
-        }
-
-        function renderNearbyPlayers() {
-            const list = document.getElementById('nearbyPlayersList');
-            list.innerHTML = '';
-            
-            let count = 0;
-            for (const id in players) {
-                if (id !== myId) {
-                    count++;
-                    const p = players[id];
-                    const div = document.createElement('div');
-                    div.className = "flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-lg p-2 hover:border-zinc-700 transition";
-                    div.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${p.color}"></span>
-                            <span class="text-xs font-bold text-zinc-200">${p.name}</span>
-                        </div>
-                        <button onclick="sendTradeRequest('${id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[9px] font-bold py-1 px-2.5 rounded transition">
-                            Negociar 🤝
-                        </button>
-                    `;
-                    list.appendChild(div);
-                }
-            }
-            if (count === 0) {
-                list.innerHTML = `<p class="text-[11px] text-zinc-500 italic text-center py-4">Nenhum cidadão conectado...</p>`;
-            }
-
-            const local = players[myId];
-            if (local) {
-                document.getElementById('equipIndicator').textContent = local.equipped || 'Nenhum';
-                const moneyItem = local.inventory.find(i => i.id === 'money');
-                document.getElementById('moneyIndicator').textContent = moneyItem ? `$${moneyItem.qty}` : '$0';
-            }
-        }
-
-        // LÓGICA DO TRADE SYSTEM (P2P TRANSACTIONS)
-        function sendTradeRequest(partnerId) {
-            if (isHost) {
-                if (connections[partnerId]) {
-                    connections[partnerId].send({ type: 'trade_invite', fromId: 'host', fromName: players['host'].name });
-                }
-            } else {
-                if (hostConnection && hostConnection.open) {
-                    hostConnection.send({ type: 'trade_request', targetId: partnerId });
-                }
-            }
-            alert('Convite de negociação enviado!');
-        }
-
-        function showTradeInvite(fromId, fromName) {
-            pendingTradePartnerId = fromId;
-            document.getElementById('tradeInviteText').textContent = `${fromName} quer negociar com você.`;
-            document.getElementById('tradeInvitePopup').classList.remove('hidden');
-        }
-
-        document.getElementById('btnDeclineInvite').onclick = () => {
-            document.getElementById('tradeInvitePopup').classList.add('hidden');
-            if (pendingTradePartnerId) {
-                if (isHost) {
-                    if (connections[pendingTradePartnerId]) {
-                        connections[pendingTradePartnerId].send({ type: 'trade_declined', fromName: players['host'].name });
-                    }
-                } else {
-                    if (hostConnection && hostConnection.open) {
-                        hostConnection.send({ type: 'trade_decline', partnerId: pendingTradePartnerId });
-                    }
-                }
-            }
-        };
-
-        document.getElementById('btnAcceptInvite').onclick = () => {
-            document.getElementById('tradeInvitePopup').classList.add('hidden');
-            if (pendingTradePartnerId) {
-                if (isHost) {
-                    handleTradeAccept('host', pendingTradePartnerId);
-                } else {
-                    if (hostConnection && hostConnection.open) {
-                        hostConnection.send({ type: 'trade_accept', partnerId: pendingTradePartnerId });
-                    }
-                }
-            }
-        };
-
-        // Host gerencia a sessão de troca
-        function handleTradeAccept(p1, p2) {
-            const tradeId = 't_' + Date.now();
-            activeTrades[tradeId] = {
-                id: tradeId, p1: p1, p2: p2,
-                p1Offer: [], p2Offer: [],
-                p1Confirmed: false, p2Confirmed: false
-            };
-
-            // Iniciar em ambos
-            if (p1 === 'host') {
-                currentTradeId = tradeId;
-                openTradeUI(p2, players[p2].name);
-            } else if (connections[p1]) {
-                connections[p1].send({ type: 'trade_start', tradeId, partnerId: p2, partnerName: players[p2].name });
-            }
-
-            if (p2 === 'host') {
-                currentTradeId = tradeId;
-                openTradeUI(p1, players[p1].name);
-            } else if (connections[p2]) {
-                connections[p2].send({ type: 'trade_start', tradeId, partnerId: p1, partnerName: players[p1].name });
-            }
-        }
-
-        function openTradeUI(partnerId, partnerName) {
-            document.getElementById('inventoryOverlay').classList.add('hidden');
-            document.getElementById('tradeModal').classList.remove('hidden');
-            document.getElementById('partnerOfferTitle').textContent = `Oferta de ${partnerName}`;
-            
-            // Reset local trade buttons
-            document.getElementById('myTradeStatus').textContent = "Aguardando Confirmação";
-            document.getElementById('partnerTradeStatus').textContent = "Aguardando Confirmação";
-            
-            updateTradeUI([], [], false, false);
-        }
-
-        function updateTradeUI(myOffer, partnerOffer, myConfirmed, partnerConfirmed) {
-            const myGrid = document.getElementById('myOfferGrid');
-            const partnerGrid = document.getElementById('partnerOfferGrid');
-            
-            myGrid.innerHTML = '';
-            partnerGrid.innerHTML = '';
-            
-            // Preenche e completa os grids de troca (FiveM style)
-            const buildSlots = (grid, items, isMine) => {
-                items.forEach(item => {
-                    const el = document.createElement('div');
-                    el.className = `bg-zinc-800 border ${isMine ? 'hover:bg-rose-950 hover:border-rose-700 border-zinc-700 cursor-pointer' : 'border-zinc-700'} rounded-lg p-1.5 flex flex-col items-center justify-center relative h-16 w-14 select-none transition`;
-                    el.innerHTML = `
-                        <span class="text-lg">${item.emoji}</span>
-                        <span class="absolute bottom-1 right-1 text-[8px] font-bold text-zinc-400">x${item.qty}</span>
-                        ${isMine ? '<span class="absolute top-1 left-1 text-[7px] text-zinc-500">Remover</span>' : ''}
-                    `;
-                    if (isMine) el.onclick = () => removeTradeItem(item.id);
-                    grid.appendChild(el);
-                });
-                for (let i = items.length; i < 3; i++) {
-                    const pad = document.createElement('div');
-                    pad.className = "bg-zinc-950/40 border border-dashed border-zinc-800 rounded-lg h-16 w-14";
-                    grid.appendChild(pad);
-                }
-            };
-
-            buildSlots(myGrid, myOffer, true);
-            buildSlots(partnerGrid, partnerOffer, false);
-
-            const myStatus = document.getElementById('myTradeStatus');
-            const partnerStatus = document.getElementById('partnerTradeStatus');
-            const confirmBtn = document.getElementById('btnConfirmTrade');
-
-            if (myConfirmed) {
-                myStatus.textContent = "CONFIRMADO ✓";
-                myStatus.className = "text-center text-[10px] text-emerald-400 font-extrabold uppercase mt-1 animate-pulse";
-                confirmBtn.className = "mt-2 w-full bg-zinc-800 text-zinc-500 font-semibold py-2 rounded-lg text-xs cursor-not-allowed";
-                confirmBtn.disabled = true;
-            } else {
-                myStatus.textContent = "Aguardando Confirmação";
-                myStatus.className = "text-center text-[10px] text-zinc-500 font-bold uppercase mt-1";
-                confirmBtn.className = "mt-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 rounded-lg transition text-xs";
-                confirmBtn.disabled = false;
-            }
-
-            if (partnerConfirmed) {
-                partnerStatus.textContent = "CONFIRMADO ✓";
-                partnerStatus.className = "text-center text-[10px] text-emerald-400 font-extrabold uppercase mt-1 animate-pulse";
-            } else {
-                partnerStatus.textContent = "Aguardando Confirmação";
-                partnerStatus.className = "text-center text-[10px] text-zinc-500 font-bold uppercase mt-1";
-            }
-
-            // Exibir inventário clicável para troca na parte inferior
-            const tradeInv = document.getElementById('tradeInventoryGrid');
-            tradeInv.innerHTML = '';
-            const p = players[myId];
-            if (p) {
-                p.inventory.forEach((item, idx) => {
-                    const box = document.createElement('div');
-                    box.className = "flex-shrink-0 bg-zinc-800 border border-zinc-700 hover:border-indigo-500 rounded-lg p-2 flex flex-col items-center justify-center h-14 w-14 cursor-pointer select-none transition relative";
-                    box.innerHTML = `
-                        <span class="text-xl">${item.emoji}</span>
-                        <span class="absolute bottom-1 right-1 text-[8px] font-bold text-zinc-400">x${item.qty}</span>
-                    `;
-                    box.onclick = () => addTradeItem(idx);
-                    tradeInv.appendChild(box);
-                });
-            }
-        }
-
-        // Operações Interativas de Itens de Troca
-        function addTradeItem(idx) {
-            if (isHost) handleTradeAddItem('host', currentTradeId, idx);
-            else if (hostConnection && hostConnection.open) {
-                hostConnection.send({ type: 'trade_add_item', tradeId: currentTradeId, slotIndex: idx });
-            }
-        }
-
-        function removeTradeItem(itemId) {
-            if (isHost) handleTradeRemoveItem('host', currentTradeId, itemId);
-            else if (hostConnection && hostConnection.open) {
-                hostConnection.send({ type: 'trade_remove_item', tradeId: currentTradeId, itemId: itemId });
-            }
-        }
-
-        document.getElementById('btnConfirmTrade').onclick = () => {
-            if (isHost) handleTradeConfirm('host', currentTradeId);
-            else if (hostConnection && hostConnection.open) {
-                hostConnection.send({ type: 'trade_confirm', tradeId: currentTradeId });
-            }
-        };
-
-        document.getElementById('btnCancelTrade').onclick = () => {
-            if (isHost) handleTradeCancel('host', currentTradeId);
-            else if (hostConnection && hostConnection.open) {
-                hostConnection.send({ type: 'trade_cancel', tradeId: currentTradeId });
-            }
-        };
-
-        // Handlers de Troca Exclusivos do Host (Validador Autorizado)
-        function handleTradeAddItem(peerId, tradeId, slotIndex) {
-            const tr = activeTrades[tradeId];
-            if (!tr) return;
-            const p = players[peerId];
-            const item = p.inventory[slotIndex];
-            if (!item || item.qty <= 0) return;
-
-            const isP1 = tr.p1 === peerId;
-            const offer = isP1 ? tr.p1Offer : tr.p2Offer;
-
-            const alreadyOffered = offer.filter(o => o.id === item.id).reduce((sum, o) => sum + o.qty, 0);
-            if (alreadyOffered >= item.qty) return; // Não dá pra oferecer o que não tem
-
-            const existOffer = offer.find(o => o.id === item.id);
-            if (existOffer) existOffer.qty += 1;
-            else offer.push({ id: item.id, name: item.name, emoji: item.emoji, qty: 1 });
-
-            tr.p1Confirmed = false;
-            tr.p2Confirmed = false;
-            syncTrade(tr);
-        }
-
-        // Remover item da mesa de troca
-        function handleTradeRemoveItem(peerId, tradeId, itemId) {
-            const tr = activeTrades[tradeId];
-            if (!tr) return;
-            const isP1 = tr.p1 === peerId;
-            const offer = isP1 ? tr.p1Offer : tr.p2Offer;
-
-            const idx = offer.findIndex(o => o.id === itemId);
-            if (idx !== -1) {
-                offer[idx].qty -= 1;
-                if (offer[idx].qty <= 0) offer.splice(idx, 1);
-            }
-
-            tr.p1Confirmed = false;
-            tr.p2Confirmed = false;
-            syncTrade(tr);
-        }
-
-        function handleTradeConfirm(peerId, tradeId) {
-            const tr = activeTrades[tradeId];
-            if (!tr) return;
-            if (tr.p1 === peerId) tr.p1Confirmed = true;
-            if (tr.p2 === peerId) tr.p2Confirmed = true;
-
-            if (tr.p1Confirmed && tr.p2Confirmed) {
-                // Efetuar troca segura e transacionar inventários
-                executeTradeSwap(tr);
-            } else {
-                syncTrade(tr);
-            }
-        }
-
-        function handleTradeCancel(peerId, tradeId) {
-            const tr = activeTrades[tradeId];
-            if (!tr) return;
-            closeTradeOnClients(tr, 'trade_aborted');
-            delete activeTrades[tradeId];
-        }
-
-        function executeTradeSwap(tr) {
-            const p1 = players[tr.p1];
-            const p2 = players[tr.p2];
-            if (p1 && p2) {
-                // Remover ofertas
-                tr.p1Offer.forEach(off => {
-                    const target = p1.inventory.find(i => i.id === off.id);
-                    if (target) target.qty -= off.qty;
-                    addItemToInv(p2, off);
-                });
-                tr.p2Offer.forEach(off => {
-                    const target = p2.inventory.find(i => i.id === off.id);
-                    if (target) target.qty -= off.qty;
-                    addItemToInv(p1, off);
-                });
-
-                p1.inventory = p1.inventory.filter(i => i.qty > 0);
-                p2.inventory = p2.inventory.filter(i => i.qty > 0);
-
-                const sysMsg = `🤝 Negociação efetuada com sucesso entre ${p1.name} e ${p2.name}!`;
-                addChatMessage('Sistema', '#10b981', sysMsg, true);
-                broadcast({ type: 'chat', sender: 'Sistema', color: '#10b981', text: sysMsg, isSystem: true });
-
-                closeTradeOnClients(tr, 'trade_complete');
-                delete activeTrades[tr.id];
-                broadcastGameState();
-            }
-        }
-
-        function syncTrade(tr) {
-            const sendSync = (peerId, mine, partner, myConf, partConf) => {
-                if (peerId === 'host') updateTradeUI(mine, partner, myConf, partConf);
-                else if (connections[peerId]) connections[peerId].send({ type: 'trade_sync', myOffer: mine, partnerOffer: partner, myConfirmed: myConf, partnerConfirmed: partConf });
-            };
-            sendSync(tr.p1, tr.p1Offer, tr.p2Offer, tr.p1Confirmed, tr.p2Confirmed);
-            sendSync(tr.p2, tr.p2Offer, tr.p1Offer, tr.p2Confirmed, tr.p1Confirmed);
-        }
-
-        function closeTradeOnClients(tr, signalType) {
-            const closeTarget = (peerId) => {
-                if (peerId === 'host') closeTradeUI(signalType === 'trade_complete' ? 'completed' : 'aborted');
-                else if (connections[peerId]) connections[peerId].send({ type: signalType });
-            };
-            closeTarget(tr.p1);
-            closeTarget(tr.p2);
-        }
-
-        function closeTradeUI(status) {
-            document.getElementById('tradeModal').classList.add('hidden');
-            currentTradeId = null;
-            if (status === 'completed') {
-                alert('Negociação concluída com sucesso! Verifique seu inventário.');
-            } else if (status === 'aborted') {
-                alert('A negociação foi cancelada.');
-            }
-        }
-
-        // LÓGICA GERAL DE LOOP E ENVIOS
-        function broadcast(data) {
-            for (const id in connections) {
-                if (connections[id].open) connections[id].send(data);
-            }
-        }
-
-        // Sorteia posição da moeda
-        function spawnCoin() {
-            coin.x = Math.floor(Math.random() * 720) + 40;
-            coin.y = Math.floor(Math.random() * 420) + 40;
-        }
-
-        function broadcastGameState() {
-            broadcast({
-                type: 'state',
-                coin: coin,
-                droppedItems: droppedItems,
-                players: Object.keys(players).reduce((acc, id) => {
-                    acc[id] = {
-                        name: players[id].name,
-                        color: players[id].color,
-                        x: players[id].x,
-                        y: players[id].y,
-                        score: players[id].score,
-                        equipped: players[id].equipped,
-                        inventory: players[id].inventory
+        // TRATAR PACOTES DE ENTRADA DO PEERJS
+        function handleNetworkMessage(data) {
+            switch(data.type) {
+                case 'handshake':
+                    remotePlayer = {
+                        x: data.x,
+                        y: data.y,
+                        color: isHost ? '#3b82f6' : '#f97316',
+                        name: data.name
                     };
-                    return acc;
-                }, {})
-            });
+                    appendChatMessage("Sistema", `${remotePlayer.name} conectou na sala!`);
+                    break;
+                case 'move':
+                    if (remotePlayer) {
+                        remotePlayer.x = data.x;
+                        remotePlayer.y = data.y;
+                    }
+                    break;
+                case 'chat':
+                    appendChatMessage(remotePlayer ? remotePlayer.name : "Jogador", data.message);
+                    break;
+                case 'trade_request':
+                    tradeRequestToast.classList.remove('hidden');
+                    break;
+                case 'trade_decline':
+                    appendChatMessage("Sistema", "A negociação foi recusada ou cancelada pelo outro jogador.");
+                    closeTrade();
+                    break;
+                case 'trade_start':
+                    tradeRequestToast.classList.add('hidden');
+                    openTradeUI();
+                    break;
+                case 'trade_update':
+                    peerOffer = data.offer;
+                    peerReady = data.ready;
+                    updateTradeUI();
+                    break;
+                case 'trade_finalize':
+                    // Concluir troca aplicando as listas
+                    executeFinalSwap(data.peerOffer, data.myOffer);
+                    break;
+            }
         }
 
-        function updateLocalMovement() {
-            let dx = 0, dy = 0;
-            if (!isInputFocused()) {
-                if (keys['ArrowUp'] || keys['w'] || keys['W']) dy = -1;
-                if (keys['ArrowDown'] || keys['s'] || keys['S']) dy = 1;
-                if (keys['ArrowLeft'] || keys['a'] || keys['A']) dx = -1;
-                if (keys['ArrowRight'] || keys['d'] || keys['D']) dx = 1;
+        function sendData(obj) {
+            if (conn && conn.open) {
+                conn.send(obj);
             }
-            
-            let moved = false;
-            if (dx !== 0 || dy !== 0) {
-                targetX = null; targetY = null;
-                const len = Math.hypot(dx, dy);
-                localPlayer.x += (dx / len) * speed;
-                localPlayer.y += (dy / len) * speed;
-                moved = true;
-            } else if (targetX !== null && targetY !== null) {
-                const tDx = targetX - localPlayer.x, tDy = targetY - localPlayer.y;
-                const dist = Math.hypot(tDx, tDy);
-                if (dist > 5) {
-                    localPlayer.x += (tDx / dist) * speed;
-                    localPlayer.y += (tDy / dist) * speed;
-                    moved = true;
-                } else {
-                    targetX = null; targetY = null;
-                }
-            }
-            
-            const radius = 15;
-            localPlayer.x = Math.max(radius, Math.min(800 - radius, localPlayer.x));
-            localPlayer.y = Math.max(radius, Math.min(500 - radius, localPlayer.y));
-            
-            if (moved && (localPlayer.x !== lastX || localPlayer.y !== lastY)) {
-                lastX = localPlayer.x; lastY = localPlayer.y;
-                return true;
-            }
-            return false;
         }
 
-        // CHAT SUBMISSION
-        document.getElementById('chatForm').onsubmit = (e) => {
+        // CHAT ENGINE
+        chatForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            const input = document.getElementById('chatInput');
-            const text = input.value.trim();
+            const text = chatInput.value.trim();
             if (!text) return;
             
-            if (isHost) {
-                addChatMessage(localPlayer.name, localPlayer.color, text);
-                broadcast({ type: 'chat', sender: localPlayer.name, color: localPlayer.color, text: text });
-            } else if (hostConnection && hostConnection.open) {
-                hostConnection.send({ type: 'chat', text: text });
-            }
-            input.value = '';
-        };
-
-        function addChatMessage(sender, color, text, isSystem = false) {
-            const chatBox = document.getElementById('chatMessages');
-            const msgEl = document.createElement('div');
-            msgEl.className = 'break-all';
-            
-            if (isSystem) {
-                msgEl.className = 'text-slate-500 italic';
-                msgEl.textContent = text;
-            } else {
-                const nameSpan = document.createElement('span');
-                nameSpan.className = 'font-extrabold mr-1';
-                nameSpan.style.color = color;
-                nameSpan.textContent = sender + ':';
-                
-                const textSpan = document.createElement('span');
-                textSpan.className = 'text-slate-300';
-                textSpan.textContent = text;
-                
-                msgEl.appendChild(nameSpan);
-                msgEl.appendChild(textSpan);
-            }
-            chatBox.appendChild(msgEl);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function updatePlayerCount() {
-            const count = Object.keys(players).length;
-            document.getElementById('playerCount').textContent = `Cidadãos: ${count}`;
-        }
-
-        // ESCOPO DOS BOTÕES DO SETUP DE COR DO INVENTÁRIO
-        const colorContainer = document.getElementById('colorContainer');
-        let selectedColor = presetColors[0];
-        presetColors.forEach(color => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'w-8 h-8 rounded-full border-2 border-transparent hover:scale-110 transition';
-            btn.style.backgroundColor = color;
-            if (color === selectedColor) btn.classList.add('border-white', 'scale-110');
-            btn.onclick = () => {
-                document.querySelectorAll('#colorContainer button').forEach(b => b.classList.remove('border-white', 'scale-110'));
-                btn.classList.add('border-white', 'scale-110');
-                selectedColor = color;
-                document.getElementById('customColorInput').value = color;
-            };
-            colorContainer.appendChild(btn);
+            appendChatMessage("Você", text);
+            sendData({ type: 'chat', message: text });
+            chatInput.value = '';
         });
 
-        document.getElementById('customColorInput').oninput = (e) => {
-            document.querySelectorAll('#colorContainer button').forEach(b => b.classList.remove('border-white', 'scale-110'));
-            selectedColor = e.target.value;
-        };
+        function appendChatMessage(sender, message) {
+            const div = document.createElement('div');
+            const senderSpan = document.createElement('span');
+            senderSpan.className = sender === "Você" ? "text-orange-500 font-bold" : (sender === "Sistema" ? "text-yellow-500 font-bold" : "text-blue-400 font-bold");
+            senderSpan.textContent = `${sender}: `;
+            
+            const textSpan = document.createElement('span');
+            textSpan.className = "text-zinc-200";
+            textSpan.textContent = message;
 
-        // KEY LISTENERS GERAIS
+            div.appendChild(senderSpan);
+            div.appendChild(textSpan);
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // GAME LOOP E CANVAS 2D
+        function gameLoop() {
+            updatePhysics();
+            drawGame();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updatePhysics() {
+            let moved = false;
+            let dx = 0;
+            let dy = 0;
+
+            if (keysPressed['KeyW'] || keysPressed['ArrowUp']) { dy = -localPlayer.speed; moved = true; }
+            if (keysPressed['KeyS'] || keysPressed['ArrowDown']) { dy = localPlayer.speed; moved = true; }
+            if (keysPressed['KeyA'] || keysPressed['ArrowLeft']) { dx = -localPlayer.speed; moved = true; }
+            if (keysPressed['KeyD'] || keysPressed['ArrowRight']) { dx = localPlayer.speed; moved = true; }
+
+            // Limites da tela
+            localPlayer.x = Math.max(20, Math.min(canvas.width - 20, localPlayer.x + dx));
+            localPlayer.y = Math.max(20, Math.min(canvas.height - 20, localPlayer.y + dy));
+
+            if (moved) {
+                sendData({
+                    type: 'move',
+                    x: localPlayer.x,
+                    y: localPlayer.y
+                });
+            }
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Fundo em Grid simples
+            ctx.strokeStyle = '#27272a';
+            ctx.lineWidth = 1;
+            const gridSize = 40;
+            for (let i = 0; i < canvas.width; i += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+            }
+            for (let j = 0; j < canvas.height; j += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, j);
+                ctx.lineTo(canvas.width, j);
+                ctx.stroke();
+            }
+
+            // Desenhar Jogador Local
+            drawPlayer(localPlayer);
+
+            // Desenhar Jogador Remoto se existir
+            if (remotePlayer) {
+                drawPlayer(remotePlayer);
+            }
+        }
+
+        function drawPlayer(player) {
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, 18, 0, Math.PI * 2);
+            ctx.fillStyle = player.color;
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+            ctx.closePath();
+
+            // Nome acima do jogador
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(player.name, player.x, player.y - 25);
+        }
+
+        // CAPTURA DE TECLADO
         window.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-            if (!isInputFocused()) {
-                if (e.key === 'i' || e.key === 'I' || e.key === 'Tab') {
-                    e.preventDefault();
-                    toggleInventory();
+            keysPressed[e.code] = true;
+            
+            // Atalho para Inventário
+            if (e.code === 'KeyI') {
+                toggleInventory();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keysPressed[e.code] = false;
+        });
+
+        // MECÂNICA DE INVENTÁRIO (FIVE-M STYLE)
+        function renderInventoryGrid() {
+            inventoryGrid.innerHTML = '';
+            inventory.forEach((item, index) => {
+                const slot = document.createElement('div');
+                slot.className = "inventory-slot aspect-square rounded flex flex-col items-center justify-center p-2 relative cursor-pointer";
+                
+                if (item.name) {
+                    slot.innerHTML = `
+                        <div class="text-3xl">${item.emoji}</div>
+                        <div class="text-[10px] text-zinc-300 font-semibold mt-1 text-center truncate w-full">${item.name}</div>
+                        <span class="absolute top-1 right-2 text-xs font-bold text-orange-400">x${item.qty}</span>
+                    `;
+                    // Ao clicar no item
+                    slot.addEventListener('click', () => handleInventoryItemClick(index));
+                } else {
+                    slot.innerHTML = `<span class="text-zinc-700 text-xs font-mono uppercase">Vazio</span>`;
+                }
+                inventoryGrid.appendChild(slot);
+            });
+        }
+
+        function handleInventoryItemClick(index) {
+            const item = inventory[index];
+            if (!item || !item.name) return;
+
+            // Se estiver em negociação ativa, envia o item para mesa de troca
+            if (inTrade) {
+                addItemToOffer(index);
+            } else {
+                // Fora de trade, consome ou usa
+                if (item.name.includes("Hambúrguer") || item.name.includes("Chocolate")) {
+                    appendChatMessage("Você", `Consumiu 1x ${item.name}! 🍔`);
+                    item.qty--;
+                    if (item.qty <= 0) {
+                        inventory[index] = { id: item.id, name: null, emoji: null, qty: 0 };
+                    }
+                    renderInventoryGrid();
+                } else {
+                    appendChatMessage("Sistema", `Você selecionou: ${item.name}`);
                 }
             }
+        }
+
+        function toggleInventory() {
+            if (inventoryModal.classList.contains('hidden')) {
+                renderInventoryGrid();
+                inventoryModal.classList.remove('hidden');
+            } else {
+                inventoryModal.classList.add('hidden');
+            }
+        }
+
+        btnOpenInventory.addEventListener('click', toggleInventory);
+        btnCloseInventory.addEventListener('click', () => inventoryModal.classList.add('hidden'));
+
+        // MECÂNICA DE NEGOCIAÇÃO (TRADE SYSTEM)
+        btnRequestTrade.addEventListener('click', () => {
+            if (!remotePlayer) return alert("Não há nenhum jogador conectado na sua sala para negociar.");
+            appendChatMessage("Sistema", "Você enviou uma proposta de negociação...");
+            sendData({ type: 'trade_request' });
         });
-        window.addEventListener('keyup', (e) => { keys[e.key] = false; });
-        window.addEventListener('click', () => { closeActionMenu(); });
 
-        canvas.addEventListener('mousedown', (e) => handleCanvasClick(e.clientX, e.clientY));
-        canvas.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            handleCanvasClick(touch.clientX, touch.clientY);
-            e.preventDefault();
-        }, { passive: false });
+        btnAcceptTradeRequest.addEventListener('click', () => {
+            tradeRequestToast.classList.add('hidden');
+            sendData({ type: 'trade_start' });
+            openTradeUI();
+        });
 
-        function handleCanvasClick(clientX, clientY) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            targetX = (clientX - rect.left) * scaleX;
-            targetY = (clientY - rect.top) * scaleY;
+        btnDeclineTradeRequest.addEventListener('click', () => {
+            tradeRequestToast.classList.add('hidden');
+            sendData({ type: 'trade_decline' });
+        });
+
+        function openTradeUI() {
+            inTrade = true;
+            myOffer = [null, null, null, null];
+            peerOffer = [null, null, null, null];
+            myReady = false;
+            peerReady = false;
+            
+            inventoryModal.classList.add('hidden'); // Fecha a mochila padrão se aberta
+            tradeModal.classList.remove('hidden');
+            updateTradeUI();
+        }
+
+        function closeTrade() {
+            inTrade = false;
+            tradeModal.classList.add('hidden');
+        }
+
+        btnCancelTrade.addEventListener('click', () => {
+            sendData({ type: 'trade_decline' });
+            closeTrade();
+        });
+
+        function updateTradeUI() {
+            // Desenhar Meus Oferecidos
+            myTradeSlots.innerHTML = '';
+            myOffer.forEach((item, index) => {
+                const slot = document.createElement('div');
+                slot.className = "bg-zinc-900 border border-zinc-800 rounded flex items-center justify-center relative cursor-pointer h-16 w-16 mx-auto";
+                if (item) {
+                    slot.innerHTML = `
+                        <div class="text-2xl">${item.emoji}</div>
+                        <span class="absolute bottom-1 right-1 text-[10px] font-bold text-orange-400">x${item.qty}</span>
+                    `;
+                    // Remover item da oferta ao clicar nele no painel de trade
+                    slot.addEventListener('click', () => removeItemFromOffer(index));
+                }
+                myTradeSlots.appendChild(slot);
+            });
+
+            // Desenhar Oferecidos do Parceiro
+            peerTradeSlots.innerHTML = '';
+            peerOffer.forEach((item) => {
+                const slot = document.createElement('div');
+                slot.className = "bg-zinc-900 border border-zinc-800 rounded flex items-center justify-center relative h-16 w-16 mx-auto";
+                if (item) {
+                    slot.innerHTML = `
+                        <div class="text-2xl">${item.emoji}</div>
+                        <span class="absolute bottom-1 right-1 text-[10px] font-bold text-orange-400">x${item.qty}</span>
+                    `;
+                }
+                peerTradeSlots.appendChild(slot);
+            });
+
+            // Status visuais de pronto
+            if (myReady) {
+                btnToggleMyReady.textContent = "Oferta Confirmada!";
+                btnToggleMyReady.className = "w-full mt-4 bg-green-600 text-white py-2 rounded text-xs font-bold transition uppercase";
+                myReadyIndicator.textContent = "CONFIRMADO";
+                myReadyIndicator.className = "text-center mt-2 text-xs font-bold text-green-500";
+            } else {
+                btnToggleMyReady.textContent = "Confirmar Oferta";
+                btnToggleMyReady.className = "w-full mt-4 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 py-2 rounded text-xs font-bold transition uppercase";
+                myReadyIndicator.textContent = "AGUARDANDO CONFIRMAÇÃO";
+                myReadyIndicator.className = "text-center mt-2 text-xs font-bold text-red-500";
+            }
+
+            if (peerReady) {
+                peerReadyIndicator.textContent = "CONFIRMADO";
+                peerReadyIndicator.className = "text-center mt-2 text-xs font-bold text-green-500";
+            } else {
+                peerReadyIndicator.textContent = "AGUARDANDO CONFIRMAÇÃO";
+                peerReadyIndicator.className = "text-center mt-2 text-xs font-bold text-red-500";
+            }
+
+            // Mochila de apoio abaixo da negociação
+            tradeInventoryGrid.innerHTML = '';
+            inventory.forEach((item, index) => {
+                if (item.name) {
+                    const slot = document.createElement('div');
+                    slot.className = "inventory-slot aspect-square rounded flex flex-col items-center justify-center p-1 relative cursor-pointer h-12 w-12 mx-auto";
+                    slot.innerHTML = `
+                        <div class="text-xl">${item.emoji}</div>
+                        <span class="absolute top-0 right-1 text-[9px] font-bold text-orange-400">x${item.qty}</span>
+                    `;
+                    slot.addEventListener('click', () => addItemToOffer(index));
+                    tradeInventoryGrid.appendChild(slot);
+                }
+            });
+        }
+
+        // ADICIONAR ITEM NA PROPOSTA DE TROCA
+        function addItemToOffer(invIndex) {
+            if (myReady) return; // Não pode mexer se já confirmou
+
+            const itemInInv = inventory[invIndex];
+            if (!itemInInv || itemInInv.qty <= 0) return;
+
+            // Encontrar primeiro slot livre na minha oferta
+            const freeOfferIndex = myOffer.findIndex(i => i === null);
+            if (freeOfferIndex === -1) {
+                alert("Mesa de negociação cheia! Limite de 4 itens por vez.");
+                return;
+            }
+
+            // Reduzir quantitativo do meu inventário principal (temporariamente enquanto negocia)
+            const tradeItem = { ...itemInInv, qty: 1, originalInvIndex: invIndex };
+            myOffer[freeOfferIndex] = tradeItem;
+
+            itemInInv.qty--;
+            if (itemInInv.qty <= 0) {
+                inventory[invIndex] = { id: itemInInv.id, name: null, emoji: null, qty: 0 };
+            }
+
+            syncTradeState();
+        }
+
+        // REMOVER ITEM DA PROPOSTA DE TROCA (VOLTA PRO INV)
+        function removeItemFromOffer(offerIndex) {
+            if (myReady) return;
+
+            const offerItem = myOffer[offerIndex];
+            if (!offerItem) return;
+
+            const origIdx = offerItem.originalInvIndex;
+            
+            // Devolve à mochila original
+            if (inventory[origIdx] && inventory[origIdx].name === offerItem.name) {
+                inventory[origIdx].qty++;
+            } else {
+                // Caso a casa tenha ficado vazia nesse meio tempo
+                inventory[origIdx] = {
+                    id: inventory[origIdx].id,
+                    name: offerItem.name,
+                    emoji: offerItem.emoji,
+                    qty: 1
+                };
+            }
+
+            myOffer[offerIndex] = null;
+            syncTradeState();
+        }
+
+        // CONFIRMAR OFERTA (PRONTO)
+        btnToggleMyReady.addEventListener('click', () => {
+            myReady = !myReady;
+            syncTradeState();
+            checkAndExecuteTrade();
+        });
+
+        function syncTradeState() {
+            updateTradeUI();
+            sendData({
+                type: 'trade_update',
+                offer: myOffer,
+                ready: myReady
+            });
+        }
+
+        // EXECUTA A CONFIRMAÇÃO SE OS DOIS JOGADORES DEREM PRONTO
+        function checkAndExecuteTrade() {
+            if (myReady && peerReady) {
+                // Se ambos deram pronto, executa o cálculo final
+                // Host gerencia a finalização para manter consistência sem perda de dados
+                if (isHost) {
+                    // Host sinaliza a conclusão
+                    sendData({
+                        type: 'trade_finalize',
+                        myOffer: myOffer,       // Oferta do Host
+                        peerOffer: peerOffer    // Oferta do Convidado
+                    });
+                    // Executa localmente no Host
+                    executeFinalSwap(myOffer, peerOffer);
+                }
+            }
+        }
+
+        function executeFinalSwap(hostOffer, clientOffer) {
+            // Identificar quem sou eu e receber a lista correta
+            const deQuemRecebo = isHost ? clientOffer : hostOffer;
+            const oQueEuOfereci = isHost ? hostOffer : clientOffer;
+
+            // 1. Descartar definitivamente do meu inventário o que eu dei de oferta (ja estava decrementado da UI)
+            // (Nenhuma ação necessária, pois o item foi consumido temporariamente no addItemToOffer)
+
+            // 2. Adicionar itens que recebi ao meu inventário
+            deQuemRecebo.forEach(item => {
+                if (!item) return;
+                
+                // Procurar se já tenho um item igual com espaço na mochila
+                const existingIdx = inventory.findIndex(invItem => invItem.name === item.name);
+                if (existingIdx !== -1) {
+                    inventory[existingIdx].qty += item.qty;
+                } else {
+                    // Colocar em uma vaga vazia
+                    const emptyIdx = inventory.findIndex(invItem => invItem.name === null);
+                    if (emptyIdx !== -1) {
+                        inventory[emptyIdx] = {
+                            id: inventory[emptyIdx].id,
+                            name: item.name,
+                            emoji: item.emoji,
+                            qty: item.qty
+                        };
+                    } else {
+                        // Sem espaço: substitui slot vazio ou dropa (aqui apenas substitui)
+                        appendChatMessage("Sistema", "Atenção: Sua mochila estava cheia, alguns itens podem ter sumido!");
+                    }
+                }
+            });
+
+            appendChatMessage("Sistema", "🎉 Negociação concluída com sucesso!");
+            closeTrade();
         }
     </script>
 </body>
