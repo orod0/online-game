@@ -217,6 +217,31 @@
         const presetColors = ['#f87171', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#c084fc'];
         const speed = 4;
 
+        // Configuração de servidores ICE (STUN e TURN gratuitos para atravessar firewalls estritos de VPN)
+        const customIceConfig = {
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:openrelay.metered.ca:80' },
+                    { 
+                        urls: 'turn:openrelay.metered.ca:80', 
+                        username: 'openrelayproject', 
+                        credential: 'openrelayproject' 
+                    },
+                    { 
+                        urls: 'turn:openrelay.metered.ca:443', 
+                        username: 'openrelayproject', 
+                        credential: 'openrelayproject' 
+                    },
+                    { 
+                        urls: 'turn:openrelay.metered.ca:443?transport=tcp', 
+                        username: 'openrelayproject', 
+                        credential: 'openrelayproject' 
+                    }
+                ]
+            }
+        };
+
         // Tabelas de Drops e Itens Possíveis
         const possibleDrops = [
             { id: 'burger', name: 'Hambúrguer', emoji: '🍔' },
@@ -321,8 +346,8 @@
                 roomCode = window.location.hash.substring(1).toUpperCase();
             }
 
-            // Forçar o PeerJS a registrar o ID de 6 dígitos que geramos
-            peer = new Peer(roomCode);
+            // Forçar o PeerJS a registrar o ID de 6 dígitos que geramos com a nossa configuração TURN personalizada
+            peer = new Peer(roomCode, customIceConfig);
 
             peer.on('open', (id) => {
                 myId = id;
@@ -344,7 +369,7 @@
                     // Criamos outro peer temporário para o cliente conectando ao host
                     peer.destroy();
                     
-                    peer = new Peer();
+                    peer = new Peer(undefined, customIceConfig);
                     peer.on('open', (clientId) => {
                         myId = clientId;
                         const conn = peer.connect(roomCode);
@@ -1187,6 +1212,7 @@
             }
         }
 
+        // Sorteia posição da moeda
         function spawnCoin() {
             coin.x = Math.floor(Math.random() * 720) + 40;
             coin.y = Math.floor(Math.random() * 420) + 40;
