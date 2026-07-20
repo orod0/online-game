@@ -2,208 +2,735 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BARTER ZONE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DUO ARCADE</title>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Outfit:wght@300;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-:root{--bg:#0a0a0a;--bg2:#111;--card:#1a1a1a;--card2:#222;--border:#2a2a2a;--text:#e0e0e0;--muted:#666;--accent:#ff6b35;--accent2:#ff8c5a;--gold:#ffd166;--success:#4ade80;--danger:#ef4444;--hp:#ef4444;--hunger:#f59e0b}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;overflow:hidden;height:100vh;width:100vw}
-#menu{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1000;background:var(--bg)}
-#menu::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(255,107,53,.08) 0%,transparent 60%),radial-gradient(ellipse at 70% 60%,rgba(255,209,102,.05) 0%,transparent 50%);animation:menuBg 8s ease-in-out infinite alternate}
-@keyframes menuBg{0%{opacity:.6}100%{opacity:1}}
-.menu-box{position:relative;z-index:1;text-align:center;max-width:440px;width:90%;max-height:95vh;overflow-y:auto;padding-right:4px}
-.menu-box::-webkit-scrollbar{width:4px}
-.menu-box::-webkit-scrollbar-thumb{background:var(--border)}
-.menu-title{font-family:'Rajdhani',sans-serif;font-size:3.5rem;font-weight:700;color:var(--accent);letter-spacing:4px;line-height:1;text-shadow:0 0 40px rgba(255,107,53,.3)}
-.menu-sub{color:var(--muted);font-size:.85rem;margin:4px 0 16px;letter-spacing:2px}
-.menu-input{width:100%;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:.9rem;outline:none;transition:border-color .2s}
-.menu-input:focus{border-color:var(--accent)}
-.menu-input::placeholder{color:var(--muted)}
-.menu-label{text-align:left;color:var(--muted);font-size:.75rem;margin:10px 0 4px;letter-spacing:1px}
-.menu-btn{width:100%;padding:12px;border:none;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:1.1rem;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:1px;margin-top:6px}
-.menu-btn.primary{background:var(--accent);color:#000}
-.menu-btn.primary:hover{background:var(--accent2);transform:translateY(-1px)}
-.menu-btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
-.menu-btn.secondary:hover{border-color:var(--accent);color:var(--accent)}
-.menu-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
-.menu-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--muted);font-size:.75rem}
-.menu-divider::before,.menu-divider::after{content:'';flex:1;height:1px;background:var(--border)}
-.menu-msg{margin-top:8px;font-size:.8rem;min-height:20px}
-.menu-msg.ok{color:var(--success)}.menu-msg.err{color:var(--danger)}
-.menu-code-display{font-size:2.5rem;font-family:'Rajdhani',sans-serif;font-weight:700;color:var(--gold);letter-spacing:8px;margin:8px 0;user-select:all;cursor:pointer}
-.lobby-list{background:var(--card);border:1px solid var(--border);border-radius:8px;max-height:140px;overflow-y:auto;text-align:left;margin-bottom:10px}
-.lobby-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);font-size:0.75rem;cursor:pointer;transition:background 0.2s}
-.lobby-item:hover{background:var(--card2)}
-.lobby-item:last-child{border-bottom:none}
-.lobby-info{display:flex;flex-direction:column;gap:2px}
-.lobby-name{font-weight:700;color:var(--text)}
-.lobby-meta{font-size:0.65rem;color:var(--muted);display:flex;gap:10px}
-.lobby-ping{color:var(--success)}
-.hud-tl{position:fixed;top:16px;left:16px;z-index:10}
-.hud-room{background:rgba(10,10,10,.85);border:1px solid var(--border);border-radius:8px;padding:10px 14px;backdrop-filter:blur(8px);min-width:160px}
-.hud-room-code{font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;color:var(--gold);letter-spacing:4px;cursor:pointer}
-.hud-room-code:hover{color:var(--accent)}
-.hud-room-label{font-size:.65rem;color:var(--muted);letter-spacing:1px}
-.hud-bars{margin-top:8px;display:flex;flex-direction:column;gap:4px}
-.hud-bar{display:flex;align-items:center;gap:6px;font-size:.7rem}
-.hud-bar-label{width:55px;color:var(--muted)}
-.hud-bar-track{flex:1;height:6px;background:var(--card);border-radius:3px;overflow:hidden}
-.hud-bar-fill{height:100%;border-radius:3px;transition:width .3s}
-.hud-bar-val{width:30px;text-align:right;font-size:.65rem}
-.hud-tr{position:fixed;top:16px;right:16px;z-index:10}
-.hud-players{background:rgba(10,10,10,.85);border:1px solid var(--border);border-radius:8px;padding:10px 14px;backdrop-filter:blur(8px);min-width:140px}
-.hud-players-title{font-size:.65rem;color:var(--muted);letter-spacing:1px;margin-bottom:6px}
-.hud-player{display:flex;align-items:center;gap:6px;font-size:.8rem;padding:2px 0}
-.hud-player-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.hud-prompt{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);z-index:10;background:rgba(10,10,10,.9);border:1px solid var(--accent);border-radius:8px;padding:8px 18px;font-size:.85rem;color:var(--accent);pointer-events:none;opacity:0;transition:opacity .2s;white-space:nowrap}
-.hud-prompt.show{opacity:1}
-.hud-controls{position:fixed;bottom:16px;right:16px;z-index:10;background:rgba(10,10,10,.8);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:.6rem;color:var(--muted);line-height:1.8;backdrop-filter:blur(4px)}
-.hud-controls span{color:var(--text)}
-.minimap{position:fixed;bottom:16px;left:16px;z-index:10;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:rgba(10,10,10,.85);backdrop-filter:blur(4px)}
-.chat-box{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:10;width:420px;max-width:90vw}
-.chat-messages{max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding:8px;background:rgba(10,10,10,.8);border:1px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0;backdrop-filter:blur(4px);scrollbar-width:thin;scrollbar-color:var(--border) transparent}
-.chat-msg{font-size:.78rem;animation:chatIn .2s ease}
-@keyframes chatIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-.chat-msg .name{font-weight:700}
-.chat-input-wrap{display:flex;border:1px solid var(--border);border-radius:0 0 8px 8px;overflow:hidden}
-.chat-input{flex:1;padding:8px 12px;background:var(--card);border:none;color:var(--text);font-family:inherit;font-size:.82rem;outline:none}
-.chat-input::placeholder{color:var(--muted)}
-.chat-send{padding:8px 14px;background:var(--accent);border:none;color:#000;font-family:inherit;font-weight:700;cursor:pointer}
-.chat-send:hover{background:var(--accent2)}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn .15s}
-.overlay.active{display:flex}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.inv-panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:700px;width:90%;max-height:85vh;overflow-y:auto}
-.inv-title{font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:700;color:var(--accent);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
-.inv-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
-.inv-slot{aspect-ratio:1;background:var(--card);border:1px solid var(--border);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
-.inv-slot:hover{border-color:var(--muted);background:var(--card2)}
-.inv-slot.selected{border-color:var(--accent);box-shadow:0 0 12px rgba(255,107,53,.2)}
-.inv-slot .emoji{font-size:1.6rem;line-height:1}
-.inv-slot .sname{font-size:.5rem;color:var(--muted);margin-top:2px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:90%}
-.inv-slot .sqty{position:absolute;top:3px;right:5px;font-size:.6rem;color:var(--gold);font-weight:700}
-.inv-slot .sprice{position:absolute;bottom:2px;left:0;right:0;text-align:center;font-size:.45rem;color:var(--gold)}
-.inv-details{margin-top:14px;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px;display:none}
-.inv-details.active{display:flex;gap:16px;align-items:center}
-.inv-details .big-emoji{font-size:3rem}
-.inv-details .info{flex:1}
-.inv-details .dname{font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700}
-.inv-details .dcat{font-size:.7rem;color:var(--muted);margin:2px 0 6px}
-.inv-details .dprice{color:var(--gold);font-size:.9rem}
-.inv-details .dactions{display:flex;gap:8px;margin-top:10px}
-.inv-details .dactions button{padding:6px 14px;border:none;border-radius:6px;font-family:inherit;font-size:.78rem;cursor:pointer;font-weight:700;transition:all .15s}
-.inv-details .btn-use{background:var(--success);color:#000}
-.inv-details .btn-drop{background:var(--danger);color:#fff}
-.inv-details .btn-offer{background:var(--accent);color:#000}
-.inv-details .dactions button:hover{opacity:.8;transform:translateY(-1px)}
-.trade-panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;max-width:800px;width:95%;max-height:85vh;overflow-y:auto}
-.trade-title{font-family:'Rajdhani',sans-serif;font-size:1.3rem;font-weight:700;color:var(--gold);margin-bottom:14px;text-align:center}
-.trade-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.trade-col-title{font-size:.8rem;color:var(--muted);margin-bottom:8px;text-align:center}
-.trade-offer-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;min-height:70px}
-.trade-slot{aspect-ratio:1;background:var(--card);border:1px solid var(--border);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.55rem;cursor:pointer;transition:all .15s;position:relative}
-.trade-slot:hover{border-color:var(--muted)}
-.trade-slot .emoji{font-size:1.2rem}
-.trade-slot .sqty{position:absolute;top:1px;right:3px;font-size:.5rem;color:var(--gold)}
-.trade-inv-label{font-size:.7rem;color:var(--muted);margin:10px 0 6px;text-align:center}
-.trade-inv-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;max-height:200px;overflow-y:auto}
-.trade-inv-slot{aspect-ratio:1;background:var(--card);border:1px solid var(--border);border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative}
-.trade-inv-slot:hover{border-color:var(--accent)}
-.trade-inv-slot .emoji{font-size:1rem}
-.trade-inv-slot .sqty{position:absolute;top:1px;right:3px;font-size:.5rem;color:var(--gold)}
-.trade-actions{display:flex;gap:10px;justify-content:center;margin-top:16px}
-.trade-actions button{padding:10px 28px;border:none;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all .15s}
-.trade-actions .btn-accept{background:var(--success);color:#000}
-.trade-actions .btn-accept.locked{background:var(--muted);color:var(--text);cursor:not-allowed}
-.trade-actions .btn-cancel{background:var(--card);color:var(--text);border:1px solid var(--border)}
-.trade-actions button:hover{transform:translateY(-1px);opacity:.85}
-.trade-status{text-align:center;margin-top:10px;font-size:.8rem;color:var(--muted)}
-.toast-container{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
-.toast{padding:8px 20px;border-radius:8px;font-size:.82rem;animation:toastIn .3s ease,toastOut .3s ease 2.7s forwards;white-space:nowrap}
-.toast.ok{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);color:var(--success)}
-.toast.err{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:var(--danger)}
-.toast.info{background:rgba(255,107,53,.15);border:1px solid rgba(255,107,53,.3);color:var(--accent)}
-@keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
-@keyframes toastOut{to{opacity:0;transform:translateY(-10px)}}
-.hidden{display:none!important}
-@media(max-width:600px){.menu-title{font-size:2.5rem}.trade-cols{grid-template-columns:1fr}.inv-grid{grid-template-columns:repeat(5,1fr)}}
+:root {
+  --bg: #0d0b18;
+  --panel: #1b162e;
+  --panel2: #251e3e;
+  --border: #3b2f63;
+  --text: #f5f6fa;
+  --muted: #8c82b5;
+  --accent: #ff5e97; /* Pink */
+  --accent-hover: #ff7faa;
+  --teal: #00d2d3;
+  --yellow: #fbc531;
+  --success: #4cd137;
+  --danger: #e84118;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  touch-action: manipulation;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  user-select: none;
+}
+
+/* MENUS */
+#menu {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  background: var(--bg);
+}
+#menu::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 30%, rgba(255, 94, 151, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 80% 70%, rgba(0, 210, 211, 0.1) 0%, transparent 50%);
+}
+
+.menu-box {
+  position: relative;
+  z-index: 2;
+  background: rgba(27, 22, 46, 0.9);
+  border: 2px solid var(--border);
+  border-radius: 24px;
+  padding: 30px;
+  max-width: 440px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+}
+
+.menu-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 0 20px rgba(255, 94, 151, 0.3);
+  margin-bottom: 5px;
+}
+.menu-sub {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+.avatar-selector {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px 0 20px;
+}
+.avatar-dot {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.avatar-dot.selected {
+  border-color: var(--text);
+  transform: scale(1.15);
+}
+
+.menu-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--panel2);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px; /* Evita zoom automático no iOS */
+  outline: none;
+  transition: border-color 0.2s;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.menu-input:focus {
+  border-color: var(--accent);
+}
+
+.menu-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.menu-btn.primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(255, 94, 151, 0.3);
+}
+.menu-btn.primary:hover {
+  background: var(--accent-hover);
+}
+.menu-btn.secondary {
+  background: var(--panel2);
+  color: var(--text);
+  border: 2px solid var(--border);
+}
+.menu-btn.secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.menu-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.menu-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 15px 0;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.menu-divider::before, .menu-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.menu-msg {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  min-height: 20px;
+}
+.menu-msg.ok { color: var(--success); }
+.menu-msg.err { color: var(--danger); }
+
+.code-display {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 2.2rem;
+  color: var(--yellow);
+  letter-spacing: 5px;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+/* INTERFACE DO JOGO */
+#game-stage {
+  display: none;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+#canvas-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #110e1d;
+}
+canvas {
+  background: #161226;
+  border-radius: 16px;
+  border: 4px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 8/5;
+}
+
+/* HUD GERAL */
+.hud-top-left {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.room-badge {
+  background: rgba(27, 22, 46, 0.85);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 14px;
+  backdrop-filter: blur(8px);
+}
+.room-badge-label {
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 1px;
+}
+.room-badge-code {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.3rem;
+  color: var(--yellow);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-players {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  background: rgba(27, 22, 46, 0.85);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 16px;
+  min-width: 180px;
+  backdrop-filter: blur(8px);
+}
+.players-title {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  margin: 4px 0;
+}
+.player-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+/* CHAT INTEGRADO */
+.chat-area {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  z-index: 10;
+  width: 320px;
+  background: rgba(27, 22, 46, 0.85);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+.chat-history {
+  height: 140px;
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.82rem;
+  scrollbar-width: thin;
+}
+.chat-msg {
+  word-wrap: break-word;
+}
+.chat-msg .author {
+  font-weight: 700;
+  margin-right: 4px;
+}
+.chat-input-bar {
+  display: flex;
+  border-top: 1px solid var(--border);
+}
+.chat-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  padding: 10px;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+.chat-input::placeholder { color: var(--muted); }
+.chat-send-btn {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  padding: 0 14px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+.chat-send-btn:hover { color: var(--accent-hover); }
+
+/* CONTROLES / REAÇÕES */
+.actions-area {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+.btn-reaction {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 18px;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(255, 94, 151, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.1s;
+}
+.btn-reaction:active { transform: scale(0.95); }
+
+/* ANALÓGICO VIRTUAL (MOBILE) */
+.joystick-container {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 15;
+  display: none; /* Ativado via JS apenas em dispositivos touch */
+}
+.joystick-base {
+  width: 100px;
+  height: 100px;
+  background: rgba(27, 22, 46, 0.5);
+  border: 2.5px solid var(--border);
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 0 0 15px rgba(59, 47, 99, 0.4);
+}
+.joystick-knob {
+  width: 44px;
+  height: 44px;
+  background: var(--accent);
+  border-radius: 50%;
+  position: absolute;
+  top: 28px;
+  left: 28px;
+  box-shadow: 0 4px 10px rgba(255, 94, 151, 0.4);
+  pointer-events: none;
+}
+
+/* BOTÃO DE AÇÃO MOBILE */
+.mobile-action-btn {
+  display: none;
+  background: var(--teal);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  padding: 14px 24px;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 210, 211, 0.4);
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.mobile-action-btn.active {
+  display: flex !important;
+}
+
+/* BOTÃO COMPACTO CHAT (MOBILE) */
+.btn-toggle-chat {
+  display: none;
+  background: var(--panel2);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+/* OVERLAYS DOS MINIJOGOS */
+.game-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 11, 24, 0.95);
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.game-overlay.active { display: flex; }
+
+.overlay-container {
+  background: var(--panel);
+  border: 3px solid var(--border);
+  border-radius: 24px;
+  width: 90%;
+  max-width: 600px;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.overlay-title {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 1.8rem;
+  color: var(--accent);
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-exit-game {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-exit-game:hover { color: var(--danger); }
+
+/* QUIZ INTERFACE */
+#quiz-box { width: 100%; text-align: center; }
+.quiz-question { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; min-height: 50px; }
+.quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.quiz-opt-btn {
+  background: var(--panel2);
+  border: 2px solid var(--border);
+  color: var(--text);
+  padding: 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+.quiz-opt-btn:hover { border-color: var(--accent); }
+.quiz-opt-btn.selected { background: var(--accent); border-color: var(--accent); color: white; }
+.quiz-opt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.quiz-feedback {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 15px;
+  min-height: 40px;
+}
+
+/* JOGO DA VELHA */
+#ttt-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.ttt-turn-indicator {
+  font-size: 1rem;
+  color: var(--muted);
+  margin-bottom: 15px;
+}
+.ttt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 85px);
+  grid-template-rows: repeat(3, 85px);
+  gap: 8px;
+}
+.ttt-cell {
+  background: var(--panel2);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fredoka', sans-serif;
+  font-size: 2rem;
+  font-weight: bold;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ttt-cell:hover { border-color: var(--accent); }
+.ttt-cell.X { color: var(--accent); text-shadow: 0 0 10px rgba(255,94,151,0.5); }
+.ttt-cell.O { color: var(--teal); text-shadow: 0 0 10px rgba(0,210,211,0.5); }
+
+/* TOAST NOTIFICACOES */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+.toast {
+  background: rgba(27, 22, 46, 0.95);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  padding: 10px 24px;
+  border-radius: 30px;
+  font-size: 0.9rem;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@keyframes toastIn { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: none; } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(-15px); } }
+
+/* PROMPT DE INTERACAO NO CANVAS */
+.canvas-prompt {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  background: rgba(255, 94, 151, 0.9);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.canvas-prompt.show { opacity: 1; }
+
+@media (max-width: 768px) {
+  .actions-area { right: 16px; bottom: 16px; }
+  .chat-area {
+    width: 280px;
+    height: 180px;
+    bottom: 80px;
+    left: 16px;
+    display: none; /* Ocultado por padrão no mobile para liberar espaço */
+  }
+  .chat-area.active-mobile {
+    display: flex !important;
+  }
+  .btn-toggle-chat {
+    display: block !important;
+  }
+  .joystick-container {
+    display: block; /* Ativa analógico */
+  }
+  .canvas-prompt {
+    display: none !important; /* Substituído pelo botão de ação de toque */
+  }
+}
 </style>
 </head>
 <body>
 
+<!-- MENU INICIAL -->
 <div id="menu">
   <div class="menu-box">
-    <div class="menu-title">BARTER ZONE</div>
-    <div class="menu-sub">MULTIPLAYER P2P / TROCA DE ITENS</div>
-    <div id="name-wrap"><div class="menu-label">SEU NOME</div><input class="menu-input" id="inp-name" placeholder="Digite seu nome..." maxlength="16"></div>
+    <div class="menu-title">DUO ARCADE</div>
+    <div class="menu-sub">SALÃO DE MINIJOGOS ONLINE / P2P</div>
     
-    <div class="menu-label">SALAS PÚBLICAS (SIMULADAS / REAL-TIME)</div>
-    <div class="lobby-list" id="lobby-list"></div>
+    <div class="menu-label" style="text-align: left; font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">SEU NOME</div>
+    <input class="menu-input" id="inp-name" placeholder="Nome..." maxlength="12">
 
-    <div id="create-wrap"><button class="menu-btn primary" id="btn-create" onclick="window._doCreate()"><i class="fa-solid fa-plus"></i> &nbsp;CRIAR SALA P2P</button></div>
-    <div class="menu-divider" id="menu-div">OU ENTRE EM UMA SALA MANUAL</div>
-    <div id="join-wrap"><div class="menu-label">CODIGO DA SALA</div><input class="menu-input" id="inp-code" placeholder="Ex: AB3K7N" maxlength="6" style="text-transform:uppercase;letter-spacing:4px;text-align:center;font-size:1.2rem;font-family:'Rajdhani',sans-serif;font-weight:700"><button class="menu-btn secondary" id="btn-join" onclick="window._doJoin()"><i class="fa-solid fa-right-to-bracket"></i> &nbsp;ENTRAR NA SALA</button></div>
+    <div class="menu-label" style="text-align: left; font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">COR DO AVATAR</div>
+    <div class="avatar-selector" id="avatar-selector"></div>
+
+    <button class="menu-btn primary" id="btn-create" onclick="_doCreate()"><i class="fa-solid fa-heart"></i> CRIAR SALA</button>
+    <div class="menu-divider">OU ENTRE COM UM CODIGO</div>
+    <input class="menu-input" id="inp-code" placeholder="CÓDIGO (EX: A9F3B)" maxlength="6" style="text-transform: uppercase; letter-spacing: 4px; font-weight: bold;">
+    <button class="menu-btn secondary" id="btn-join" onclick="_doJoin()"><i class="fa-solid fa-gamepad"></i> ENTRAR NA SALA</button>
+    
     <div class="menu-msg" id="menu-msg"></div>
-    <div id="create-waiting" class="hidden" style="margin-top:16px">
-      <div class="menu-label">CODIGO DA SALA (compartilhe com seus amigos)</div>
-      <div class="menu-code-display" id="room-code-display" onclick="window._copyCode()" title="Clique para copiar"></div>
-      <div class="menu-msg ok">Aguardando jogadores...</div>
+
+    <!-- Aguardo do Host -->
+    <div id="create-waiting" style="display: none; margin-top: 20px;">
+      <div style="font-size: 0.8rem; color: var(--muted)">COMPARTILHE ESSE CÓDIGO COM SEU PAR:</div>
+      <div class="code-display" id="room-code-display" onclick="_copyCode()" title="Clique para copiar">------</div>
+      <div style="color: var(--accent); font-size: 0.9rem; font-weight: bold;" class="pulse">Aguardando seu par entrar...</div>
     </div>
   </div>
 </div>
 
-<div id="game" style="display:none">
-  <canvas id="cv"></canvas>
-  <div class="hud-tl">
-    <div class="hud-room">
-      <div class="hud-room-label">SALA</div>
-      <div class="hud-room-code" id="hud-code" onclick="window._copyCode()" title="Clique para copiar"></div>
-      <div class="hud-bars">
-        <div class="hud-bar"><span class="hud-bar-label">VIDA</span><div class="hud-bar-track"><div class="hud-bar-fill" id="bar-hp" style="width:100%;background:var(--hp)"></div></div><span class="hud-bar-val" id="val-hp">100</span></div>
-        <div class="hud-bar"><span class="hud-bar-label">FOME</span><div class="hud-bar-track"><div class="hud-bar-fill" id="bar-hunger" style="width:100%;background:var(--hunger)"></div></div><span class="hud-bar-val" id="val-hunger">100</span></div>
-      </div>
-      <button id="btn-mic" onclick="window._toggleMic()"><i class="fa-solid fa-microphone-slash"></i> ATIVAR MICROFONE</button>
+<!-- ETAPA DO JOGO -->
+<div id="game-stage">
+  <div id="canvas-container">
+    <canvas id="mainCanvas" width="800" height="500"></canvas>
+    <div class="canvas-prompt" id="canvas-prompt">Pressione [E] ou Espaço para jogar!</div>
+  </div>
+
+  <!-- HUD esquerda (Código da sala) -->
+  <div class="hud-top-left">
+    <div class="room-badge">
+      <div class="room-badge-label">SALA ATIVA</div>
+      <div class="room-badge-code" id="hud-code" onclick="_copyCode()"><span id="hud-code-txt"></span> <i class="fa-regular fa-copy" style="font-size: 0.8rem;"></i></div>
+    </div>
+    <!-- Botão de Chat para Celulares -->
+    <button class="btn-toggle-chat" id="btn-toggle-chat" onclick="_toggleMobileChat()"><i class="fa-solid fa-comments"></i> Abrir Chat</button>
+  </div>
+
+  <!-- HUD direita (Lista de jogadores) -->
+  <div class="hud-players">
+    <div class="players-title">CONECTADOS</div>
+    <div id="player-list"></div>
+  </div>
+
+  <!-- Analógico Virtual para Celular -->
+  <div class="joystick-container">
+    <div class="joystick-base" id="joy-base">
+      <div class="joystick-knob" id="joy-knob"></div>
     </div>
   </div>
-  <div class="hud-tr"><div class="hud-players"><div class="hud-players-title">JOGADORES</div><div id="player-list"></div></div></div>
-  <div class="hud-prompt" id="hud-prompt"></div>
-  <canvas class="minimap" id="minimap" width="140" height="140"></canvas>
-  <div class="chat-box"><div class="chat-messages" id="chat-messages"></div><div class="chat-input-wrap"><input class="chat-input" id="chat-input" placeholder="Pressione T para chat..." maxlength="100"><button class="chat-send" onclick="window._sendChat()">ENVIAR</button></div></div>
-  <div class="hud-controls"><span>WASD</span> Mover &nbsp; <span>E</span> Pegar/Interagir &nbsp; <span>TAB</span> Inventario<br><span>T</span> Chat &nbsp; <span>F</span> Trocar &nbsp; <span>ESC</span> Fechar</div>
+
+  <!-- Chat Integrado -->
+  <div class="chat-area" id="chat-area">
+    <div class="chat-history" id="chat-history"></div>
+    <div class="chat-input-bar">
+      <input class="chat-input" id="chat-input" placeholder="Conversar com seu par..." maxlength="80">
+      <button class="chat-send-btn" onclick="_sendChat()"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <!-- Controles, Botões e Reações -->
+  <div class="actions-area">
+    <button class="mobile-action-btn" id="mobile-action-btn" onclick="_triggerInteraction()"><i class="fa-solid fa-gamepad"></i> ENTRAR NO FLIPERAMA</button>
+    <button class="btn-reaction" onclick="_sendReaction()"><i class="fa-solid fa-heart"></i> Reagir Coração</button>
+  </div>
 </div>
 
-<div class="overlay" id="inv-overlay">
-  <div class="inv-panel">
-    <div class="inv-title">INVENTARIO <span style="font-size:.8rem;color:var(--muted);font-weight:400;cursor:pointer" onclick="window._closeInv()"><i class="fa-solid fa-xmark"></i> FECHAR [TAB]</span></div>
-    <div class="inv-grid" id="inv-grid"></div>
-    <div class="inv-details" id="inv-details">
-      <div class="big-emoji" id="det-emoji"></div>
-      <div class="info"><div class="dname" id="det-name"></div><div class="dcat" id="det-cat"></div><div class="dprice" id="det-price"></div><div class="dactions" id="det-actions"></div></div>
+<!-- OVERLAY: CHUVA DE AMOR -->
+<div class="game-overlay" id="overlay-catch">
+  <div class="overlay-container" style="max-width: 700px;">
+    <button class="btn-exit-game" onclick="_backToLobby()"><i class="fa-solid fa-xmark"></i></button>
+    <div class="overlay-title"><i class="fa-solid fa-star"></i> Chuva de Amor</div>
+    <div style="font-size: 0.95rem; color: var(--muted); text-align: center; margin-bottom: 15px;">
+      Arraste o analógico (ou use A/D) para coletar corações (+10) e estrelas (+25). Desvie das nuvens de chuva (-15)!
+    </div>
+    <div style="font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-bottom: 10px;" id="catch-timer">30s</div>
+    <div style="display: flex; gap: 40px; margin-bottom: 20px;">
+      <div style="text-align: center;"><div style="font-size: 0.8rem; color: var(--muted)">SUA PONTUAÇÃO</div><div style="font-size: 1.8rem; font-weight: bold;" id="catch-my-score">0</div></div>
+      <div style="text-align: center;"><div style="font-size: 0.8rem; color: var(--muted)">PAR PONTUAÇÃO</div><div style="font-size: 1.8rem; font-weight: bold;" id="catch-their-score">0</div></div>
+    </div>
+    <!-- Mini Canvas para a Chuva -->
+    <canvas id="catchCanvas" width="600" height="250" style="border: 2px solid var(--border); border-radius: 12px;"></canvas>
+  </div>
+</div>
+
+<!-- OVERLAY: QUIZ DE CASAL -->
+<div class="game-overlay" id="overlay-quiz">
+  <div class="overlay-container">
+    <button class="btn-exit-game" onclick="_backToLobby()"><i class="fa-solid fa-xmark"></i></button>
+    <div class="overlay-title"><i class="fa-solid fa-comments"></i> Quiz de Afinidade</div>
+    <div id="quiz-box">
+      <div class="quiz-question" id="quiz-q-text">Carregando pergunta...</div>
+      <div class="quiz-options" id="quiz-options-box"></div>
+      <div class="quiz-feedback" id="quiz-feedback"></div>
     </div>
   </div>
 </div>
 
-<div class="overlay" id="trade-overlay">
-  <div class="trade-panel">
-    <div class="trade-title"><i class="fa-solid fa-handshake"></i> TROCA COM <span id="trade-pname"></span></div>
-    <div class="trade-cols">
-      <div><div class="trade-col-title">SUA OFERTA (clique p/ remover)</div><div class="trade-offer-grid" id="trade-my-offer"></div><div class="trade-inv-label">SEU INVENTARIO (clique p/ adicionar)</div><div class="trade-inv-grid" id="trade-my-inv"></div></div>
-      <div><div class="trade-col-title">OFERTA DE <span id="trade-pname2"></span></div><div class="trade-offer-grid" id="trade-their-offer"></div></div>
+<!-- OVERLAY: JOGO DA VELHA -->
+<div class="game-overlay" id="overlay-tictactoe">
+  <div class="overlay-container" style="max-width: 400px;">
+    <button class="btn-exit-game" onclick="_backToLobby()"><i class="fa-solid fa-xmark"></i></button>
+    <div class="overlay-title"><i class="fa-solid fa-grid-2"></i> Jogo da Velha</div>
+    <div id="ttt-box">
+      <div class="ttt-turn-indicator" id="ttt-turn-txt">Aguardando jogada...</div>
+      <div class="ttt-grid" id="ttt-grid"></div>
     </div>
-    <div class="trade-status" id="trade-status">Aguardando...</div>
-    <div class="trade-actions"><button class="btn-accept" id="btn-accept-trade" onclick="window._acceptTrade()">ACEITAR TROCA</button><button class="btn-cancel" onclick="window._cancelTrade()">CANCELAR</button></div>
-  </div>
-</div>
-
-<div class="overlay" id="npc-overlay">
-  <div class="inv-panel" style="max-width: 480px;">
-    <div class="inv-title" id="npc-title" style="color:var(--gold)">NPC</div>
-    <div id="npc-greeting" style="margin: 15px 0; font-size: 0.95rem; line-height: 1.4; color: var(--text)"></div>
-    <div id="npc-trade-options" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;"></div>
-    <button class="menu-btn secondary" onclick="window._closeNpcOverlay()">SAIR</button>
   </div>
 </div>
 
@@ -211,1405 +738,1099 @@ body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monosp
 
 <script>
 /* ============================================================
-   DECLARACOES GLOBAIS - TODAS ANTES DE QUALQUER FUNCAO
+   ESTADOS E DECLARAÇÕES GLOBAIS
    ============================================================ */
-var MAP_W = 2400, MAP_H = 2400, TILE = 100, PLAYER_R = 13;
-var PICKUP_DIST = 50, TRADE_DIST = 80, SPEED = 3;
-var INV_SIZE = 30, TRADE_SLOTS = 5;
-var PLAYER_COLORS = ['#ff6b35','#4ade80','#60a5fa','#f472b6','#fbbf24','#a78bfa','#34d399','#fb923c','#f87171','#38bdf8'];
-var ITEMS = {
-  can:{name:'Lata de Comida',icon:'\u{1F35E}',cat:'Comida',stack:true,max:10,price:500,use:'hunger',val:25},
-  fast_food:{name:'Combo Fast Food',icon:'\u{1F354}',cat:'Comida',stack:true,max:5,price:350,use:'hunger',val:35},
-  chocolate:{name:'Chocolate',icon:'\u{1F36B}',cat:'Comida',stack:true,max:10,price:150,use:'hunger',val:10},
-  hamburger:{name:'Hamburguer',icon:'\u{1F354}',cat:'Comida',stack:true,max:5,price:200,use:'hunger',val:20},
-  water:{name:'Agua',icon:'\u{1F4A7}',cat:'Comida',stack:true,max:10,price:100,use:'hunger',val:15},
-  energy:{name:'Energetico',icon:'\u{1F964}',cat:'Comida',stack:true,max:5,price:300,use:'hunger',val:30},
-  pistol_mag:{name:'Carregador Pistola',icon:'\u{1F4E6}',cat:'Municao',stack:true,max:20,price:300},
-  rifle_mag:{name:'Carregador Fuzil',icon:'\u{1F4E6}',cat:'Municao',stack:true,max:15,price:500},
-  shells:{name:'Cartuchos Shotgun',icon:'\u{1F4E6}',cat:'Municao',stack:true,max:20,price:400},
-  bolt:{name:'Flecha de Besta',icon:'\u{1F3F9}',cat:'Municao',stack:true,max:30,price:200},
-  pistol:{name:'Pistola',icon:'\u{1F52B}',cat:'Arma',stack:false,price:5000},
-  sks:{name:'SKS Rifle',icon:'\u{1F52B}',cat:'Arma',stack:false,price:8000},
-  shotgun:{name:'Shotgun',icon:'\u{1F52B}',cat:'Arma',stack:false,price:7000},
-  crossbow:{name:'Besta',icon:'\u{1F3F9}',cat:'Arma',stack:false,price:4000},
-  knife:{name:'Faca',icon:'\u{1F5E1}',cat:'Arma',stack:false,price:1500},
-  bandage:{name:'Bandagem',icon:'\u{1FA79}',cat:'Medico',stack:true,max:10,price:250,use:'hp',val:15},
-  medkit:{name:'Kit Medico',icon:'\u{1F3E5}',cat:'Medico',stack:true,max:3,price:1500,use:'hp',val:50},
-  lockpick:{name:'Ganzua',icon:'\u{1F511}',cat:'Diverso',stack:true,max:5,price:800},
-  backpack:{name:'Mochila',icon:'\u{1F392}',cat:'Diverso',stack:false,price:2000}
-};
+var COLORS = ['#ff5e97', '#00d2d3', '#fbc531', '#9b59b6', '#2ecc71'];
+var chosenColor = COLORS[0];
+var myName = "Jogador";
 
-/* Microfone por Proximidade */
-var audioCtx = null;
-var localStream = null;
-var voiceCalls = {};
-var voiceGains = {};
-var micActive = false;
-
-/* Gerador de arvores com seed fixa */
-var _sr_seed = 42;
-function _sr(){ _sr_seed = (_sr_seed * 16807) % 2147483647; return (_sr_seed - 1) / 2147483646; }
-
-/* Estruturas do Mapa */
-var obstacles = [
-  /* Farmacia */
-  {x:250,y:1850,w:220,h:180,t:'bld',c:'#22c55e',lbl:'FARMACIA'},
-  /* Mercado Negro */
-  {x:1850,y:250,w:240,h:200,t:'bld',c:'#1e1b4b',lbl:'MERCADO NEGRO'},
-  /* Centro Civico */
-  {x:1050,y:1050,w:300,h:250,t:'bld',c:'#4b5563',lbl:'PREFEITURA (CENTRO)'},
-
-  {x:850,y:750,w:180,h:140,t:'bld',c:'#3d3d3d',lbl:'Armazem'},
-  {x:1100,y:700,w:140,h:200,t:'bld',c:'#3d3d3d',lbl:'Loja de Armas'},
-  {x:850,y:970,w:200,h:130,t:'bld',c:'#3d3d3d',lbl:'Posto Medico'},
-  {x:1100,y:970,w:160,h:160,t:'bld',c:'#3d3d3d',lbl:'Comercio'},
-  {x:580,y:580,w:100,h:80,t:'bld',c:'#353535'},{x:1380,y:580,w:100,h:80,t:'bld',c:'#353535'},
-  {x:580,y:1220,w:100,h:80,t:'bld',c:'#353535'},{x:1380,y:1220,w:100,h:80,t:'bld',c:'#353535'},
-  {x:0,y:0,w:MAP_W,h:12,t:'wall'},{x:0,y:MAP_H-12,w:MAP_W,h:12,t:'wall'},
-  {x:0,y:0,w:12,h:MAP_H,t:'wall'},{x:MAP_W-12,y:0,w:12,h:MAP_H,t:'wall'}
-];
-
-(function(){
-  for(var i=0;i<55;i++){
-    var tx=100+_sr()*(MAP_W-200), ty=100+_sr()*(MAP_H-200);
-    var tw=28+_sr()*18, th=28+_sr()*18;
-    var ok=true;
-    for(var j=0;j<obstacles.length;j++){var o=obstacles[j];if(o.t==='bld'&&tx>o.x-30&&tx<o.x+o.w+30&&ty>o.y-30&&ty<o.y+o.h+30){ok=false;break}}
-    if(ok)obstacles.push({x:tx,y:ty,w:tw,h:th,t:'tree'});
-  }
-})();
-
-/* NPCs */
-var npcs = [
-  {id:'npc_carlos',name:'Carlos (Medico)',x:360,y:1950,color:'#22c55e',greeting:'Precisa de ajuda medica? Traga suprimentos basicos e cuidarei de voce.',trades:[
-    {give:'bandage',qtyGive:1,take:'can',qtyTake:2},
-    {give:'medkit',qtyGive:1,take:'energy',qtyTake:3}
-  ]},
-  {id:'npc_sombra',name:'Sombra (Traficante)',x:1970,y:350,color:'#9333ea',greeting:'Ola parceiro. Procura fogo pesado? Aceito comida em troca de armas.',trades:[
-    {give:'shotgun',qtyGive:1,take:'can',qtyTake:6},
-    {give:'sks',qtyGive:1,take:'hamburger',qtyTake:5},
-    {give:'shells',qtyGive:5,take:'water',qtyTake:2}
-  ]},
-  {id:'npc_zeca',name:'Zeca (Guia)',x:1200,y:1180,color:'#eab308',greeting:'Ola sobrevivente! Aqui no centro voce esta seguro. Pegue um cantil de agua por minha conta!',trades:[
-    {give:'water',qtyGive:1,take:'chocolate',qtyTake:1}
-  ]}
-];
-
-var itemSpawns=[
-  {x:940,y:820,items:['can','can','hamburger','water']},
-  {x:1170,y:800,items:['pistol_mag','pistol','knife']},
-  {x:950,y:1035,items:['bandage','medkit','bandage']},
-  {x:1180,y:1050,items:['chocolate','energy','lockpick']},
-  {x:300,y:300,items:['can','bandage','water']},
-  {x:2100,y:300,items:['bolt','crossbow']},
-  {x:300,y:2100,items:['water','chocolate','fast_food']},
-  {x:2100,y:2100,items:['shells','shotgun']},
-  {x:1200,y:480,items:['fast_food','energy']},
-  {x:1200,y:1420,items:['rifle_mag','sks']},
-  {x:630,y:620,items:['can','backpack']},
-  {x:1430,y:620,items:['pistol_mag','bandage']},
-  {x:630,y:1260,items:['medkit','hamburger']},
-  {x:1430,y:1260,items:['shells','knife']}
-];
-var playerSpawns=[{x:1200,y:650},{x:1200,y:1350},{x:650,y:950},{x:1750,y:950},{x:300,y:1200},{x:2100,y:1200},{x:300,y:600},{x:2100,y:600}];
-
-/* Estado - TODAS com var para evitar TDZ */
 var peer = null;
 var conns = {};
 var isHost = false;
-var isSimulated = false; /* Modo Solo c/ Bots */
 var myId = null;
 var roomId = null;
-var myName = 'Jogador';
-var players = {};
-var groundItems = [];
-var particles = [];
-var inventory = [];
-for(var _ii=0;_ii<INV_SIZE;_ii++) inventory.push(null);
-var selectedSlot = -1;
-var invOpen = false;
-var npcOverlayOpen = false;
-var activeNpc = null;
-var tradeState = null;
-var keys = {};
-var chatFocused = false;
-var gameRunning = false;
-var camera = {x:0,y:0};
-var lastHungerTick = 0;
-var spawnTimers = {};
-var colorIdx = 0;
-var lastStateBroadcast = 0;
 
-/* Lista de Salas Publicas (Disponiveis no Menu) */
-var PUBLIC_LOBBIES = [
-  {id:'BR_SURVIVAL',name:'🇧🇷 [BR] SOBREVIVENCIA SAO PAULO',country:'Brasil',ping:14,players:2,simulated:true},
-  {id:'US_TRADING_ZONE',name:'🇺🇸 [US] MIAMI BARTER ZONE',country:'Estados Unidos',ping:115,players:3,simulated:true},
-  {id:'EU_COMMUNITY',name:'🇪🇸 [EU] MADRID MARKET',country:'Espanha',ping:195,players:1,simulated:true}
+var players = {};
+var keys = {};
+var gameRunning = false;
+var activeGame = null; // 'lobby', 'catch', 'quiz', 'ttt'
+
+/* Analógico de Toque */
+var joystickInput = { x: 0, y: 0, active: false };
+
+/* Canvas Config */
+var canvas = document.getElementById('mainCanvas');
+var ctx = canvas.getContext('2d');
+
+/* Entidades do Lobby */
+var obstacles = [
+  {x: 100, y: 150, w: 120, h: 100, type: 'arcade', label: 'Chuva de Amor', game: 'catch', color: '#ff5e97', icon: '\u2B50'},
+  {x: 340, y: 150, w: 120, h: 100, type: 'arcade', label: 'Quiz de Afinidade', game: 'quiz', color: '#fbc531', icon: '\u2764'},
+  {x: 580, y: 150, w: 120, h: 100, type: 'arcade', label: 'Jogo da Velha', game: 'ttt', color: '#00d2d3', icon: '\u2694'},
+  {x: 350, y: 350, w: 100, h: 60, type: 'sofa', label: 'Sofá do Amor', color: '#3b2f63'}
 ];
 
-/* Canvas refs */
-var cv = document.getElementById('cv');
-var ctx = cv.getContext('2d');
-var mmCv = document.getElementById('minimap');
-var mmCtx = mmCv.getContext('2d');
+var lobbyParticles = [];
 
 /* ============================================================
-   FUNCOES UTILITARIAS
+   GERENCIADOR DO INÍCIO E AVATARES
    ============================================================ */
-function _genCode(){var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r='';for(var i=0;i<6;i++)r+=c[Math.floor(Math.random()*c.length)];return r}
-function _showToast(msg,type){type=type||'info';var d=document.createElement('div');d.className='toast '+type;d.textContent=msg;document.getElementById('toasts').appendChild(d);setTimeout(function(){d.remove()},3000)}
-function _setMenuMsg(msg,type){var el=document.getElementById('menu-msg');el.textContent=msg;el.className='menu-msg '+(type||'')}
-function _copyCode(){if(roomId){navigator.clipboard.writeText(roomId).then(function(){_showToast('Codigo copiado!','ok')}).catch(function(){_showToast('Codigo: '+roomId,'info')})}}
-function _dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
-function _canMove(x,y){if(x-PLAYER_R<0||x+PLAYER_R>MAP_W||y-PLAYER_R<0||y+PLAYER_R>MAP_H)return false;for(var i=0;i<obstacles.length;i++){var o=obstacles[i];if(x+PLAYER_R>o.x&&x-PLAYER_R<o.x+o.w&&y+PLAYER_R>o.y&&y-PLAYER_R<o.y+o.h)return false}return true}
-function _nextColor(){var c=PLAYER_COLORS[colorIdx%PLAYER_COLORS.length];colorIdx++;return c}
-function _itemColor(id){var cats={Comida:'#4ade80',Municao:'#fbbf24',Arma:'#ef4444',Medico:'#60a5fa',Diverso:'#a78bfa'};return cats[(ITEMS[id]||{}).cat]||'#888'}
+(function() {
+  var container = document.getElementById('avatar-selector');
+  COLORS.forEach(function(color, idx) {
+    var dot = document.createElement('div');
+    dot.className = 'avatar-dot';
+    dot.style.background = color;
+    if (idx === 0) dot.classList.add('selected');
+    dot.onclick = function() {
+      var dots = container.querySelectorAll('.avatar-dot');
+      dots.forEach(function(d) { d.classList.remove('selected'); });
+      dot.classList.add('selected');
+      chosenColor = color;
+    };
+    container.appendChild(dot);
+  });
+  
+  var nameHints = ["Sobrevivente", "Cupido", "Romântico", "Anjo", "Docinho", "Mozão", "Amor"];
+  document.getElementById('inp-name').value = nameHints[Math.floor(Math.random() * nameHints.length)] + "#" + Math.floor(Math.random() * 900 + 100);
+})();
 
-/* ============================================================
-   MICROFONE POR PROXIMIDADE (WEBAUDIO)
-   ============================================================ */
-function _toggleMic() {
-  if (micActive) {
-    _disableMic();
-  } else {
-    _enableMic();
-  }
+function _genCode() {
+  var c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r = '';
+  for(var i = 0; i < 5; i++) r += c[Math.floor(Math.random() * c.length)];
+  return r;
 }
-window._toggleMic = _toggleMic;
 
-function _enableMic() {
-  navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-    .then(function(stream) {
-      localStream = stream;
-      micActive = true;
-      document.getElementById('btn-mic').innerHTML = '<i class="fa-solid fa-microphone" style="color:var(--success)"></i> MIC ATIVO';
-      document.getElementById('btn-mic').style.borderColor = 'var(--success)';
-      
-      try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      } catch(e) {
-        console.error("AudioContext nao suportado", e);
-      }
+function _showToast(msg, icon) {
+  var container = document.getElementById('toasts');
+  var toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = (icon ? '<i class="' + icon + '"></i> ' : '') + msg;
+  container.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 3000);
+}
 
-      /* Inicia ligações para conexões existentes */
-      for (var id in conns) {
-        _callPeer(id);
-      }
-      _showToast('Microfone ativado com sucesso!','ok');
-    })
-    .catch(function(err) {
-      _showToast('Nao foi possivel acessar o microfone!','err');
-      console.error(err);
+function _setMenuMsg(msg, type) {
+  var el = document.getElementById('menu-msg');
+  el.textContent = msg;
+  el.className = 'menu-msg ' + (type || '');
+}
+
+function _copyCode() {
+  if (roomId) {
+    navigator.clipboard.writeText(roomId).then(function() {
+      _showToast('Código da sala copiado!', 'fa-solid fa-copy');
     });
-}
-
-function _disableMic() {
-  if (localStream) {
-    localStream.getTracks().forEach(function(track) { track.stop(); });
-    localStream = null;
   }
-  micActive = false;
-  document.getElementById('btn-mic').innerHTML = '<i class="fa-solid fa-microphone-slash"></i> ATIVAR MICROFONE';
-  document.getElementById('btn-mic').style.borderColor = 'var(--border)';
-  
-  for (var id in voiceCalls) {
-    try { voiceCalls[id].close(); } catch(e){}
-    delete voiceCalls[id];
-  }
-  voiceGains = {};
-  _showToast('Microfone desativado!','info');
 }
 
-function _callPeer(peerId) {
-  if (!peer || !localStream) return;
-  var call = peer.call(peerId, localStream);
-  _setupCallEvents(call);
-}
-
-function _setupCallEvents(call) {
-  voiceCalls[call.peer] = call;
-  call.on('stream', function(remoteStream) {
-    _handleRemoteStream(call.peer, remoteStream);
-  });
-  call.on('close', function() {
-    delete voiceCalls[call.peer];
-    delete voiceGains[call.peer];
-  });
-}
-
-function _handleRemoteStream(peerId, stream) {
-  if (!audioCtx) return;
-  var source = audioCtx.createMediaStreamSource(stream);
-  var gainNode = audioCtx.createGain();
-  source.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
-  voiceGains[peerId] = gainNode;
-}
-
-function _updateVoiceVolumes() {
-  if (!players[myId]) return;
-  var myP = players[myId];
-  for (var id in voiceGains) {
-    var p = players[id];
-    var gainNode = voiceGains[id];
-    if (p && gainNode) {
-      var d = _dist(myP, p);
-      var maxDist = 500;
-      var vol = 0;
-      if (d < maxDist) {
-        vol = 1 - (d / maxDist);
-      }
-      gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
-    }
+/* Toggle Mobile Chat */
+function _toggleMobileChat() {
+  var area = document.getElementById('chat-area');
+  var btn = document.getElementById('btn-toggle-chat');
+  if (area.classList.contains('active-mobile')) {
+    area.classList.remove('active-mobile');
+    btn.innerHTML = '<i class="fa-solid fa-comments"></i> Abrir Chat';
+  } else {
+    area.classList.add('active-mobile');
+    btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar Chat';
   }
 }
 
 /* ============================================================
-   REDE P2P
+   REDE E CONECTIVIDADE (PEERJS)
    ============================================================ */
-function _initNet(){
-  peer.on('error',function(err){
-    if(err.type==='unavailable-id')_setMenuMsg('Codigo ja em uso. Tente outro.','err');
-    else if(err.type==='peer-unavailable')_setMenuMsg('Sala nao encontrada!','err');
-    else if(err.type==='network')_setMenuMsg('Erro de rede.','err');
-    else _setMenuMsg('Erro: '+err.type,'err');
-    document.getElementById('btn-create').disabled=false;
-    document.getElementById('btn-join').disabled=false;
-  });
-  peer.on('disconnected',function(){if(gameRunning)try{peer.reconnect()}catch(e){}});
-  peer.on('call', function(call) {
-    if (localStream) {
-      call.answer(localStream);
+function _initNet() {
+  peer.on('error', function(err) {
+    if (err.type === 'unavailable-id') {
+      _setMenuMsg('Código já em uso. Tente novamente.', 'err');
+    } else if (err.type === 'peer-unavailable') {
+      _setMenuMsg('Sala não encontrada! Verifique o código.', 'err');
     } else {
-      call.answer();
+      _setMenuMsg('Erro na rede: ' + err.type, 'err');
     }
-    _setupCallEvents(call);
+    document.getElementById('btn-create').disabled = false;
+    document.getElementById('btn-join').disabled = false;
   });
 }
 
-function _handleConn(conn){
-  conn.on('open',function(){
-    conns[conn.peer]=conn;
-    if(isHost){
-      var si=Object.keys(players).length;
-      var sp=playerSpawns[si%playerSpawns.length];
-      var pd={id:conn.peer,name:(conn.metadata||{}).name||'Jogador',x:sp.x,y:sp.y,color:_nextColor(),hp:100,hunger:100,angle:0};
-      players[conn.peer]=pd;
-      conn.send({type:'init',playerId:conn.peer,players:_serPlayers(),groundItems:groundItems,spawnIdx:si});
-      _broadcastExcept(conn.peer,{type:'player_joined',player:pd});
-      _updatePlayerList();
-      _showToast(((conn.metadata||{}).name||'Jogador')+' entrou','ok');
-      if (micActive) {
-        _callPeer(conn.peer);
-      }
-    }
-  });
-  conn.on('data',function(data){_handleMsg(data,conn.peer)});
-  conn.on('close',function(){
-    delete conns[conn.peer];
-    if(isHost&&players[conn.peer]){var nm=players[conn.peer].name;delete players[conn.peer];_broadcast({type:'player_left',playerId:conn.peer});_updatePlayerList();_showToast(nm+' saiu','info')}
-    else if(!isHost){_showToast('Host desconectado!','err');setTimeout(_backToMenu,2000)}
-  });
-}
-
-function _broadcast(data){for(var id in conns)try{conns[id].send(data)}catch(e){}}
-function _broadcastExcept(ex,data){for(var id in conns)if(id!==ex)try{conns[id].send(data)}catch(e){}}
-function _sendTo(id,data){if(conns[id])try{conns[id].send(data)}catch(e){}}
-
-function _serPlayers(){var r={};for(var id in players){var p=players[id];r[id]={id:p.id,name:p.name,x:p.x,y:p.y,color:p.color,hp:p.hp,hunger:p.hunger,angle:p.angle}}return r}
-
-/* ============================================================
-   SISTEMA DE MENSAGENS E SEGURANCA ANTI-DUPE/ANTI-THEFT
-   ============================================================ */
-function _handleMsgBase(data,fromId){
-  switch(data.type){
-    case 'init':
-      myId=data.playerId;
-      players=data.players;
-      groundItems=data.groundItems;
-      if(!players[myId]){var sp=playerSpawns[(data.spawnIdx||0)%playerSpawns.length];players[myId]={id:myId,name:myName,x:sp.x,y:sp.y,color:_nextColor(),hp:100,hunger:100,angle:0}}
-      _startGameUI();
-      break;
-    case 'state':
-      for(var id in data.players){
-        if(id!==myId&&players[id]){
-          players[id].x=data.players[id].x;
-          players[id].y=data.players[id].y;
-          players[id].angle=data.players[id].angle;
-          players[id].hp=data.players[id].hp;
-          players[id].hunger=data.players[id].hunger;
-        }
-      }
-      groundItems=data.groundItems||[];
-      break;
-    case 'player_joined':
-      players[data.player.id]=data.player;_updatePlayerList();_addChat('','[ '+data.player.name+' entrou ]','var(--success)');break;
-    case 'player_left':
-      delete players[data.playerId];if(tradeState&&tradeState.partnerId===data.playerId)_closeTradeUI();_updatePlayerList();_addChat('','[ Jogador saiu ]','var(--danger)');break;
-    case 'chat':
-      _addChat(data.from,data.message,data.color);
-      /* Atribui balao de fala ao jogador correspondente */
-      for (var pid in players) {
-        if (players[pid].name === data.from) {
-          players[pid].chatBubble = { text: data.message, expires: Date.now() + 6000 };
-          break;
-        }
-      }
-      break;
-    case 'pickup_result':
-      if(data.success){inventory[data.slot]={itemId:data.itemId,quantity:data.quantity};_spawnParts(players[myId].x,players[myId].y,_itemColor(data.itemId));_showToast('Pegou '+(ITEMS[data.itemId]||{}).name,'ok')}
-      else if(data.msg)_showToast(data.msg,'err');
-      if(invOpen)_renderInv();break;
-    case 'drop_result':
-      if(data.success){inventory[data.slot]=null;_showToast('Item dropado','info');if(invOpen)_renderInv()}break;
-    case 'use_result':
-      if(data.success){var p=players[myId];if(data.stat==='hp')p.hp=Math.min(100,p.hp+data.val);if(data.stat==='hunger')p.hunger=Math.min(100,p.hunger+data.val);inventory[data.slot]=data.newQty>0?{itemId:data.itemId,quantity:data.newQty}:null;_showToast('Usou '+(ITEMS[data.itemId]||{}).name,'ok');_updateBars();if(invOpen)_renderInv()}break;
-    
-    /* Maquina de Estados Segura para Trade P2P (Anti-Theft / Anti-Dupe) */
-    case 'trade_request':
-      if(!tradeState){
-        tradeState={partnerId:fromId,partnerName:data.fromName,myOffer:[null,null,null,null,null],theirOffer:[null,null,null,null,null],myAccepted:false,theirAccepted:false};
-        _sendTo(fromId,{type:'trade_accept_request',fromName:myName});
-        _openTradeUI();
-        _showToast(data.fromName+' quer trocar!','info');
-      }
-      break;
-    case 'trade_accept_request':
-      if(!tradeState){
-        tradeState={partnerId:fromId,partnerName:data.fromName,myOffer:[null,null,null,null,null],theirOffer:[null,null,null,null,null],myAccepted:false,theirAccepted:false};
-        _openTradeUI();
-      }
-      break;
-    case 'trade_update':
-      if(tradeState&&tradeState.partnerId===fromId){
-        tradeState.theirOffer=data.offer;
-        tradeState.theirAccepted=data.accepted;
-        _renderTradeUI();
-      }
-      break;
-    case 'trade_lock_reset':
-      /* Se o outro jogador mexer nos itens dele, reseta as confirmacoes locais de ambos p/ seguranca */
-      if(tradeState && tradeState.partnerId === fromId) {
-        tradeState.myAccepted = false;
-        tradeState.theirAccepted = false;
-        _renderTradeUI();
-      }
-      break;
-    case 'trade_pre_commit':
-      /* Fase 1 do Two-Phase Commit: Dedução Local */
-      if (tradeState && tradeState.partnerId === fromId) {
-        var preCheck = _verifyLocalOfferItems(tradeState.myOffer);
-        if (preCheck) {
-          /* Consome localmente ANTES de receber para evitar Dupe por Race Condition */
-          _deductLocalOffer(tradeState.myOffer);
-          _sendTo(fromId, { type: 'trade_pre_commit_ok' });
-        } else {
-          _sendTo(fromId, { type: 'trade_failed', msg: 'Falha de inventario do parceiro' });
-          _cancelTrade();
-        }
-      }
-      break;
-    case 'trade_pre_commit_ok':
-      /* Fase 2 do Two-Phase Commit: Dedução Host/Iniciante */
-      if (tradeState && tradeState.partnerId === fromId) {
-        _deductLocalOffer(tradeState.myOffer);
-        _executeLocalAddition(tradeState.theirOffer);
-        _sendTo(fromId, { type: 'trade_final_complete', sent: tradeState.myOffer });
-        _showToast('Troca realizada com sucesso!','ok');
-        tradeState.myOffer = [null,null,null,null,null];
-        _closeTradeUI();
-        if (invOpen) _renderInv();
-      }
-      break;
-    case 'trade_final_complete':
-      /* Conclusão atômica final */
-      if (tradeState && tradeState.partnerId === fromId) {
-        _executeLocalAddition(data.sent);
-        _showToast('Troca realizada com sucesso!','ok');
-        tradeState.myOffer = [null,null,null,null,null];
-        _closeTradeUI();
-        if (invOpen) _renderInv();
-      }
-      break;
-    case 'trade_failed':
-      _showToast(data.msg || 'A troca falhou!', 'err');
-      _cancelTrade();
-      break;
-    case 'trade_cancelled':
-      if(tradeState&&tradeState.partnerId===fromId){_showToast('Troca cancelada','info');_closeTradeUI()}break;
-    case 'notification':
-      _showToast(data.message,data.msgType||'info');break;
-  }
-}
-
-function _handleHostMsg(data,fromId){
-  switch(data.type){
-    case 'input':if(players[fromId]){players[fromId].x=data.x;players[fromId].y=data.y;players[fromId].angle=data.angle}break;
-    case 'chat':
-      _broadcast({type:'chat',from:players[fromId]?players[fromId].name:'Jogador',message:data.message,color:players[fromId]?players[fromId].color:'#fff'});
-      _addChat(players[fromId]?players[fromId].name:'Jogador',data.message,players[fromId]?players[fromId].color:'#fff');
-      if (players[fromId]) players[fromId].chatBubble = { text: data.message, expires: Date.now() + 6000 };
-      break;
-    case 'pickup':_hostPickup(data,fromId);break;
-    case 'drop':_hostDrop(data,fromId);break;
-    case 'use':_hostUse(data,fromId);break;
-    case 'trade_request':
-      if(players[data.targetId]&&players[fromId]){if(_dist(players[fromId],players[data.targetId])<TRADE_DIST)_sendTo(data.targetId,{type:'trade_request',fromId:fromId,fromName:players[fromId].name});else _sendTo(fromId,{type:'notification',message:'Jogador muito longe!',msgType:'err'})}break;
-    case 'trade_update':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_update',offer:data.offer,accepted:data.accepted});break;
-    case 'trade_lock_reset':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_lock_reset'});break;
-    case 'trade_pre_commit':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_pre_commit'});break;
-    case 'trade_pre_commit_ok':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_pre_commit_ok'});break;
-    case 'trade_final_complete':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_final_complete',sent:data.sent});break;
-    case 'trade_failed':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_failed',msg:data.msg});break;
-    case 'trade_cancel':if(data.targetId&&conns[data.targetId])_sendTo(data.targetId,{type:'trade_cancelled'});break;
-  }
-}
-
-function _hostPickup(data,fromId){
-  var gi=null;for(var i=0;i<groundItems.length;i++){if(groundItems[i].id===data.groundItemId){gi=groundItems[i];break}}
-  if(!gi){_sendTo(fromId,{type:'pickup_result',success:false,msg:'Item ja foi pego'});return}
-  if(!players[fromId]||_dist(players[fromId],gi)>PICKUP_DIST){_sendTo(fromId,{type:'pickup_result',success:false,msg:'Muito longe'});return}
-  groundItems=groundItems.filter(function(g){return g.id!==data.groundItemId});
-  _sendTo(fromId,{type:'pickup_result',success:true,itemId:gi.itemId,slot:0,quantity:1});
-}
-
-function _hostDrop(data,fromId){
-  var p=players[fromId];if(!p)return;
-  var ax=p.x+Math.cos(p.angle||0)*30, ay=p.y+Math.sin(p.angle||0)*30;
-  groundItems.push({id:'gd_'+Date.now(),x:ax,y:ay,itemId:data.itemId,spawnIdx:-1});
-  _sendTo(fromId,{type:'drop_result',success:true,slot:data.slot});
-}
-
-function _hostUse(data,fromId){
-  var def=ITEMS[data.itemId];if(!def||!def.use)return;var p=players[fromId];if(!p)return;
-  if(def.use==='hp')p.hp=Math.min(100,p.hp+def.val);
-  if(def.use==='hunger')p.hunger=Math.min(100,p.hunger+def.val);
-  _sendTo(fromId,{type:'use_result',success:true,itemId:data.itemId,slot:data.slot,stat:def.use,val:def.val,newQty:(data.qty||1)-1});
-}
-
-function _handleMsg(data,fromId){
-  if(isHost&&fromId!==myId){_handleHostMsg(data,fromId);return}
-  _handleMsgBase(data,fromId);
-}
-
-/* ============================================================
-   LOGICA DO JOGO / SIMULACAO DE BOTS
-   ============================================================ */
-function _initGroundItems(){
-  groundItems=[];
-  for(var i=0;i<itemSpawns.length;i++){
-    groundItems.push({id:'gi_'+i,x:itemSpawns[i].x,y:itemSpawns[i].y,itemId:itemSpawns[i].items[0],spawnIdx:i});
-  }
-}
-
-function _updateLocalPlayer(){
-  if(!players[myId])return;
-  var p=players[myId],dx=0,dy=0;
-  if(keys['w']||keys['arrowup'])dy-=SPEED;
-  if(keys['s']||keys['arrowdown'])dy+=SPEED;
-  if(keys['a']||keys['arrowleft'])dx-=SPEED;
-  if(keys['d']||keys['arrowright'])dx+=SPEED;
-  if(dx&&dy){dx*=.707;dy*=.707}
-  if(dx||dy)p.angle=Math.atan2(dy,dx);
-  if(_canMove(p.x+dx,p.y))p.x+=dx;
-  if(_canMove(p.x,p.y+dy))p.y+=dy;
-  var now=Date.now();
-  if(now-lastHungerTick>10000){
-    lastHungerTick=now;
-    p.hunger=Math.max(0,p.hunger-1);
-    if(p.hunger<=0)p.hp=Math.max(0,p.hp-1);
-    _updateBars();
-  }
-  if(!isHost && !isSimulated)_sendTo(Object.keys(conns)[0],{type:'input',x:p.x,y:p.y,angle:p.angle});
-}
-
-function _hostUpdate(){
-  if(!isHost)return;
-  var now=Date.now();
-  
-  /* Logica dos Bots (IA) */
-  _updateSimulatedBots(now);
-
-  if(now-lastStateBroadcast>50){
-    lastStateBroadcast=now;
-    /* Respawn itens */
-    for(var i=0;i<itemSpawns.length;i++){
-      var sp=itemSpawns[i],key=sp.x+'_'+sp.y;
-      var hasIt=false;for(var j=0;j<groundItems.length;j++){if(groundItems[j].spawnIdx===i){hasIt=true;break}}
-      if(!hasIt){if(!spawnTimers[key])spawnTimers[key]=now;if(now-spawnTimers[key]>30000){var ni=sp.items[Math.floor(Math.random()*sp.items.length)];groundItems.push({id:'gi_'+i+'_'+now,x:sp.x,y:sp.y,itemId:ni,spawnIdx:i});delete spawnTimers[key]}}else{delete spawnTimers[key]}
-    }
-    if(!isSimulated){
-      _broadcast({type:'state',players:_serPlayers(),groundItems:groundItems});
-    }
-  }
-}
-
-function _updateSimulatedBots(now) {
-  for (var id in players) {
-    var p = players[id];
-    if (!p.isBot) continue;
-
-    /* Decide nova acao */
-    if (!p.nextAction || now > p.nextAction) {
-      p.nextAction = now + Math.random() * 5000 + 3000;
-      
-      /* Procura por itens proximos no chao */
-      var targetItem = null;
-      var minD = 350;
-      for (var j = 0; j < groundItems.length; j++) {
-        var gd = _dist(p, groundItems[j]);
-        if (gd < minD) {
-          minD = gd;
-          targetItem = groundItems[j];
-        }
-      }
-
-      if (targetItem) {
-        p.tx = targetItem.x;
-        p.ty = targetItem.y;
-      } else {
-        /* Movimento aleatorio */
-        p.tx = p.x + (Math.random() - 0.5) * 400;
-        p.ty = p.y + (Math.random() - 0.5) * 400;
-      }
-      
-      /* Balões Habbo Aleatorios nos Bots */
-      if (Math.random() < 0.2) {
-        var msg = ['Ola!', 'Quem quer trocar?', 'Buscando suprimentos...', 'Frio demais la fora.', 'Carlos tem curas!'][Math.floor(Math.random() * 5)];
-        p.chatBubble = { text: msg, expires: now + 5000 };
-      }
-    }
-
-    /* Move o bot */
-    if (p.tx !== undefined) {
-      var dx = p.tx - p.x;
-      var dy = p.ty - p.y;
-      var d = Math.hypot(dx, dy);
-      if (d > 10) {
-        p.angle = Math.atan2(dy, dx);
-        var speed = SPEED * 0.8;
-        var stepX = (dx / d) * speed;
-        var stepY = (dy / d) * speed;
-        if (_canMove(p.x + stepX, p.y)) p.x += stepX;
-        if (_canMove(p.x, p.y + stepY)) p.y += stepY;
-      }
-    }
-
-    /* Coleta de itens do bot */
-    for (var k = groundItems.length - 1; k >= 0; k--) {
-      if (_dist(p, groundItems[k]) < PICKUP_DIST) {
-        p.botInv = p.botInv || [];
-        if (p.botInv.length < 8) {
-          p.botInv.push({ itemId: groundItems[k].itemId, quantity: 1 });
-        }
-        _spawnParts(p.x, p.y, _itemColor(groundItems[k].itemId));
-        groundItems.splice(k, 1);
-        break;
-      }
-    }
-  }
-}
-
-function _handlePickup(){
-  if(!players[myId])return;var p=players[myId],nearest=null,nd=PICKUP_DIST;
-  for(var i=0;i<groundItems.length;i++){var d=_dist(p,groundItems[i]);if(d<nd){nd=d;nearest=groundItems[i]}}
-  if(!nearest) return;
-  
-  if(isHost || isSimulated){
-    var def=ITEMS[nearest.itemId],slot=-1,qty=1;
-    if(def&&def.stack){for(var i=0;i<INV_SIZE;i++){if(inventory[i]&&inventory[i].itemId===nearest.itemId&&inventory[i].quantity<def.max){slot=i;qty=Math.min(1,def.max-inventory[i].quantity);break}}}
-    if(slot<0){for(var i=0;i<INV_SIZE;i++){if(!inventory[i]){slot=i;break}}}
-    if(slot>=0){
-      if(inventory[slot]&&inventory[slot].itemId===nearest.itemId)inventory[slot].quantity+=qty;else inventory[slot]={itemId:nearest.itemId,quantity:qty};
-      groundItems=groundItems.filter(function(g){return g.id!==nearest.id});
-      _spawnParts(p.x,p.y,_itemColor(nearest.itemId));_showToast('Pegou '+def.name,'ok');if(invOpen)_renderInv();
-    }else _showToast('Inventario cheio!','err');
-  }else{_sendTo(Object.keys(conns)[0],{type:'pickup',itemId:nearest.itemId,groundItemId:nearest.id})}
-}
-
-function _handleDrop(){
-  if(selectedSlot<0||!inventory[selectedSlot])return;var item=inventory[selectedSlot],p=players[myId];
-  if(isHost || isSimulated){var dx=p.x+Math.cos(p.angle||0)*30,dy=p.y+Math.sin(p.angle||0)*30;groundItems.push({id:'gd_'+Date.now(),x:dx,y:dy,itemId:item.itemId,spawnIdx:-1});inventory[selectedSlot]=null;selectedSlot=-1;_showToast('Item dropado','info');if(invOpen)_renderInv()}
-  else{_sendTo(Object.keys(conns)[0],{type:'drop',slot:selectedSlot,itemId:item.itemId})}
-}
-
-function _handleUse(){
-  if(selectedSlot<0||!inventory[selectedSlot])return;var item=inventory[selectedSlot],def=ITEMS[item.itemId];if(!def||!def.use)return;var p=players[myId];
-  if(isHost || isSimulated){if(def.use==='hp')p.hp=Math.min(100,p.hp+def.val);if(def.use==='hunger')p.hunger=Math.min(100,p.hunger+def.val);item.quantity--;if(item.quantity<=0)inventory[selectedSlot]=null;selectedSlot=-1;_showToast('Usou '+def.name,'ok');_updateBars();if(invOpen)_renderInv()}
-  else{_sendTo(Object.keys(conns)[0],{type:'use',slot:selectedSlot,itemId:item.itemId,qty:item.quantity})}
-}
-
-function _addInvLocal(itemId,qty){
-  var def=ITEMS[itemId];if(!def)return;
-  if(def.stack){for(var i=0;i<INV_SIZE;i++){if(inventory[i]&&inventory[i].itemId===itemId&&inventory[i].quantity<def.max){inventory[i].quantity+=qty;return true}}}
-  for(var i=0;i<INV_SIZE;i++){if(!inventory[i]){inventory[i]={itemId:itemId,quantity:qty};return true}}
-  return false;
-}
-
-/* ============================================================
-   DIALOGO / TROCAS COM NPCS
-   ============================================================ */
-function _checkNpcInteraction() {
-  if (!players[myId]) return;
-  var p = players[myId];
-  for (var i = 0; i < npcs.length; i++) {
-    var npc = npcs[i];
-    if (_dist(p, npc) < PICKUP_DIST) {
-      _openNpcOverlay(npc);
-      return;
-    }
-  }
-}
-
-function _openNpcOverlay(npc) {
-  activeNpc = npc;
-  npcOverlayOpen = true;
-  document.getElementById('npc-title').textContent = npc.name;
-  document.getElementById('npc-greeting').textContent = '"' + npc.greeting + '"';
-  
-  var optionsDiv = document.getElementById('npc-trade-options');
-  optionsDiv.innerHTML = '';
-  
-  npc.trades.forEach(function(trade, idx) {
-    var itemGive = ITEMS[trade.give];
-    var itemTake = ITEMS[trade.take];
-    
-    var btn = document.createElement('button');
-    btn.className = 'menu-btn primary';
-    btn.style.fontSize = '0.85rem';
-    btn.style.margin = '4px 0';
-    btn.innerHTML = 'Trocar ' + trade.qtyTake + 'x ' + itemTake.name + ' por ' + trade.qtyGive + 'x ' + itemGive.name;
-    btn.onclick = function() { _executeNpcTrade(trade); };
-    optionsDiv.appendChild(btn);
-  });
-  
-  document.getElementById('npc-overlay').classList.add('active');
-}
-
-function _closeNpcOverlay() {
-  npcOverlayOpen = false;
-  activeNpc = null;
-  document.getElementById('npc-overlay').classList.remove('active');
-}
-window._closeNpcOverlay = _closeNpcOverlay;
-
-function _executeNpcTrade(trade) {
-  /* Verifica se jogador possui o recurso solicitado */
-  var count = 0;
-  for (var i = 0; i < INV_SIZE; i++) {
-    if (inventory[i] && inventory[i].itemId === trade.take) {
-      count += inventory[i].quantity;
-    }
-  }
-  
-  if (count < trade.qtyTake) {
-    _showToast('Voce nao tem itens suficientes para essa troca!', 'err');
-    return;
-  }
-  
-  /* Consome recurso cobrado */
-  var needed = trade.qtyTake;
-  for (var i = 0; i < INV_SIZE; i++) {
-    if (inventory[i] && inventory[i].itemId === trade.take) {
-      if (inventory[i].quantity >= needed) {
-        inventory[i].quantity -= needed;
-        needed = 0;
-      } else {
-        needed -= inventory[i].quantity;
-        inventory[i].quantity = 0;
-      }
-      if (inventory[i].quantity <= 0) inventory[i] = null;
-      if (needed === 0) break;
-    }
-  }
-  
-  /* Adiciona recompensa */
-  _addInvLocal(trade.give, trade.qtyGive);
-  _showToast('Troca efetuada com o NPC!', 'ok');
-  _closeNpcOverlay();
-}
-
-/* ============================================================
-   SISTEMA DE PARTÍCULAS E RENDERIZACAO
-   ============================================================ */
-function _spawnParts(x,y,color){for(var i=0;i<10;i++)particles.push({x:x,y:y,vx:(Math.random()-.5)*5,vy:(Math.random()-.5)*5,life:1,color:color,size:Math.random()*3+1})}
-function _updateParts(){for(var i=particles.length-1;i>=0;i--){var p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.96;p.vy*=.96;p.life-=.025;if(p.life<=0)particles.splice(i,1)}}
-
-function _resizeCanvas(){cv.width=window.innerWidth;cv.height=window.innerHeight}
-window.addEventListener('resize',_resizeCanvas);
-
-function _render(){
-  if(!players[myId])return;
-  var p=players[myId];
-  camera.x+=(p.x-cv.width/2-camera.x)*.1;camera.y+=(p.y-cv.height/2-camera.y)*.1;
-  camera.x=Math.max(0,Math.min(MAP_W-cv.width,camera.x));camera.y=Math.max(0,Math.min(MAP_H-cv.height,camera.y));
-
-  ctx.fillStyle='#132d12';ctx.fillRect(0,0,cv.width,cv.height);
-
-  /* Grid */
-  ctx.strokeStyle='rgba(255,255,255,.015)';ctx.lineWidth=1;
-  var sx=Math.floor(camera.x/TILE)*TILE,sy=Math.floor(camera.y/TILE)*TILE;
-  for(var x=sx;x<camera.x+cv.width+TILE;x+=TILE){ctx.beginPath();ctx.moveTo(x-camera.x,0);ctx.lineTo(x-camera.x,cv.height);ctx.stroke()}
-  for(var y=sy;y<camera.y+cv.height+TILE;y+=TILE){ctx.beginPath();ctx.moveTo(0,y-camera.y);ctx.lineTo(cv.width,y-camera.y);ctx.stroke()}
-
-  /* Itens no chao */
-  var t=Date.now();
-  for(var i=0;i<groundItems.length;i++){
-    var g=groundItems[i],gx=g.x-camera.x,gy=g.y-camera.y;
-    if(gx<-30||gx>cv.width+30||gy<-30||gy>cv.height+30)continue;
-    var pulse=Math.sin(t/400+g.x)*.5+.5;
-    ctx.fillStyle='rgba(255,200,50,'+(0.08+pulse*0.07)+')';ctx.beginPath();ctx.arc(gx,gy,18+pulse*3,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=_itemColor(g.itemId);ctx.beginPath();ctx.arc(gx,gy,9,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1.5;ctx.stroke();
-    ctx.fillStyle='#fff';ctx.font='bold 9px Share Tech Mono';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText(((ITEMS[g.itemId]||{}).name||'?')[0],gx,gy);
-  }
-
-  /* Obstaculos / Estruturas */
-  for(var i=0;i<obstacles.length;i++){
-    var o=obstacles[i],ox=o.x-camera.x,oy=o.y-camera.y;
-    if(ox+o.w<-20||ox>cv.width+20||oy+o.h<-20||oy>cv.height+20)continue;
-    if(o.t==='tree'){
-      ctx.fillStyle='rgba(0,0,0,.15)';ctx.beginPath();ctx.ellipse(ox+o.w/2+3,oy+o.h/2+4,o.w/2,o.h/3,0,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='#163a12';ctx.beginPath();ctx.arc(ox+o.w/2,oy+o.h/2,o.w/2,0,Math.PI*2);ctx.fill();
-      ctx.fillStyle='rgba(40,100,35,.4)';ctx.beginPath();ctx.arc(ox+o.w/2-3,oy+o.h/2-3,o.w/3,0,Math.PI*2);ctx.fill();
-    }else if(o.t==='bld'){
-      ctx.fillStyle='rgba(0,0,0,.35)';ctx.fillRect(ox+8,oy+8,o.w,o.h);
-      ctx.fillStyle=o.c||'#3d3d3d';ctx.fillRect(ox,oy,o.w,o.h);
-      ctx.strokeStyle='rgba(255,107,53,0.3)';ctx.lineWidth=2;ctx.strokeRect(ox,oy,o.w,o.h);
-      if(o.lbl){
-        ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='12px Share Tech Mono';ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.fillText(o.lbl,ox+o.w/2,oy+o.h/2);
-      }
-    }else if(o.t==='wall'){ctx.fillStyle='#151515';ctx.fillRect(ox,oy,o.w,o.h)}
-  }
-
-  /* NPCs no Mapa */
-  for (var i = 0; i < npcs.length; i++) {
-    var npc = npcs[i], nx = npc.x - camera.x, ny = npc.y - camera.y;
-    ctx.fillStyle = 'rgba(0,0,0,.3)';ctx.beginPath();ctx.ellipse(nx,ny+14,12,5,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle = npc.color;ctx.beginPath();ctx.arc(nx,ny,PLAYER_R,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle = '#fff';ctx.lineWidth = 2;ctx.stroke();
-    
-    ctx.fillStyle = '#ffb703';ctx.font = 'bold 11px Share Tech Mono';ctx.textAlign = 'center';
-    ctx.fillText(npc.name, nx, ny - 20);
-    
-    if (_dist(p, npc) < PICKUP_DIST) {
-      ctx.fillStyle = '#fff';ctx.font = '10px Share Tech Mono';
-      ctx.fillText('[E] Falar', nx, ny + 24);
-    }
-  }
-
-  /* Jogadores (E Balao Habbo) */
-  for(var id in players){
-    var pl=players[id],px=pl.x-camera.x,py=pl.y-camera.y;
-    if(px<-40||px>cv.width+40||py<-40||py>cv.height+40)continue;
-    ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.ellipse(px,py+14,11,4,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=pl.color;ctx.beginPath();ctx.arc(px,py,PLAYER_R,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,.25)';ctx.lineWidth=2;ctx.stroke();
-    var ddx=Math.cos(pl.angle||0)*9,ddy=Math.sin(pl.angle||0)*9;
-    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px+ddx,py+ddy,3,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#fff';ctx.font='bold 11px Share Tech Mono';ctx.textAlign='center';ctx.textBaseline='bottom';
-    ctx.fillText(pl.name,px,py-20);
-    
-    if(id!==myId&&_dist(p,pl)<TRADE_DIST&&!tradeState){
-      ctx.fillStyle='rgba(255,107,53,.6)';ctx.font='9px Share Tech Mono';ctx.textBaseline='top';
-      ctx.fillText('[F] Trocar',px,py+18);
-    }
-
-    /* Habbo Chat Bubble */
-    if (pl.chatBubble && Date.now() < pl.chatBubble.expires) {
-      _renderHabboBubble(pl.chatBubble.text, px, py - 36);
-    }
-  }
-
-  /* Particulas */
-  for(var i=0;i<particles.length;i++){var pt=particles[i];ctx.globalAlpha=pt.life;ctx.fillStyle=pt.color;ctx.beginPath();ctx.arc(pt.x-camera.x,pt.y-camera.y,pt.size,0,Math.PI*2);ctx.fill()}
-  ctx.globalAlpha=1;
-
-  /* Prompt */
-  var nearItem=null,nd=PICKUP_DIST;
-  for(var i=0;i<groundItems.length;i++){var d=_dist(p,groundItems[i]);if(d<nd){nd=d;nearItem=groundItems[i]}}
-  var prompt=document.getElementById('hud-prompt');
-  if(nearItem&&!invOpen&&!tradeState){prompt.textContent='[E] Pegar '+((ITEMS[nearItem.itemId]||{}).name||'Item');prompt.classList.add('show')}
-  else prompt.classList.remove('show');
-
-  /* Minimapa */
-  _renderMinimap();
-}
-
-/* Desenho do Balao Habbo */
-function _renderHabboBubble(text, x, y) {
-  ctx.font = '11px Share Tech Mono';
-  var padding = 8, maxW = 160;
-  var words = text.split(' '), lines = [], currentLine = '';
-  
-  for (var i = 0; i < words.length; i++) {
-    var testLine = currentLine + words[i] + ' ';
-    if (ctx.measureText(testLine).width > maxW) {
-      lines.push(currentLine);
-      currentLine = words[i] + ' ';
-    } else {
-      currentLine = testLine;
-    }
-  }
-  lines.push(currentLine);
-
-  var bubbleW = 0;
-  lines.forEach(function(l){
-    var w = ctx.measureText(l).width;
-    if (w > bubbleW) bubbleW = w;
-  });
-  bubbleW = Math.min(bubbleW + padding*2, maxW + padding*2);
-  var bubbleH = lines.length * 13 + padding*2;
-  var bx = x - bubbleW/2, by = y - bubbleH;
-
-  /* Sombra / Borda */
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.roundRect(bx, by, bubbleW, bubbleH, 6);
-  ctx.fill();
-  ctx.stroke();
-
-  /* Rabicho do balao */
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-  ctx.beginPath();
-  ctx.moveTo(x - 6, by + bubbleH);
-  ctx.lineTo(x, by + bubbleH + 6);
-  ctx.lineTo(x + 6, by + bubbleH);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  /* Texto */
-  ctx.fillStyle = '#000000';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  lines.forEach(function(line, idx){
-    ctx.fillText(line.trim(), x, by + padding + idx*13);
-  });
-}
-
-function _renderMinimap(){
-  var s=140/MAP_W;
-  mmCtx.fillStyle='#0b1d09';mmCtx.fillRect(0,0,140,140);
-  for(var i=0;i<obstacles.length;i++){var o=obstacles[i];if(o.t==='wall')continue;mmCtx.fillStyle=o.t==='bld'?'#444':'#061a05';mmCtx.fillRect(o.x*s,o.y*s,Math.max(2,o.w*s),Math.max(2,o.h*s))}
-  for(var i=0;i<groundItems.length;i++){var g=groundItems[i];mmCtx.fillStyle='rgba(255,200,50,.7)';mmCtx.fillRect(g.x*s-1,g.y*s-1,2,2)}
-  for(var i=0;i<npcs.length;i++){var n=npcs[i];mmCtx.fillStyle='#ffb703';mmCtx.fillRect(n.x*s-2,n.y*s-2,4,4)}
-  for(var id in players){var pl=players[id];mmCtx.fillStyle=pl.color;mmCtx.beginPath();mmCtx.arc(pl.x*s,pl.y*s,id===myId?3:2,0,Math.PI*2);mmCtx.fill()}
-  mmCtx.strokeStyle='rgba(255,255,255,.2)';mmCtx.lineWidth=1;mmCtx.strokeRect(camera.x*s,camera.y*s,cv.width*s,cv.height*s);
-}
-
-/* ============================================================
-   INVENTARIO UI
-   ============================================================ */
-function _openInv(){invOpen=true;selectedSlot=-1;document.getElementById('inv-overlay').classList.add('active');_renderInv()}
-function _closeInv(){invOpen=false;selectedSlot=-1;document.getElementById('inv-overlay').classList.remove('active');document.getElementById('inv-details').classList.remove('active')}
-window._closeInv = _closeInv;
-
-function _renderInv(){
-  var grid=document.getElementById('inv-grid');grid.innerHTML='';
-  for(var i=0;i<INV_SIZE;i++){
-    var slot=document.createElement('div');slot.className='inv-slot'+(i===selectedSlot?' selected':'');
-    if(inventory[i]){var it=ITEMS[inventory[i].itemId];slot.innerHTML='<span class="emoji">'+it.icon+'</span><span class="sname">'+it.name+'</span><span class="sqty">'+inventory[i].quantity+'x</span>'+(it.price?'<span class="sprice">$'+it.price+'</span>':'')}
-    (function(idx){slot.onclick=function(){selectedSlot=selectedSlot===idx?-1:idx;_renderInv()}})(i);
-    grid.appendChild(slot);
-  }
-  _renderInvDet();
-}
-
-function _renderInvDet(){
-  var det=document.getElementById('inv-details');
-  if(selectedSlot<0||!inventory[selectedSlot]){det.classList.remove('active');return}
-  var item=inventory[selectedSlot],def=ITEMS[item.itemId];
-  det.classList.add('active');
-  document.getElementById('det-emoji').textContent=def.icon;
-  document.getElementById('det-name').textContent=def.name;
-  document.getElementById('det-cat').textContent=def.cat+(def.stack?' (Empilhavel, max '+def.max+')':'');
-  document.getElementById('det-price').textContent='$'+def.price;
-  var acts=document.getElementById('det-actions');acts.innerHTML='';
-  if(def.use){var b=document.createElement('button');b.className='btn-use';b.textContent='USAR';b.onclick=function(){_handleUse();_renderInv()};acts.appendChild(b)}
-  var bd=document.createElement('button');bd.className='btn-drop';bd.textContent='DROPAR';bd.onclick=function(){_handleDrop();_renderInv()};acts.appendChild(bd);
-  if(tradeState){var bt=document.createElement('button');bt.className='btn-offer';bt.textContent='OFERECER';bt.onclick=function(){_addToTrade(selectedSlot);_renderInv()};acts.appendChild(bt)}
-}
-
-/* ============================================================
-   TRADE SEGURA - SEM DUPLICACAO DE ITENS
-   ============================================================ */
-function _requestTrade(){
-  if(tradeState||!players[myId])return;var p=players[myId],nearest=null,nd=TRADE_DIST;
-  for(var id in players){if(id===myId)continue;var d=_dist(p,players[id]);if(d<nd){nd=d;nearest=id}}
-  if(!nearest){_showToast('Nenhum jogador proximo!','err');return}
-  
-  var partner = players[nearest];
-  
-  /* Se o parceiro de trade for um BOT */
-  if (partner.isBot) {
-    tradeState={partnerId:nearest,partnerName:partner.name,myOffer:[null,null,null,null,null],theirOffer:[null,null,null,null,null],myAccepted:false,theirAccepted:false,isBotTrade:true};
-    _openTradeUI();
-    _showToast('Iniciando troca com o Bot...','info');
-    _simulateBotInventory(nearest);
-  } else {
-    tradeState={partnerId:nearest,partnerName:partner.name,myOffer:[null,null,null,null,null],theirOffer:[null,null,null,null,null],myAccepted:false,theirAccepted:false,isBotTrade:false};
-    if(isHost)_sendTo(nearest,{type:'trade_request',fromId:myId,fromName:myName});
-    else _sendTo(Object.keys(conns)[0],{type:'trade_request',targetId:nearest});
-    _openTradeUI();
-  }
-}
-
-function _simulateBotInventory(botId) {
-  /* Alimenta os itens que o bot pode oferecer */
-  var pool = ['can', 'bandage', 'pistol_mag', 'chocolate', 'water'];
-  for (var i = 0; i < 2; i++) {
-    var randItem = pool[Math.floor(Math.random() * pool.length)];
-    tradeState.theirOffer[i] = { itemId: randItem, quantity: Math.floor(Math.random() * 2) + 1 };
-  }
-  _renderTradeUI();
-}
-
-function _openTradeUI(){
-  document.getElementById('trade-overlay').classList.add('active');
-  document.getElementById('trade-pname').textContent=tradeState.partnerName;
-  document.getElementById('trade-pname2').textContent=tradeState.partnerName;
-  _renderTradeUI();
-}
-
-function _closeTradeUI(){
-  tradeState=null;
-  document.getElementById('trade-overlay').classList.remove('active');
-}
-window._closeTradeUI = _closeTradeUI;
-
-function _renderTradeUI(){
-  if(!tradeState)return;
-  var myGrid=document.getElementById('trade-my-offer');myGrid.innerHTML='';
-  for(var i=0;i<TRADE_SLOTS;i++){
-    (function(idx){
-      var slot=document.createElement('div');slot.className='trade-slot';
-      if(tradeState.myOffer[idx]){var def=ITEMS[tradeState.myOffer[idx].itemId];slot.innerHTML='<span class="emoji">'+def.icon+'</span><span class="sqty">'+tradeState.myOffer[idx].quantity+'x</span>';slot.title='Clique para remover';slot.onclick=function(){_removeFromTrade(idx)}}
-      myGrid.appendChild(slot);
-    })(i);
-  }
-  var theirGrid=document.getElementById('trade-their-offer');theirGrid.innerHTML='';
-  for(var i=0;i<TRADE_SLOTS;i++){
-    var slot=document.createElement('div');slot.className='trade-slot';
-    if(tradeState.theirOffer[i]){var def=ITEMS[tradeState.theirOffer[i].itemId];slot.innerHTML='<span class="emoji">'+def.icon+'</span><span class="sqty">'+tradeState.theirOffer[i].quantity+'x</span>'}
-    theirGrid.appendChild(slot);
-  }
-  var invGrid=document.getElementById('trade-my-inv');invGrid.innerHTML='';
-  for(var i=0;i<INV_SIZE;i++){
-    if(!inventory[i])continue;
-    (function(idx){
-      var item=inventory[idx],def=ITEMS[item.itemId];
-      var slot=document.createElement('div');slot.className='trade-inv-slot';
-      slot.innerHTML='<span class="emoji">'+def.icon+'</span><span class="sqty">'+item.quantity+'x</span>';
-      slot.title='Clique para oferecer';slot.onclick=function(){_addToTrade(idx)};
-      invGrid.appendChild(slot);
-    })(i);
-  }
-  
-  var st=document.getElementById('trade-status');
-  var btnAccept = document.getElementById('btn-accept-trade');
-  
-  if(tradeState.myAccepted && tradeState.theirAccepted) {
-    st.textContent='Processando troca com segurança...';
-    btnAccept.classList.add('locked');
-  } else if(tradeState.myAccepted) {
-    st.textContent='Voce confirmou. Modificar itens cancelara seu aceite.';
-    btnAccept.classList.add('locked');
-  } else if(tradeState.theirAccepted) {
-    st.textContent=tradeState.partnerName+' confirmou e aguarda voce!';
-    btnAccept.classList.remove('locked');
-  } else {
-    st.textContent='Adicione itens e clique em Confirmar.';
-    btnAccept.classList.remove('locked');
-  }
-}
-
-function _addToTrade(invSlot){
-  if(!tradeState||!inventory[invSlot])return;
-  
-  /* Regra Anti-Theft: Qualquer mudanca reseta a confirmacao local */
-  tradeState.myAccepted = false;
-  tradeState.theirAccepted = false;
-  
-  var item=inventory[invSlot],def=ITEMS[item.itemId],placed=false;
-  if(def.stack){for(var i=0;i<TRADE_SLOTS;i++){if(tradeState.myOffer[i]&&tradeState.myOffer[i].itemId===item.itemId){var add=Math.min(item.quantity,def.max-tradeState.myOffer[i].quantity);if(add>0){tradeState.myOffer[i].quantity+=add;item.quantity-=add;if(item.quantity<=0)inventory[invSlot]=null;placed=true;break}}}}
-  if(!placed){for(var i=0;i<TRADE_SLOTS;i++){if(!tradeState.myOffer[i]){tradeState.myOffer[i]={itemId:item.itemId,quantity:item.quantity};inventory[invSlot]=null;placed=true;break}}}
-  if(!placed){_showToast('Oferta cheia!','err');return}
-  
-  _sendTradeUpdate();
-  _sendLockReset();
-  _renderTradeUI();
-}
-
-function _removeFromTrade(offerSlot){
-  if(!tradeState||!tradeState.myOffer[offerSlot])return;
-  
-  /* Reseta confirmacoes diante de alterações */
-  tradeState.myAccepted = false;
-  tradeState.theirAccepted = false;
-  
-  var item=tradeState.myOffer[offerSlot];
-  _addInvLocal(item.itemId,item.quantity);
-  tradeState.myOffer[offerSlot]=null;
-  
-  _sendTradeUpdate();
-  _sendLockReset();
-  _renderTradeUI();
-}
-
-function _sendTradeUpdate(){
-  if(!tradeState || tradeState.isBotTrade)return;
-  if(isHost)_sendTo(tradeState.partnerId,{type:'trade_update',offer:tradeState.myOffer,accepted:tradeState.myAccepted});
-  else _sendTo(Object.keys(conns)[0],{type:'trade_update',targetId:tradeState.partnerId,offer:tradeState.myOffer,accepted:tradeState.myAccepted});
-}
-
-function _sendLockReset() {
-  if(!tradeState || tradeState.isBotTrade)return;
-  if(isHost)_sendTo(tradeState.partnerId,{type:'trade_lock_reset'});
-  else _sendTo(Object.keys(conns)[0],{type:'trade_lock_reset',targetId:tradeState.partnerId});
-}
-
-function _acceptTrade(){
-  if(!tradeState)return;
-  var hasI=false,theyHas=false;
-  for(var i=0;i<TRADE_SLOTS;i++){if(tradeState.myOffer[i])hasI=true;if(tradeState.theirOffer[i])theyHas=true}
-  if(!hasI&&!theyHas){_showToast('Adicione itens primeiro!','err');return}
-  
-  tradeState.myAccepted=true;
-  _sendTradeUpdate();
-  _renderTradeUI();
-  
-  if (tradeState.isBotTrade) {
-    /* Simula aceite do Bot baseado no valor monetario */
-    var myVal = 0, botVal = 0;
-    tradeState.myOffer.forEach(function(o){if(o) myVal += ITEMS[o.itemId].price * o.quantity;});
-    tradeState.theirOffer.forEach(function(o){if(o) botVal += ITEMS[o.itemId].price * o.quantity;});
-    
-    if (myVal >= botVal * 0.9) {
-      setTimeout(function(){
-        if(tradeState && tradeState.isBotTrade){
-          tradeState.theirAccepted = true;
-          _renderTradeUI();
-          _completeBotTrade();
-        }
-      }, 1000);
-    } else {
-      _showToast('O bot achou sua oferta barata demais!','err');
-      tradeState.myAccepted = false;
-      _renderTradeUI();
-    }
-  } else {
-    if(tradeState.myAccepted && tradeState.theirAccepted) {
-      _initiateSecureTradeCommit();
-    }
-  }
-}
-window._acceptTrade = _acceptTrade;
-
-/* Protocolo de Transação Segura em Duas Etapas (Anti-Dupe / Anti-Theft) */
-function _initiateSecureTradeCommit() {
-  if (!tradeState) return;
-  
-  /* Passo 1 local: Verifica integridade física dos itens ANTES da transação */
-  var check = _verifyLocalOfferItems(tradeState.myOffer);
-  if (!check) {
-    _showToast('Seus itens foram alterados. Troca cancelada.', 'err');
-    _cancelTrade();
-    return;
-  }
-  
-  /* Envia sinalizador para pré-dedução do parceiro */
-  if (isHost) {
-    _sendTo(tradeState.partnerId, { type: 'trade_pre_commit' });
-  } else {
-    _sendTo(Object.keys(conns)[0], { type: 'trade_pre_commit', targetId: tradeState.partnerId });
-  }
-}
-
-function _verifyLocalOfferItems(offer) {
-  /* Valida se o jogador realmente detem os recursos declarados na trade */
-  var counts = {};
-  offer.forEach(function(o) {
-    if (o) counts[o.itemId] = (counts[o.itemId] || 0) + o.quantity;
-  });
-  
-  for (var itemId in counts) {
-    var inInv = 0;
-    inventory.forEach(function(slot) {
-      if (slot && slot.itemId === itemId) inInv += slot.quantity;
-    });
-    if (inInv < counts[itemId]) return false;
-  }
-  return true;
-}
-
-function _deductLocalOffer(offer) {
-  /* Reduz os itens oferecidos do inventário de forma atomica */
-  offer.forEach(function(o) {
-    if (!o) return;
-    var rem = o.quantity;
-    for (var i = 0; i < INV_SIZE; i++) {
-      if (inventory[i] && inventory[i].itemId === o.itemId) {
-        if (inventory[i].quantity > rem) {
-          inventory[i].quantity -= rem;
-          rem = 0;
-        } else {
-          rem -= inventory[i].quantity;
-          inventory[i] = null;
-        }
-        if (rem === 0) break;
-      }
-    }
-  });
-}
-
-function _executeLocalAddition(offer) {
-  /* Adiciona itens recebidos na transação */
-  offer.forEach(function(o) {
-    if (o) _addInvLocal(o.itemId, o.quantity);
-  });
-}
-
-function _completeBotTrade() {
-  if(!tradeState)return;
-  _deductLocalOffer(tradeState.myOffer);
-  _executeLocalAddition(tradeState.theirOffer);
-  _showToast('Troca efetuada com o Bot!','ok');
-  _closeTradeUI();
-  if(invOpen)_renderInv();
-}
-
-function _cancelTrade(){
-  if(!tradeState)return;
-  
-  /* Retorna itens reservados de volta para o inventario */
-  for(var i=0;i<TRADE_SLOTS;i++){if(tradeState.myOffer[i])_addInvLocal(tradeState.myOffer[i].itemId,tradeState.myOffer[i].quantity)}
-  
-  if(!tradeState.isBotTrade) {
-    if(isHost)_sendTo(tradeState.partnerId,{type:'trade_cancel'});
-    else _sendTo(Object.keys(conns)[0],{type:'trade_cancel',targetId:tradeState.partnerId});
-  }
-  _closeTradeUI();
-}
-window._cancelTrade = _cancelTrade;
-
-/* ============================================================
-   CHAT
-   ============================================================ */
-function _addChat(from,msg,color){
-  var div=document.getElementById('chat-messages'),el=document.createElement('div');el.className='chat-msg';
-  if(from)el.innerHTML='<span class="name" style="color:'+(color||'var(--accent)')+'">'+from+':</span> '+msg;
-  else el.innerHTML='<span style="color:'+(color||'var(--muted)')+'">'+msg+'</span>';
-  div.appendChild(el);div.scrollTop=div.scrollHeight;
-  while(div.children.length>50)div.removeChild(div.firstChild);
-}
-
-function _sendChat(){
-  var inp=document.getElementById('chat-input'),msg=inp.value.trim();if(!msg)return;inp.value='';
-  if (players[myId]) players[myId].chatBubble = { text: msg, expires: Date.now() + 6000 };
-  
-  if(isHost || isSimulated){
-    _broadcast({type:'chat',from:myName,message:msg,color:players[myId]?players[myId].color:'#fff'});
-    _addChat(myName,msg,players[myId]?players[myId].color:'#fff');
-  }else{
-    _sendTo(Object.keys(conns)[0],{type:'chat',message:msg});
-    _addChat(myName,msg,players[myId]?players[myId].color:'#fff');
-  }
-}
-window._sendChat = _sendChat;
-
-/* ============================================================
-   HUD
-   ============================================================ */
-function _updateBars(){
-  if(!players[myId])return;var p=players[myId];
-  document.getElementById('bar-hp').style.width=p.hp+'%';document.getElementById('val-hp').textContent=Math.round(p.hp);
-  document.getElementById('bar-hunger').style.width=p.hunger+'%';document.getElementById('val-hunger').textContent=Math.round(p.hunger);
-}
-
-function _updatePlayerList(){
-  var list=document.getElementById('player-list');list.innerHTML='';
-  for(var id in players){var p=players[id],el=document.createElement('div');el.className='hud-player';el.innerHTML='<span class="hud-player-dot" style="background:'+p.color+'"></span>'+p.name+(id===myId?' (voce)':'');list.appendChild(el)}
-}
-
-/* ============================================================
-   INPUT
-   ============================================================ */
-document.addEventListener('keydown',function(e){
-  if(chatFocused){if(e.key==='Enter'){_sendChat();document.getElementById('chat-input').blur();chatFocused=false;e.preventDefault()}if(e.key==='Escape'){document.getElementById('chat-input').blur();chatFocused=false;e.preventDefault()}return}
-  var k=e.key.toLowerCase();keys[k]=true;
-  if(k==='tab'){e.preventDefault();invOpen?_closeInv():_openInv()}
-  if(k==='e'&&!invOpen&&!tradeState) {
-    _handlePickup();
-    _checkNpcInteraction();
-  }
-  if(k==='f'&&!invOpen&&!tradeState)_requestTrade();
-  if(k==='t'){e.preventDefault();document.getElementById('chat-input').focus();chatFocused=true}
-  if(k==='escape'){if(tradeState)_cancelTrade();else if(invOpen)_closeInv();else if(npcOverlayOpen)_closeNpcOverlay()}
-});
-document.addEventListener('keyup',function(e){keys[e.key.toLowerCase()]=false});
-document.getElementById('chat-input').addEventListener('focus',function(){chatFocused=true});
-document.getElementById('chat-input').addEventListener('blur',function(){chatFocused=false});
-
-/* ============================================================
-   SISTEMA DE LOBBIES DO MENU PRINCIPAL / ENTRADA EM PARTIDAS
-   ============================================================ */
-function _renderLobbies() {
-  var list = document.getElementById('lobby-list');
-  list.innerHTML = '';
-  PUBLIC_LOBBIES.forEach(function(l) {
-    var item = document.createElement('div');
-    item.className = 'lobby-item';
-    item.innerHTML = '\
-      <div class="lobby-info">\
-        <div class="lobby-name">' + l.name + '</div>\
-        <div class="lobby-meta">\
-          <span>Regiao: ' + l.country + '</span>\
-          <span class="lobby-ping"><i class="fa-solid fa-signal"></i> ' + l.ping + 'ms</span>\
-        </div>\
-      </div>\
-      <button class="menu-btn primary" style="width: 70px; padding: 4px; font-size: 0.75rem; margin: 0;">JOGAR</button>\
-    ';
-    item.onclick = function() { _joinPublicLobby(l); };
-    list.appendChild(item);
-  });
-}
-
-function _joinPublicLobby(lobby) {
-  myName = document.getElementById('inp-name').value.trim() || 'Sobrevivente';
-  _setMenuMsg('Conectando ao Lobby ' + lobby.name + '...', '');
-  
-  if (lobby.simulated) {
-    /* Inicializa Lobbies Simulado / Solo com Bots inteligentes */
-    setTimeout(function() {
-      isSimulated = true;
-      isHost = true;
-      roomId = lobby.id;
-      myId = 'player_host';
-      colorIdx = 1;
-      
-      var sp = playerSpawns[0];
-      players[myId] = {id:myId,name:myName,x:sp.x,y:sp.y,color:PLAYER_COLORS[0],hp:100,hunger:100,angle:0};
-      _initGroundItems();
-
-      /* Gera Bots Sobreviventes autônomos pelo mapa */
-      var names = ['Scavenger_Vilela', 'Trader_John', 'Scrap_Metal', 'Rato_Loot', 'Survivalist_Sonia'];
-      for (var i = 0; i < lobby.players; i++) {
-        var botId = 'bot_' + i;
-        var bsp = playerSpawns[(i + 1) % playerSpawns.length];
-        players[botId] = {
-          id: botId,
-          name: names[i % names.length],
-          x: bsp.x,
-          y: bsp.y,
-          color: _nextColor(),
-          hp: 100,
-          hunger: 100,
-          angle: 0,
-          isBot: true,
-          botInv: []
-        };
-      }
-      _startGameUI();
-    }, 1000);
-  }
-}
-
-function _doCreate(){
-  myName=document.getElementById('inp-name').value.trim()||'Jogador';
-  var code=_genCode();roomId=code;
-  _setMenuMsg('Conectando...','');
-  document.getElementById('btn-create').disabled=true;document.getElementById('btn-join').disabled=true;
-  peer=new Peer('bz_'+code);
+function _doCreate() {
+  myName = document.getElementById('inp-name').value.trim() || 'Jogador';
+  var code = _genCode();
+  roomId = code;
+  document.getElementById('btn-create').disabled = true;
+  document.getElementById('btn-join').disabled = true;
+  _setMenuMsg('Instanciando servidor...', '');
+
+  peer = new Peer('duo_' + code);
   _initNet();
-  peer.on('open',function(){
-    isHost=true;myId=peer.id;colorIdx=1;
-    var sp=playerSpawns[0];
-    players[myId]={id:myId,name:myName,x:sp.x,y:sp.y,color:PLAYER_COLORS[0],hp:100,hunger:100,angle:0};
-    _initGroundItems();
-    document.getElementById('room-code-display').textContent=code;
-    document.getElementById('create-waiting').classList.remove('hidden');
-    document.getElementById('create-wrap').style.display='none';
-    document.getElementById('menu-div').style.display='none';
-    document.getElementById('join-wrap').style.display='none';
-    document.getElementById('name-wrap').style.display='none';
-    _setMenuMsg('','');
-    _startGameUI();
-  });
-  peer.on('connection',function(conn){_handleConn(conn)});
-}
-window._doCreate = _doCreate;
 
-function _doJoin(){
-  myName=document.getElementById('inp-name').value.trim()||'Jogador';
-  var code=document.getElementById('inp-code').value.trim().toUpperCase();
-  if(code.length!==6){_setMenuMsg('Codigo deve ter 6 caracteres','err');return}
-  roomId=code;_setMenuMsg('Conectando...','');
-  document.getElementById('btn-create').disabled=true;document.getElementById('btn-join').disabled=true;
-  peer=new Peer();
-  _initNet();
-  peer.on('open',function(){
-    myId=peer.id;
-    var conn=peer.connect('bz_'+code,{reliable:true,metadata:{name:myName}});
+  peer.on('open', function() {
+    isHost = true;
+    myId = peer.id;
+    players[myId] = { id: myId, name: myName, x: 200, y: 380, color: chosenColor, isHost: true };
+    
+    document.getElementById('room-code-display').textContent = code;
+    document.getElementById('create-waiting').style.display = 'block';
+    _setMenuMsg('', '');
+  });
+
+  peer.on('connection', function(conn) {
+    if (Object.keys(conns).length >= 1) {
+      conn.on('open', function() { conn.close(); });
+      return; // Apenas permite o par
+    }
     _handleConn(conn);
   });
 }
-window._doJoin = _doJoin;
 
-function _startGameUI(){
-  gameRunning=true;
-  document.getElementById('menu').style.display='none';
-  document.getElementById('game').style.display='block';
-  document.getElementById('hud-code').textContent=roomId;
-  _updateBars();_updatePlayerList();_resizeCanvas();
-  _addChat('','[ Conectado a sala '+roomId+' ]','var(--success)');
+function _doJoin() {
+  myName = document.getElementById('inp-name').value.trim() || 'Jogador';
+  var code = document.getElementById('inp-code').value.trim().toUpperCase();
+  if (code.length < 4) {
+    _setMenuMsg('Código inválido', 'err');
+    return;
+  }
+  roomId = code;
+  document.getElementById('btn-create').disabled = true;
+  document.getElementById('btn-join').disabled = true;
+  _setMenuMsg('Conectando ao par...', '');
+
+  peer = new Peer();
+  _initNet();
+
+  peer.on('open', function() {
+    myId = peer.id;
+    var conn = peer.connect('duo_' + code, { metadata: { name: myName, color: chosenColor } });
+    _handleConn(conn);
+  });
+}
+
+function _handleConn(conn) {
+  conn.on('open', function() {
+    conns[conn.peer] = conn;
+    if (isHost) {
+      var guestName = conn.metadata ? conn.metadata.name : 'Par';
+      var guestColor = conn.metadata ? conn.metadata.color : COLORS[1];
+      players[conn.peer] = { id: conn.peer, name: guestName, x: 600, y: 380, color: guestColor, isHost: false };
+      
+      conn.send({
+        type: 'init',
+        players: players,
+        roomId: roomId
+      });
+      _startGameStage();
+    }
+  });
+
+  conn.on('data', function(data) {
+    _onData(data, conn.peer);
+  });
+
+  conn.on('close', function() {
+    _showToast('Seu par desconectou.', 'fa-solid fa-ghost');
+    setTimeout(function() { window.location.reload(); }, 2000);
+  });
+}
+
+function _sendToPar(data) {
+  for (var id in conns) {
+    try { conns[id].send(data); } catch(e) {}
+  }
+}
+
+function _startGameStage() {
+  activeGame = 'lobby';
+  gameRunning = true;
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('game-stage').style.display = 'block';
+  document.getElementById('hud-code-txt').textContent = roomId;
+  _updatePlayerList();
+  _initJoystick();
+  _addChatSystemMessage('Conectados com sucesso na sala! 🌟');
   requestAnimationFrame(_gameLoop);
 }
 
-function _backToMenu(){
-  gameRunning=false;
-  _disableMic();
-  if(peer){try{peer.destroy()}catch(e){}peer=null}
-  conns={};players={};groundItems=[];particles=[];inventory=[];for(var i=0;i<INV_SIZE;i++)inventory.push(null);
-  tradeState=null;invOpen=false;selectedSlot=-1;spawnTimers={};isSimulated=false;
-  document.getElementById('game').style.display='none';
-  document.getElementById('menu').style.display='flex';
-  document.getElementById('inv-overlay').classList.remove('active');
-  document.getElementById('trade-overlay').classList.remove('active');
-  document.getElementById('btn-create').disabled=false;document.getElementById('btn-join').disabled=false;
-  document.getElementById('create-wrap').style.display='';
-  document.getElementById('menu-div').style.display='';
-  document.getElementById('join-wrap').style.display='';
-  document.getElementById('name-wrap').style.display='';
-  document.getElementById('create-waiting').classList.add('hidden');
-  document.getElementById('chat-messages').innerHTML='';
-  _setMenuMsg('','');
+/* ============================================================
+   MENSAGENS DO FLUXO MULTIPLAYER
+   ============================================================ */
+function _onData(data, fromId) {
+  switch(data.type) {
+    case 'init':
+      roomId = data.roomId;
+      players = data.players;
+      _startGameStage();
+      break;
+    case 'lobby_move':
+      if (players[fromId]) {
+        players[fromId].x = data.x;
+        players[fromId].y = data.y;
+      }
+      break;
+    case 'chat':
+      _addChatMessage(data.name, data.msg, data.color);
+      break;
+    case 'reaction':
+      _triggerVisualReaction(data.x, data.y);
+      break;
+    case 'start_game':
+      _launchGameUI(data.game);
+      break;
+    case 'sync_game':
+      if (data.game === 'catch') _syncCatchData(data);
+      if (data.game === 'quiz') _syncQuizData(data);
+      if (data.game === 'ttt') _syncTTTData(data);
+      break;
+    case 'exit_game':
+      _closeAllOverlays();
+      activeGame = 'lobby';
+      break;
+  }
 }
 
 /* ============================================================
-   GAME LOOP
+   LOBBY E INTERATIVIDADE COM ANALÓGICO / ENTRADAS
    ============================================================ */
-function _gameLoop(){
-  if(!gameRunning)return;
-  _updateLocalPlayer();
-  _updateParts();
-  _hostUpdate();
-  _updateVoiceVolumes();
-  _render();
+function _updatePlayerList() {
+  var box = document.getElementById('player-list');
+  box.innerHTML = '';
+  for (var id in players) {
+    var p = players[id];
+    var row = document.createElement('div');
+    row.className = 'player-row';
+    row.innerHTML = '<span class="player-color-dot" style="background:'+p.color+'"></span>' + p.name + (id === myId ? ' (Você)' : '');
+    box.appendChild(row);
+  }
+}
+
+/* Configuração do Analógico Virtual */
+function _initJoystick() {
+  var joyBase = document.getElementById('joy-base');
+  var joyKnob = document.getElementById('joy-knob');
+  if (!joyBase) return;
+
+  var activeTouchId = null;
+
+  function handleStart(e) {
+    e.preventDefault();
+    var touch = e.changedTouches[0];
+    activeTouchId = touch.identifier;
+    joystickInput.active = true;
+    handleMove(e);
+  }
+
+  function handleMove(e) {
+    if (!joystickInput.active) return;
+    var touch = null;
+    for (var i = 0; i < e.touches.length; i++) {
+      if (e.touches[i].identifier === activeTouchId) {
+        touch = e.touches[i];
+        break;
+      }
+    }
+    if (!touch) return;
+
+    var rect = joyBase.getBoundingClientRect();
+    var centerX = rect.left + rect.width / 2;
+    var centerY = rect.top + rect.height / 2;
+    var dx = touch.clientX - centerX;
+    var dy = touch.clientY - centerY;
+    var dist = Math.hypot(dx, dy);
+    var maxDist = rect.width / 2;
+
+    if (dist > maxDist) {
+      dx = (dx / dist) * maxDist;
+      dy = (dy / dist) * maxDist;
+    }
+
+    joyKnob.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
+    
+    // Normalizar entrada de direção entre -1 e 1
+    joystickInput.x = dx / maxDist;
+    joystickInput.y = dy / maxDist;
+  }
+
+  function handleEnd(e) {
+    var touchEnd = false;
+    for (var i = 0; i < e.changedTouches.length; i++) {
+      if (e.changedTouches[i].identifier === activeTouchId) {
+        touchEnd = true;
+        break;
+      }
+    }
+    if (touchEnd) {
+      joystickInput.active = false;
+      joystickInput.x = 0;
+      joystickInput.y = 0;
+      activeTouchId = null;
+      joyKnob.style.transform = 'translate(0px, 0px)';
+    }
+  }
+
+  joyBase.addEventListener('touchstart', handleStart, {passive: false});
+  window.addEventListener('touchmove', handleMove, {passive: false});
+  window.addEventListener('touchend', handleEnd, {passive: false});
+  window.addEventListener('touchcancel', handleEnd, {passive: false});
+}
+
+function _checkArcadeCollision() {
+  var myPl = players[myId];
+  if (!myPl || activeGame !== 'lobby') return;
+  
+  var overlap = null;
+  obstacles.forEach(function(o) {
+    if (o.type === 'arcade') {
+      if (myPl.x + 12 > o.x && myPl.x - 12 < o.x + o.w &&
+          myPl.y + 12 > o.y && myPl.y - 12 < o.y + o.h) {
+        overlap = o;
+      }
+    }
+  });
+
+  var prompt = document.getElementById('canvas-prompt');
+  var mobileActionBtn = document.getElementById('mobile-action-btn');
+
+  if (overlap) {
+    prompt.classList.add('show');
+    prompt.dataset.game = overlap.game;
+    
+    mobileActionBtn.classList.add('active');
+    mobileActionBtn.dataset.game = overlap.game;
+  } else {
+    prompt.classList.remove('show');
+    delete prompt.dataset.game;
+
+    mobileActionBtn.classList.remove('active');
+    delete mobileActionBtn.dataset.game;
+  }
+}
+
+function _triggerInteraction() {
+  var targetGame = null;
+  
+  // Confere se está jogando via mobile ou desktop
+  var prompt = document.getElementById('canvas-prompt');
+  var mobileBtn = document.getElementById('mobile-action-btn');
+  
+  if (prompt.classList.contains('show')) targetGame = prompt.dataset.game;
+  else if (mobileBtn.classList.contains('active')) targetGame = mobileBtn.dataset.game;
+
+  if (targetGame) {
+    if (isHost) {
+      _launchGame(targetGame);
+    } else {
+      _showToast("Apenas o líder do saguão pode iniciar as máquinas!", "fa-solid fa-crown");
+    }
+  }
+}
+
+/* ============================================================
+   GAME LOOP PRINCIPAL
+   ============================================================ */
+function _gameLoop(timestamp) {
+  if (!gameRunning) return;
+  _updateLobbyMovement();
+  _updateLobbyParticles();
+  _drawLobby();
   requestAnimationFrame(_gameLoop);
 }
 
+function _updateLobbyMovement() {
+  var p = players[myId];
+  if (!p || activeGame !== 'lobby') return;
+
+  var speed = 4;
+  var nx = p.x;
+  var ny = p.y;
+
+  // Processar controle por analógico de toque (prioritário)
+  if (joystickInput.active) {
+    nx += joystickInput.x * speed;
+    ny += joystickInput.y * speed;
+  } else {
+    // Processar controle por teclado (fallback desktop)
+    if (keys['w'] || keys['arrowup']) ny -= speed;
+    if (keys['s'] || keys['arrowdown']) ny += speed;
+    if (keys['a'] || keys['arrowleft']) nx -= speed;
+    if (keys['d'] || keys['arrowright']) nx += speed;
+  }
+
+  // Limites do canvas
+  if (nx < 15) nx = 15;
+  if (nx > 785) nx = 785;
+  if (ny < 15) ny = 15;
+  if (ny > 485) ny = 485;
+
+  if (nx !== p.x || ny !== p.y) {
+    p.x = nx;
+    p.y = ny;
+    _sendToPar({ type: 'lobby_move', x: p.x, y: p.y });
+    _checkArcadeCollision();
+  }
+}
+
+function _updateLobbyParticles() {
+  for (var i = lobbyParticles.length - 1; i >= 0; i--) {
+    var pt = lobbyParticles[i];
+    pt.x += pt.vx;
+    pt.y += pt.vy;
+    pt.opacity -= 0.015;
+    if (pt.opacity <= 0) {
+      lobbyParticles.splice(i, 1);
+    }
+  }
+}
+
+function _drawLobby() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Chão pixelated aconchegante
+  ctx.fillStyle = '#161226';
+  ctx.fillRect(0,0, canvas.width, canvas.height);
+
+  // Desenhar tapete do centro
+  ctx.fillStyle = 'rgba(255, 94, 151, 0.08)';
+  ctx.beginPath();
+  ctx.arc(400, 250, 160, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Desenhar Obstáculos / Gabinetes de Arcade
+  obstacles.forEach(function(o) {
+    if (o.type === 'arcade') {
+      // Glow do gabinete
+      ctx.shadowColor = o.color;
+      ctx.shadowBlur = 15;
+      
+      ctx.fillStyle = '#110e1d';
+      ctx.strokeStyle = o.color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(o.x, o.y, o.w, o.h, 12);
+      ctx.fill();
+      ctx.stroke();
+      
+      // Tela interna
+      ctx.fillStyle = '#06050a';
+      ctx.beginPath();
+      ctx.roundRect(o.x + 10, o.y + 10, o.w - 20, o.h - 40, 6);
+      ctx.fill();
+
+      // Icone e Texto
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#fff';
+      ctx.font = '22px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(o.icon, o.x + o.w/2, o.y + o.h/2 - 2);
+
+      ctx.font = 'bold 11px Outfit';
+      ctx.fillStyle = o.color;
+      ctx.fillText(o.label, o.x + o.w/2, o.y + o.h - 12);
+    } else if (o.type === 'sofa') {
+      ctx.fillStyle = '#2a2245';
+      ctx.strokeStyle = '#3b2f63';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(o.x, o.y, o.w, o.h, 10);
+      ctx.fill();
+      ctx.stroke();
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 11px Outfit';
+      ctx.textAlign = 'center';
+      ctx.fillText(o.label, o.x + o.w/2, o.y + o.h/2 + 4);
+    }
+  });
+
+  // Desenhar Jogadores
+  for (var id in players) {
+    var pl = players[id];
+    
+    // Sombrinha sob os pés
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(pl.x, pl.y + 12, 12, 4, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Corpo redondo fofo
+    ctx.fillStyle = pl.color;
+    ctx.beginPath();
+    ctx.arc(pl.x, pl.y, 14, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Detalhe de olhinhos
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(pl.x - 4, pl.y - 2, 2, 0, Math.PI * 2);
+    ctx.arc(pl.x + 4, pl.y - 2, 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Nome
+    ctx.font = '600 12px Outfit';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.fillText(pl.name, pl.x, pl.y - 22);
+  }
+
+  // Partículas de corações flutuantes
+  lobbyParticles.forEach(function(pt) {
+    ctx.globalAlpha = pt.opacity;
+    ctx.font = pt.size + 'px Arial';
+    ctx.fillText('\u2764', pt.x, pt.y);
+  });
+  ctx.globalAlpha = 1.0;
+}
+
 /* ============================================================
-   INIT
+   SISTEMA DE CHAT E INTERAÇÕES ADICIONAIS
    ============================================================ */
-var nameHints=['Sobrevivente','Nomade','Mercador','Explorador','Coletor','Flanelinha','Troca-Tudo','Catador','Refugiado','Estranho'];
-document.getElementById('inp-name').value=nameHints[Math.floor(Math.random()*nameHints.length)];
-_resizeCanvas();
-_renderLobbies();
+function _addChatMessage(author, msg, color) {
+  var hist = document.getElementById('chat-history');
+  var div = document.createElement('div');
+  div.className = 'chat-msg';
+  div.innerHTML = '<span class="author" style="color:' + color + '">' + author + ':</span>' + msg;
+  hist.appendChild(div);
+  hist.scrollTop = hist.scrollHeight;
+}
+
+function _addChatSystemMessage(msg) {
+  var hist = document.getElementById('chat-history');
+  var div = document.createElement('div');
+  div.className = 'chat-msg';
+  div.style.color = 'var(--muted)';
+  div.style.fontStyle = 'italic';
+  div.textContent = msg;
+  hist.appendChild(div);
+  hist.scrollTop = hist.scrollHeight;
+}
+
+function _sendChat() {
+  var inp = document.getElementById('chat-input');
+  var val = inp.value.trim();
+  if (!val) return;
+  inp.value = '';
+
+  _addChatMessage(myName, val, chosenColor);
+  _sendToPar({
+    type: 'chat',
+    name: myName,
+    msg: val,
+    color: chosenColor
+  });
+}
+
+function _sendReaction() {
+  var myPl = players[myId];
+  if (!myPl) return;
+  _triggerVisualReaction(myPl.x, myPl.y);
+  _sendToPar({ type: 'reaction', x: myPl.x, y: myPl.y });
+}
+
+function _triggerVisualReaction(x, y) {
+  for (var i = 0; i < 8; i++) {
+    lobbyParticles.push({
+      x: x,
+      y: y - 10,
+      vx: (Math.random() - 0.5) * 4,
+      vy: -1 - Math.random() * 3,
+      size: 10 + Math.random() * 15,
+      opacity: 1.0
+    });
+  }
+}
+
+/* Escuta de teclas físicas */
+document.addEventListener('keydown', function(e) {
+  var key = e.key.toLowerCase();
+  keys[key] = true;
+  if (key === ' ' || key === 'e') {
+    _triggerInteraction();
+  }
+  if (e.key === 'Enter') {
+    if (document.activeElement === document.getElementById('chat-input')) {
+      _sendChat();
+      document.getElementById('chat-input').blur();
+    } else {
+      document.getElementById('chat-input').focus();
+    }
+  }
+});
+document.addEventListener('keyup', function(e) {
+  keys[e.key.toLowerCase()] = false;
+});
+
+/* ============================================================
+   MÁQUINA DO MINIJOGO: FLUXO DE ENTRADA/SAÍDA
+   ============================================================ */
+function _launchGame(gameKey) {
+  if (!isHost) return;
+  _launchGameUI(gameKey);
+  _sendToPar({ type: 'start_game', game: gameKey });
+}
+
+function _launchGameUI(gameKey) {
+  _closeAllOverlays();
+  activeGame = gameKey;
+
+  if (gameKey === 'catch') {
+    document.getElementById('overlay-catch').classList.add('active');
+    _startCatchGame();
+  } else if (gameKey === 'quiz') {
+    document.getElementById('overlay-quiz').classList.add('active');
+    _startQuizGame();
+  } else if (gameKey === 'ttt') {
+    document.getElementById('overlay-tictactoe').classList.add('active');
+    _startTTTGame();
+  }
+}
+
+function _backToLobby() {
+  _closeAllOverlays();
+  activeGame = 'lobby';
+  _sendToPar({ type: 'exit_game' });
+}
+
+function _closeAllOverlays() {
+  document.getElementById('overlay-catch').classList.remove('active');
+  document.getElementById('overlay-quiz').classList.remove('active');
+  document.getElementById('overlay-tictactoe').classList.remove('active');
+  _stopCatchGameLoop();
+}
+
+
+/* ============================================================
+   MINIJOGO 1: CHUVA DE AMOR (CATCHING MINIGAME)
+   ============================================================ */
+var catchCanvas = document.getElementById('catchCanvas');
+var catchCtx = catchCanvas.getContext('2d');
+var catchActive = false;
+var catchTimerVal = 30;
+var catchMyScore = 0;
+var catchTheirScore = 0;
+var catchTimerInterval = null;
+
+var catchLocalPlayerX = 300;
+var catchTheirPlayerX = 300;
+
+var catchItems = []; // Array de itens {x, y, type, id}
+
+function _startCatchGame() {
+  catchActive = true;
+  catchMyScore = 0;
+  catchTheirScore = 0;
+  catchTimerVal = 30;
+  catchItems = [];
+  catchLocalPlayerX = 300;
+  catchTheirPlayerX = 300;
+
+  document.getElementById('catch-my-score').textContent = "0";
+  document.getElementById('catch-their-score').textContent = "0";
+  document.getElementById('catch-timer').textContent = "30s";
+
+  if (isHost) {
+    clearInterval(catchTimerInterval);
+    catchTimerInterval = setInterval(function() {
+      catchTimerVal--;
+      _syncCatchHost();
+      if (catchTimerVal <= 0) {
+        clearInterval(catchTimerInterval);
+        _finishCatchGame();
+      }
+    }, 1000);
+  }
+
+  _runCatchLoop();
+}
+
+function _stopCatchGameLoop() {
+  catchActive = false;
+  clearInterval(catchTimerInterval);
+}
+
+function _finishCatchGame() {
+  var finalMsg = "Fim da Chuva! Vocês somaram juntos " + (catchMyScore + catchTheirScore) + " pontos!";
+  _showToast(finalMsg, "fa-solid fa-trophy");
+  _addChatSystemMessage("Resultado da Chuva de Amor: " + finalMsg);
+}
+
+function _syncCatchHost() {
+  if (!isHost) return;
+  // Criar novo item caindo
+  if (Math.random() < 0.6) {
+    var types = ['heart', 'heart', 'star', 'bomb'];
+    var selectedType = types[Math.floor(Math.random() * types.length)];
+    catchItems.push({
+      id: Math.random().toString(),
+      x: 20 + Math.random() * (catchCanvas.width - 40),
+      y: 0,
+      type: selectedType
+    });
+  }
+
+  _sendToPar({
+    type: 'sync_game',
+    game: 'catch',
+    timer: catchTimerVal,
+    items: catchItems,
+    hostScore: catchMyScore,
+    guestScore: catchTheirScore,
+    hostX: catchLocalPlayerX
+  });
+}
+
+function _syncCatchData(data) {
+  if (isHost) {
+    // Host recebe posicao do Guest e atualiza placar
+    catchTheirPlayerX = data.guestX;
+  } else {
+    // Guest recebe estado do Host
+    catchTimerVal = data.timer;
+    catchItems = data.items;
+    catchMyScore = data.guestScore;
+    catchTheirScore = data.hostScore;
+    catchTheirPlayerX = data.hostX;
+
+    document.getElementById('catch-timer').textContent = catchTimerVal + "s";
+    document.getElementById('catch-my-score').textContent = catchMyScore;
+    document.getElementById('catch-their-score').textContent = catchTheirScore;
+    
+    if (catchTimerVal <= 0) {
+      _finishCatchGame();
+    }
+  }
+}
+
+function _runCatchLoop() {
+  if (!catchActive) return;
+
+  var speed = 6;
+  
+  // Controle de deslocamento horizontal
+  if (joystickInput.active) {
+    catchLocalPlayerX = Math.max(15, Math.min(catchCanvas.width - 15, catchLocalPlayerX + joystickInput.x * speed));
+  } else {
+    if (keys['a'] || keys['arrowleft']) {
+      catchLocalPlayerX = Math.max(15, catchLocalPlayerX - speed);
+    }
+    if (keys['d'] || keys['arrowright']) {
+      catchLocalPlayerX = Math.min(catchCanvas.width - 15, catchLocalPlayerX + speed);
+    }
+  }
+
+  if (!isHost) {
+    // Guest envia posicao para o Host sincronizar
+    _sendToPar({
+      type: 'sync_game',
+      game: 'catch',
+      guestX: catchLocalPlayerX
+    });
+  }
+
+  // Atualizar itens (Apenas Host processa lógica de movimentação de itens e colisão)
+  if (isHost) {
+    for (var i = catchItems.length - 1; i >= 0; i--) {
+      var item = catchItems[i];
+      item.y += 3; // Velocidade de queda
+
+      // Checa colisao com Host Player
+      if (item.y > catchCanvas.height - 25 && item.y < catchCanvas.height && Math.abs(item.x - catchLocalPlayerX) < 20) {
+        if (item.type === 'heart') catchMyScore += 10;
+        else if (item.type === 'star') catchMyScore += 25;
+        else if (item.type === 'bomb') catchMyScore = Math.max(0, catchMyScore - 15);
+        catchItems.splice(i, 1);
+        continue;
+      }
+
+      // Checa colisao com Guest Player
+      if (item.y > catchCanvas.height - 25 && item.y < catchCanvas.height && Math.abs(item.x - catchTheirPlayerX) < 20) {
+        if (item.type === 'heart') catchTheirScore += 10;
+        else if (item.type === 'star') catchTheirScore += 25;
+        else if (item.type === 'bomb') catchTheirScore = Math.max(0, catchTheirScore - 15);
+        catchItems.splice(i, 1);
+        continue;
+      }
+
+      // Saiu da tela
+      if (item.y > catchCanvas.height) {
+        catchItems.splice(i, 1);
+      }
+    }
+    
+    document.getElementById('catch-timer').textContent = catchTimerVal + "s";
+    document.getElementById('catch-my-score').textContent = catchMyScore;
+    document.getElementById('catch-their-score').textContent = catchTheirScore;
+  }
+
+  // Desenhar Tela de Captura
+  catchCtx.clearRect(0,0, catchCanvas.width, catchCanvas.height);
+  catchCtx.fillStyle = '#1c1635';
+  catchCtx.fillRect(0,0, catchCanvas.width, catchCanvas.height);
+
+  // Desenhar Itens
+  catchItems.forEach(function(item) {
+    catchCtx.font = '20px Arial';
+    var sym = '\u2764'; // Coração
+    if (item.type === 'star') sym = '\u2B50';
+    if (item.type === 'bomb') sym = '\u2614'; // Nuvem de chuva
+    catchCtx.fillText(sym, item.x - 10, item.y);
+  });
+
+  // Desenhar Personagem Local
+  catchCtx.fillStyle = chosenColor;
+  catchCtx.beginPath();
+  catchCtx.arc(catchLocalPlayerX, catchCanvas.height - 15, 12, 0, Math.PI*2);
+  catchCtx.fill();
+  catchCtx.strokeStyle = '#fff';
+  catchCtx.stroke();
+
+  // Desenhar Personagem Remoto
+  var otherColor = COLORS[1];
+  for (var id in players) { if (id !== myId) otherColor = players[id].color; }
+  catchCtx.fillStyle = otherColor;
+  catchCtx.beginPath();
+  catchCtx.arc(catchTheirPlayerX, catchCanvas.height - 15, 12, 0, Math.PI*2);
+  catchCtx.fill();
+  catchCtx.strokeStyle = 'rgba(255,255,255,0.6)';
+  catchCtx.stroke();
+
+  requestAnimationFrame(_runCatchLoop);
+}
+
+
+/* ============================================================
+   MINIJOGO 2: QUIZ DE AFINIDADE (COMPATIBILITY TEST)
+   ============================================================ */
+var quizQuestions = [
+  { q: "Quem dorme mais fácil assistindo um filme/série?", opt: ["Eu", "Meu par", "Ambos", "Ninguém"] },
+  { q: "Qual o programa perfeito para o final de semana?", opt: ["Maratonar em casa", "Sair para comer", "Festa/Social", "Viajar/Natureza"] },
+  { q: "Quem tem maior tendência a se perder na rua?", opt: ["Eu", "Meu par", "Ambos", "Nenhum"] },
+  { q: "Qual superpoder seria melhor para nós?", opt: ["Teletransporte", "Ler Mentes", "Voar", "Parar o tempo"] },
+  { q: "Se pudéssemos comer apenas um prato para sempre:", opt: ["Pizza/Hambúrguer", "Comida japonesa", "Doce/Chocolate", "Arroz, feijão e carne"] }
+];
+
+var quizCurrentIdx = 0;
+var quizMyAnswer = null;
+var quizTheirAnswer = null;
+var quizMatches = 0;
+
+function _startQuizGame() {
+  quizCurrentIdx = 0;
+  quizMatches = 0;
+  _loadQuizQuestion();
+}
+
+function _loadQuizQuestion() {
+  quizMyAnswer = null;
+  quizTheirAnswer = null;
+  document.getElementById('quiz-feedback').innerHTML = "";
+
+  var question = quizQuestions[quizCurrentIdx];
+  document.getElementById('quiz-q-text').textContent = (quizCurrentIdx + 1) + ". " + question.q;
+
+  var optsBox = document.getElementById('quiz-options-box');
+  optsBox.innerHTML = '';
+  question.opt.forEach(function(opt, idx) {
+    var btn = document.createElement('button');
+    btn.className = 'quiz-opt-btn';
+    btn.textContent = opt;
+    btn.onclick = function() {
+      _selectQuizAnswer(idx);
+    };
+    optsBox.appendChild(btn);
+  });
+}
+
+function _selectQuizAnswer(index) {
+  quizMyAnswer = index;
+  // Desativa os botões para evitar re-clique
+  var btns = document.querySelectorAll('.quiz-opt-btn');
+  btns.forEach(function(b, idx) {
+    b.disabled = true;
+    if (idx === index) b.classList.add('selected');
+  });
+
+  document.getElementById('quiz-feedback').innerHTML = "<span style='color: var(--yellow);'>Aguardando a resposta do seu par...</span>";
+
+  _sendToPar({
+    type: 'sync_game',
+    game: 'quiz',
+    action: 'answer',
+    answer: index,
+    step: quizCurrentIdx
+  });
+
+  _checkQuizStepComplete();
+}
+
+function _syncQuizData(data) {
+  if (data.action === 'answer' && data.step === quizCurrentIdx) {
+    quizTheirAnswer = data.answer;
+    _checkQuizStepComplete();
+  } else if (data.action === 'next') {
+    quizCurrentIdx = data.nextStep;
+    _loadQuizQuestion();
+  }
+}
+
+function _checkQuizStepComplete() {
+  if (quizMyAnswer !== null && quizTheirAnswer !== null) {
+    var feedbackBox = document.getElementById('quiz-feedback');
+    var isMatch = quizMyAnswer === quizTheirAnswer;
+    
+    var question = quizQuestions[quizCurrentIdx];
+    var ansTxt = question.opt[quizMyAnswer];
+    var parAnsTxt = question.opt[quizTheirAnswer];
+
+    if (isMatch) {
+      quizMatches++;
+      feedbackBox.innerHTML = "<span style='color: var(--success); font-size: 1.1rem;'><i class='fa-solid fa-heart-circle-check'></i> Vocês Combinaram! Ambos responderam: <strong>" + ansTxt + "</strong></span>";
+    } else {
+      feedbackBox.innerHTML = "<span style='color: var(--danger);'>Respostas divergentes! Você respondeu: <strong>" + ansTxt + "</strong> e seu par respondeu: <strong>" + parAnsTxt + "</strong></span>";
+    }
+
+    // Botão para avançar (Apenas Host envia sinalizador de troca de fase)
+    if (isHost) {
+      var nextBtn = document.createElement('button');
+      nextBtn.className = 'menu-btn primary';
+      nextBtn.style.maxWidth = '180px';
+      nextBtn.style.margin = '15px auto 0';
+      nextBtn.textContent = (quizCurrentIdx < quizQuestions.length - 1) ? "Próxima Pergunta" : "Ver Compatibilidade";
+      nextBtn.onclick = function() {
+        if (quizCurrentIdx < quizQuestions.length - 1) {
+          quizCurrentIdx++;
+          _sendToPar({ type: 'sync_game', game: 'quiz', action: 'next', nextStep: quizCurrentIdx });
+          _loadQuizQuestion();
+        } else {
+          _finishQuizGame();
+        }
+      };
+      feedbackBox.appendChild(nextBtn);
+    }
+  }
+}
+
+function _finishQuizGame() {
+  var pct = Math.round((quizMatches / quizQuestions.length) * 100);
+  var box = document.getElementById('quiz-box');
+  
+  var heartResult = '';
+  if (pct >= 80) heartResult = "💝 Vocês são Almas Gêmeas!";
+  else if (pct >= 40) heartResult = "💞 Uma conexão muito forte e divertida!";
+  else heartResult = "🍿 Oposto se atrai! Mas a diversão é garantida.";
+
+  box.innerHTML = `
+    <div style="font-size: 1.3rem; font-weight: bold; color: var(--accent); margin-bottom: 10px;">Resultado do Afinidade</div>
+    <div style="font-size: 3rem; font-family: 'Fredoka', sans-serif; color: var(--yellow); margin-bottom: 10px;">${pct}%</div>
+    <div style="font-size: 1.1rem; margin-bottom: 25px;">${heartResult} (Combinaram em ${quizMatches}/${quizQuestions.length})</div>
+    <button class="menu-btn secondary" onclick="_backToLobby()" style="max-width: 200px; margin: 0 auto;">Voltar para o Lobby</button>
+  `;
+
+  _addChatSystemMessage("Afinidade do Casal: " + pct + "% de compatibilidade! " + heartResult);
+}
+
+
+/* ============================================================
+   MINIJOGO 3: JOGO DA VELHA NEON (TIC-TAC-TOE)
+   ============================================================ */
+var tttBoard = [];
+var tttMySymbol = 'X'; // Host = X, Guest = O
+var tttActivePlayerSymbol = 'X';
+var tttWinner = null;
+
+function _startTTTGame() {
+  tttBoard = Array(9).fill(null);
+  tttMySymbol = isHost ? 'X' : 'O';
+  tttActivePlayerSymbol = 'X';
+  tttWinner = null;
+
+  _renderTTTGrid();
+  _updateTTTStatus();
+}
+
+function _renderTTTGrid() {
+  var grid = document.getElementById('ttt-grid');
+  grid.innerHTML = '';
+  
+  for (var i = 0; i < 9; i++) {
+    var cell = document.createElement('div');
+    cell.className = 'ttt-cell';
+    if (tttBoard[i]) {
+      cell.classList.add(tttBoard[i]);
+      cell.textContent = tttBoard[i];
+    }
+    
+    (function(idx) {
+      cell.onclick = function() {
+        _makeTTTMove(idx);
+      };
+    })(i);
+
+    grid.appendChild(cell);
+  }
+}
+
+function _updateTTTStatus() {
+  var txt = document.getElementById('ttt-turn-txt');
+  if (tttWinner) {
+    if (tttWinner === 'draw') {
+      txt.textContent = "Houve um empate! 🤝";
+    } else {
+      txt.textContent = tttWinner === tttMySymbol ? "Você venceu! 🎉" : "Seu par venceu!";
+    }
+  } else {
+    txt.textContent = tttActivePlayerSymbol === tttMySymbol ? "Sua vez de jogar!" : "Aguardando jogada do seu par...";
+  }
+}
+
+function _makeTTTMove(index) {
+  if (tttBoard[index] || tttWinner || tttActivePlayerSymbol !== tttMySymbol) return;
+
+  tttBoard[index] = tttMySymbol;
+  tttActivePlayerSymbol = tttMySymbol === 'X' ? 'O' : 'X';
+  _checkTTTWinCondition();
+  
+  _renderTTTGrid();
+  _updateTTTStatus();
+
+  _sendToPar({
+    type: 'sync_game',
+    game: 'ttt',
+    board: tttBoard,
+    nextSymbol: tttActivePlayerSymbol,
+    winner: tttWinner
+  });
+}
+
+function _syncTTTData(data) {
+  tttBoard = data.board;
+  tttActivePlayerSymbol = data.nextSymbol;
+  tttWinner = data.winner;
+  _renderTTTGrid();
+  _updateTTTStatus();
+}
+
+function _checkTTTWinCondition() {
+  var winPatterns = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8], // Linhas
+    [0, 3, 6], [1, 4, 7], [2, 5, 8], // Colunas
+    [0, 4, 8], [2, 4, 6]             // Diagonais
+  ];
+
+  for (var i = 0; i < winPatterns.length; i++) {
+    var p = winPatterns[i];
+    if (tttBoard[p[0]] && tttBoard[p[0]] === tttBoard[p[1]] && tttBoard[p[0]] === tttBoard[p[2]]) {
+      tttWinner = tttBoard[p[0]];
+      return;
+    }
+  }
+
+  if (!tttBoard.includes(null)) {
+    tttWinner = 'draw';
+  }
+}
+
 </script>
 </body>
 </html>
