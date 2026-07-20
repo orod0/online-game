@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Coin Chase - Multiplayer P2P</title>
+    <!-- Tailwind CSS para estilização moderna -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Biblioteca PeerJS para networking WebRTC P2P -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        /* Customização da barra de rolagem do chat */
+        #chatMessages::-webkit-scrollbar {
+            width: 6px;
+        }
+        #chatMessages::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        #chatMessages::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        #chatMessages::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-500/30">
+
+    <!-- Tela de Configuração Inicial (Modal) -->
+    <div id="setupModal" class="fixed inset-0 bg-slate-950/95 flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+            
+            <!-- Loader sobreposto para quando estiver conectando -->
+            <div id="loadingOverlay" class="hidden absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center rounded-2xl z-50">
+                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mb-4"></div>
+                <p class="text-indigo-300 font-semibold text-sm">Conectando ao sinal WebRTC...</p>
+            </div>
+
+            <h2 class="text-2xl font-bold mb-2 text-center text-indigo-400">🎮 WebRTC Coin Chase</h2>
+            <p class="text-slate-400 text-xs mb-6 text-center">Um jogo multiplayer 2D p2p direto no navegador!</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Seu Apelido</label>
+                    <input id="usernameInput" type="text" maxlength="12" value="Jogador" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Sua Cor</label>
+                    <div class="grid grid-cols-6 gap-2" id="colorContainer">
+                        <!-- Botões de cores preenchidos via JavaScript -->
+                    </div>
+                    <div class="flex items-center gap-2 mt-3">
+                        <span class="text-xs text-slate-400">Personalizada:</span>
+                        <input id="customColorInput" type="color" value="#6366f1" class="w-8 h-8 rounded border border-slate-700 bg-slate-800 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+            
+            <button id="btnJoin" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-lg shadow-lg hover:shadow-indigo-500/20 transition duration-200">
+                Entrar no Jogo
+            </button>
+        </div>
+    </div>
+
+    <!-- Interface Principal do Jogo -->
+    <header class="p-4 border-b border-slate-900 bg-slate-900/50 backdrop-blur">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <h1 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                🟡 <span class="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">Coin Chase P2P</span>
+            </h1>
+            <div class="flex items-center gap-3">
+                <span id="roomStatus" class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700">Iniciando...</span>
+                <span id="playerCount" class="text-xs text-slate-400 font-medium">Jogadores: 1</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 flex flex-col lg:flex-row gap-4 justify-center items-stretch">
+        <!-- Coluna do Jogo 2D -->
+        <div class="flex-1 flex flex-col">
+            <div class="flex justify-end mb-2">
+                <button id="btnCopyLink" class="hidden px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium transition border border-slate-700 flex items-center gap-1.5">
+                    🔗 Copiar Link para Amigos
+                </button>
+            </div>
+            <!-- Canvas do Jogo -->
+            <canvas id="gameCanvas" width="800" height="500" class="w-full h-auto bg-slate-950 border border-slate-800 rounded-xl shadow-2xl cursor-pointer"></canvas>
+            <p class="text-[10px] text-slate-500 mt-2 text-center">Use as teclas <span class="text-slate-400 font-bold">W, A, S, D</span>, as <span class="text-slate-400 font-bold">Setas do Teclado</span> ou <span class="text-slate-400 font-bold">clique/toque no mapa</span> para mover seu círculo.</p>
+        </div>
+        
+        <!-- Coluna do Chat -->
+        <div class="w-full lg:w-80 bg-slate-900 border border-slate-800 rounded-xl flex flex-col h-[300px] lg:h-auto shadow-2xl">
+            <div class="p-3 border-b border-slate-800 font-bold text-sm text-slate-300 flex justify-between items-center bg-slate-950/20">
+                <span>💬 Chat da Sala</span>
+                <span class="text-[10px] text-indigo-400 font-normal">P2P Direto</span>
+            </div>
+            <!-- Caixa de Mensagens -->
+            <div id="chatMessages" class="flex-1 p-3 overflow-y-auto space-y-2 text-xs font-mono">
+                <!-- Mensagens adicionadas em tempo real -->
+            </div>
+            <!-- Formulário de Envio -->
+            <form id="chatForm" class="p-3 border-t border-slate-800 flex gap-2">
+                <input id="chatInput" type="text" autocomplete="off" placeholder="Escreva aqui..." class="flex-1 bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded text-xs transition">Enviar</button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="text-center py-4 text-[11px] text-slate-600 border-t border-slate-900 max-w-6xl mx-auto w-full">
+        Desenvolvido usando PeerJS (WebRTC Peer-to-Peer). Sem necessidade de servidores intermediários de partida.
+    </footer>
+
+    <!-- JavaScript do Jogo -->
+    <script>
+        // Configurações Globais do Jogo
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const presetColors = ['#f87171', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#c084fc'];
+        
+        let peer = null;
+        let myId = null;
+        let isHost = false;
+        let hostConnection = null; // Usado pelo cliente para enviar dados ao host
+
+        // Estado do Personagem Local
+        const localPlayer = {
+            name: '',
+            color: presetColors[0],
+            x: Math.floor(Math.random() * 500) + 150,
+            y: Math.floor(Math.random() * 300) + 100,
+            score: 0
+        };
+
+        // Estado Global sincronizado de todos os jogadores
+        const players = {}; 
+        const connections = {}; // Exclusivo do Host: armazena conexões dos clientes
+        let coin = { x: 400, y: 250 };
+        const keys = {};
+
+        // Variáveis de movimentação via clique/toque
+        let targetX = null;
+        let targetY = null;
+
+        // 1. Configurar a seleção de cores na UI
+        let selectedColor = presetColors[0];
+        const colorContainer = document.getElementById('colorContainer');
+        presetColors.forEach(color => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'w-9 h-9 rounded-full border-2 border-transparent focus:outline-none transition duration-150 transform hover:scale-110';
+            btn.style.backgroundColor = color;
+            if (color === selectedColor) {
+                btn.classList.add('border-white', 'scale-110');
+            }
+            btn.onclick = () => {
+                document.querySelectorAll('#colorContainer button').forEach(b => b.classList.remove('border-white', 'scale-110'));
+                btn.classList.add('border-white', 'scale-110');
+                selectedColor = color;
+                document.getElementById('customColorInput').value = color;
+            };
+            colorContainer.appendChild(btn);
+        });
+
+        document.getElementById('customColorInput').oninput = (e) => {
+            document.querySelectorAll('#colorContainer button').forEach(b => b.classList.remove('border-white', 'scale-110'));
+            selectedColor = e.target.value;
+        };
+
+        // 2. Evento do Botão Entrar
+        document.getElementById('btnJoin').onclick = () => {
+            const nameInput = document.getElementById('usernameInput').value.trim();
+            if (!nameInput) {
+                alert('Por favor, escolha um apelido!');
+                return;
+            }
+            localPlayer.name = nameInput;
+            localPlayer.color = selectedColor;
+            
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            initPeerConnection();
+        };
+
+        // 3. Inicializar Conexão PeerJS (P2P)
+        function initPeerConnection() {
+            const targetHostId = window.location.hash.substring(1); // Lê o ID da URL se houver
+
+            // Cria uma instância PeerJS vazia (usa o servidor público global da PeerJS para sinalização de handshake)
+            peer = new Peer();
+
+            peer.on('open', (id) => {
+                myId = id;
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('setupModal').classList.add('hidden');
+                
+                if (targetHostId) {
+                    // Modo Cliente: Conecta à sala existente
+                    isHost = false;
+                    document.getElementById('roomStatus').textContent = 'Conectando ao Host...';
+                    document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-xs font-semibold bg-amber-900/40 text-amber-300 border border-amber-800';
+                    
+                    const conn = peer.connect(targetHostId);
+                    
+                    conn.on('open', () => {
+                        document.getElementById('roomStatus').textContent = 'Conectado (Jogador)';
+                        document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-xs font-semibold bg-green-900/40 text-green-300 border border-green-800';
+                        initClientLogic(conn);
+                        requestAnimationFrame(gameLoop);
+                    });
+                    
+                    conn.on('error', (err) => {
+                        alert('Falha ao conectar à sala especificada. Uma nova sala será iniciada.');
+                        window.location.hash = '';
+                        location.reload();
+                    });
+                } else {
+                    // Modo Host: Cria uma nova sala
+                    isHost = true;
+                    window.location.hash = id;
+                    document.getElementById('roomStatus').textContent = 'Hospedando Sala';
+                    document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-xs font-semibold bg-indigo-900/40 text-indigo-300 border border-indigo-800';
+                    
+                    // Mostra botão de compartilhar
+                    const copyBtn = document.getElementById('btnCopyLink');
+                    copyBtn.classList.remove('hidden');
+                    copyBtn.onclick = () => {
+                        navigator.clipboard.writeText(window.location.href);
+                        const origText = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '✅ Link Copiado!';
+                        setTimeout(() => copyBtn.innerHTML = origText, 2000);
+                    };
+                    
+                    initHostLogic();
+                }
+            });
+
+            peer.on('error', (err) => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                if (err.type === 'peer-not-found') {
+                    alert('A sala informada expirou ou não existe. Criando nova sala.');
+                    window.location.hash = '';
+                    location.reload();
+                } else {
+                    alert('Erro na conexão de rede: ' + err.message);
+                }
+            });
+        }
+
+        // 4. Lógica Exclusiva do Host (Quem iniciou a sala)
+        function initHostLogic() {
+            // Adiciona o próprio host ao objeto de jogadores
+            players['host'] = {
+                name: localPlayer.name,
+                color: localPlayer.color,
+                x: localPlayer.x,
+                y: localPlayer.y,
+                score: 0
+            };
+            
+            spawnCoin();
+            addChatMessage('Sistema', '#38bdf8', 'Sala criada com sucesso! Copie o convite no topo para convidar amigos.', true);
+            
+            peer.on('connection', (conn) => {
+                conn.on('open', () => {
+                    connections[conn.peer] = conn;
+                    
+                    // Jogador temporário até receber dados de registro (join)
+                    players[conn.peer] = {
+                        name: 'Conectando...',
+                        color: '#cccccc',
+                        x: 400,
+                        y: 250,
+                        score: 0
+                    };
+                    
+                    // Envia dados do mundo de forma imediata
+                    conn.send({
+                        type: 'init',
+                        id: conn.peer,
+                        coin: coin,
+                        players: players
+                    });
+                });
+                
+                conn.on('data', (data) => {
+                    if (data.type === 'join') {
+                        players[conn.peer].name = data.name;
+                        players[conn.peer].color = data.color;
+                        
+                        const msg = `${data.name} entrou na sala.`;
+                        addChatMessage('Sistema', '#64748b', msg, true);
+                        broadcast({ type: 'chat', sender: 'Sistema', color: '#64748b', text: msg, isSystem: true });
+                        updatePlayerCount();
+                    }
+                    
+                    if (data.type === 'move') {
+                        if (players[conn.peer]) {
+                            players[conn.peer].x = data.x;
+                            players[conn.peer].y = data.y;
+                        }
+                    }
+                    
+                    if (data.type === 'chat') {
+                        if (players[conn.peer]) {
+                            const senderName = players[conn.peer].name;
+                            const senderColor = players[conn.peer].color;
+                            addChatMessage(senderName, senderColor, data.text);
+                            broadcast({ type: 'chat', sender: senderName, color: senderColor, text: data.text });
+                        }
+                    }
+                });
+                
+                conn.on('close', () => {
+                    if (players[conn.peer]) {
+                        const leftName = players[conn.peer].name;
+                        const msg = `${leftName} saiu do jogo.`;
+                        addChatMessage('Sistema', '#64748b', msg, true);
+                        broadcast({ type: 'chat', sender: 'Sistema', color: '#64748b', text: msg, isSystem: true });
+                        
+                        delete players[conn.peer];
+                        delete connections[conn.peer];
+                        updatePlayerCount();
+                    }
+                });
+            });
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 5. Lógica Exclusiva do Cliente (Quem se juntou)
+        function initClientLogic(conn) {
+            hostConnection = conn;
+            addChatMessage('Sistema', '#38bdf8', 'Você entrou na sala! Diga oi no chat.', true);
+            
+            conn.on('data', (data) => {
+                if (data.type === 'init') {
+                    myId = data.id;
+                    coin = data.coin;
+                    
+                    // Registra nosso avatar localmente
+                    players[myId] = localPlayer;
+                    
+                    // Copia os jogadores enviados pelo Host
+                    for (const id in data.players) {
+                        if (id !== myId) {
+                            players[id] = data.players[id];
+                        }
+                    }
+                    
+                    // Registra-se oficialmente no Host
+                    conn.send({
+                        type: 'join',
+                        name: localPlayer.name,
+                        color: localPlayer.color
+                    });
+                    
+                    updatePlayerCount();
+                }
+                
+                if (data.type === 'state') {
+                    coin = data.coin;
+                    for (const id in data.players) {
+                        if (id === myId) {
+                            localPlayer.score = data.players[id].score;
+                        } else {
+                            players[id] = data.players[id];
+                        }
+                    }
+                    // Remove quem saiu
+                    for (const id in players) {
+                        if (!data.players[id]) delete players[id];
+                    }
+                    updatePlayerCount();
+                }
+                
+                if (data.type === 'chat') {
+                    addChatMessage(data.sender, data.color, data.text, data.isSystem);
+                }
+            });
+            
+            conn.on('close', () => {
+                alert('A conexão com a sala foi encerrada pelo Host.');
+                window.location.hash = '';
+                location.reload();
+            });
+        }
+
+        // Envia mensagem para todos os peers conectados (Exclusivo Host)
+        function broadcast(data) {
+            for (const id in connections) {
+                if (connections[id].open) {
+                    connections[id].send(data);
+                }
+            }
+        }
+
+        // Sorteia posição da moeda (Exclusivo Host)
+        function spawnCoin() {
+            coin.x = Math.floor(Math.random() * 720) + 40;
+            coin.y = Math.floor(Math.random() * 420) + 40;
+        }
+
+        // Verifica colisões com a moeda (Exclusivo Host com autoridade)
+        function checkCoinCollisions() {
+            for (const id in players) {
+                const p = players[id];
+                const dist = Math.hypot(p.x - coin.x, p.y - coin.y);
+                if (dist < 15 + 10) { // Player radius (15) + Coin radius (10)
+                    p.score += 1;
+                    spawnCoin();
+                    
+                    const collectMsg = `🎉 ${p.name} capturou a moeda!`;
+                    addChatMessage('Sistema', '#eab308', collectMsg, true);
+                    broadcast({ type: 'chat', sender: 'Sistema', color: '#eab308', text: collectMsg, isSystem: true });
+                    
+                    // Força envio rápido da mudança de estado
+                    broadcastGameState();
+                }
+            }
+        }
+
+        // Transmissão de pacotes de estado aos clientes (Throttled)
+        function broadcastGameState() {
+            broadcast({
+                type: 'state',
+                players: Object.keys(players).reduce((acc, id) => {
+                    acc[id] = {
+                        name: players[id].name,
+                        color: players[id].color,
+                        x: players[id].x,
+                        y: players[id].y,
+                        score: players[id].score
+                    };
+                    return acc;
+                }, {}),
+                coin: coin
+            });
+        }
+
+        // 6. Loop de Atualização de Movimentos & Desenho no Canvas
+        const speed = 4;
+        let lastX = 0;
+        let lastY = 0;
+        let lastBroadcastTime = 0;
+        let lastSendTime = 0;
+
+        function updateLocalMovement() {
+            let dx = 0;
+            let dy = 0;
+            const chatInput = document.getElementById('chatInput');
+            
+            // Impede movimentação se o chat estiver focado
+            if (document.activeElement !== chatInput) {
+                if (keys['ArrowUp'] || keys['w'] || keys['W']) dy = -1;
+                if (keys['ArrowDown'] || keys['s'] || keys['S']) dy = 1;
+                if (keys['ArrowLeft'] || keys['a'] || keys['A']) dx = -1;
+                if (keys['ArrowRight'] || keys['d'] || keys['D']) dx = 1;
+            }
+            
+            let moved = false;
+            
+            if (dx !== 0 || dy !== 0) {
+                targetX = null; // Cancela clique se usar o teclado
+                targetY = null;
+                
+                const len = Math.hypot(dx, dy);
+                localPlayer.x += (dx / len) * speed;
+                localPlayer.y += (dy / len) * speed;
+                moved = true;
+            } else if (targetX !== null && targetY !== null) {
+                // Movimento em direção ao ponto de clique/toque
+                const tDx = targetX - localPlayer.x;
+                const tDy = targetY - localPlayer.y;
+                const dist = Math.hypot(tDx, tDy);
+                if (dist > 5) {
+                    localPlayer.x += (tDx / dist) * speed;
+                    localPlayer.y += (tDy / dist) * speed;
+                    moved = true;
+                } else {
+                    targetX = null;
+                    targetY = null;
+                }
+            }
+            
+            // Limitar dentro das bordas do Canvas
+            const radius = 15;
+            localPlayer.x = Math.max(radius, Math.min(800 - radius, localPlayer.x));
+            localPlayer.y = Math.max(radius, Math.min(500 - radius, localPlayer.y));
+            
+            if (moved && (localPlayer.x !== lastX || localPlayer.y !== lastY)) {
+                lastX = localPlayer.x;
+                lastY = localPlayer.y;
+                return true;
+            }
+            return false;
+        }
+
+        function gameLoop() {
+            const hasMoved = updateLocalMovement();
+            
+            // Renderização do Canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Desenhar Grid de Fundo de ficção científica
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 1;
+            const step = 40;
+            for (let x = 0; x < canvas.width; x += step) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += step) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+            
+            // Desenhar Moeda Brilhante
+            if (coin) {
+                const pulse = 10 + Math.sin(Date.now() / 150) * 2;
+                ctx.shadowColor = '#eab308';
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = '#facc15';
+                ctx.strokeStyle = '#ca8a04';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(coin.x, coin.y, pulse, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                ctx.shadowBlur = 0; // Desativa sombra para os outros desenhos
+            }
+            
+            // Desenhar Jogadores
+            for (const id in players) {
+                const p = players[id];
+                
+                ctx.fillStyle = p.color;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 15, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Apelido e Placar acima do jogador
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${p.name} (${p.score})`, p.x, p.y - 22);
+            }
+            
+            // Desenhar Tabela de Liderança (Leaderboard) no Canvas
+            drawLeaderboard();
+            
+            // Sincronização de Rede a ~30hz (para economizar largura de banda e evitar lag)
+            const now = Date.now();
+            if (isHost) {
+                checkCoinCollisions();
+                if (now - lastBroadcastTime > 33) {
+                    broadcastGameState();
+                    lastBroadcastTime = now;
+                }
+            } else {
+                if (hasMoved && now - lastSendTime > 33) {
+                    if (hostConnection && hostConnection.open) {
+                        hostConnection.send({
+                            type: 'move',
+                            x: localPlayer.x,
+                            y: localPlayer.y
+                        });
+                    }
+                    lastSendTime = now;
+                }
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        function drawLeaderboard() {
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+            ctx.fillRect(15, 15, 180, 115);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(15, 15, 180, 115);
+            
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 10px monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText('🏆 TOP PLACAR', 25, 33);
+            
+            const sorted = Object.values(players).sort((a, b) => b.score - a.score).slice(0, 4);
+            ctx.font = '11px monospace';
+            sorted.forEach((p, index) => {
+                ctx.fillStyle = p.color;
+                ctx.fillText(`${index + 1}. ${p.name.substring(0, 10)}: ${p.score}`, 25, 55 + index * 16);
+            });
+        }
+
+        // 7. Lógica de Interação com o Chat
+        document.getElementById('chatForm').onsubmit = (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            
+            if (isHost) {
+                addChatMessage(localPlayer.name, localPlayer.color, text);
+                broadcast({ type: 'chat', sender: localPlayer.name, color: localPlayer.color, text: text });
+            } else {
+                if (hostConnection && hostConnection.open) {
+                    hostConnection.send({
+                        type: 'chat',
+                        text: text
+                    });
+                }
+            }
+            input.value = '';
+        };
+
+        function addChatMessage(sender, color, text, isSystem = false) {
+            const chatBox = document.getElementById('chatMessages');
+            const msgEl = document.createElement('div');
+            msgEl.className = 'break-all';
+            
+            if (isSystem) {
+                msgEl.className = 'text-slate-500 italic';
+                msgEl.textContent = text;
+            } else {
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'font-bold mr-1';
+                nameSpan.style.color = color;
+                nameSpan.textContent = sender + ':';
+                
+                const textSpan = document.createElement('span');
+                textSpan.className = 'text-slate-300';
+                textSpan.textContent = text;
+                
+                msgEl.appendChild(nameSpan);
+                msgEl.appendChild(textSpan);
+            }
+            
+            chatBox.appendChild(msgEl);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function updatePlayerCount() {
+            const count = Object.keys(players).length;
+            document.getElementById('playerCount').textContent = `Jogadores: ${count}`;
+        }
+
+        // 8. Eventos de Escuta e Toque
+        window.addEventListener('keydown', (e) => { keys[e.key] = true; });
+        window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+
+        canvas.addEventListener('mousedown', (e) => handleCanvasClick(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            handleCanvasClick(touch.clientX, touch.clientY);
+            e.preventDefault();
+        }, { passive: false });
+
+        function handleCanvasClick(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            // Ajustar proporção real do canvas devido ao estilo CSS responsivo
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            targetX = (clientX - rect.left) * scaleX;
+            targetY = (clientY - rect.top) * scaleY;
+        }
+    </script>
+</body>
+</html>
