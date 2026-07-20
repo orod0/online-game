@@ -323,11 +323,15 @@
 
         // Verifica hash da URL para pular o menu
         window.onload = () => {
-            const code = window.location.hash.substring(1);
+            const code = window.location.hash.substring(1).toUpperCase();
+            // Apenas auto-preenche se o código possuir o comprimento exato de 6 caracteres
             if (code && code.length === 6) {
                 document.getElementById('roomCodeInput').value = code;
                 document.getElementById('mainLobbyActions').classList.add('hidden');
                 document.getElementById('searchRoomForm').classList.remove('hidden');
+            } else if (code && code.length > 0) {
+                // Se colaram um hash inválido (ex: incompleto), limpa-o para evitar loops de erro
+                window.location.hash = '';
             }
         };
 
@@ -341,70 +345,99 @@
 
         // Conexão WebRTC
         function initNetwork(createNow) {
-            let roomCode = generateRoomCode();
-            if (!createNow) {
-                roomCode = window.location.hash.substring(1).toUpperCase();
-            }
+            let roomCode = "";
 
-            // Forçar o PeerJS a registrar o ID de 6 dígitos que geramos com a nossa configuração TURN personalizada
-            peer = new Peer(roomCode, customIceConfig);
+            if (createNow) {
+                // Modo Host: cria uma nova sala e registra o ID gerado de 6 caracteres
+                isHost = true;
+                roomCode = generateRoomCode();
 
-            peer.on('open', (id) => {
-                myId = id;
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                document.getElementById('setupModal').classList.add('hidden');
-                
-                if (createNow) {
-                    isHost = true;
+                peer = new Peer(roomCode, customIceConfig);
+
+                peer.on('open', (id) => {
+                    myId = id;
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    document.getElementById('setupModal').classList.add('hidden');
+                    
                     window.location.hash = id;
                     document.getElementById('roomStatus').textContent = 'Hospedando';
                     document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-[10px] font-bold bg-indigo-900/40 text-indigo-300 border border-indigo-800';
                     document.getElementById('btnCopyLink').classList.remove('hidden');
                     document.getElementById('copyCodeText').textContent = id;
                     initHostLogic();
-                } else {
-                    // Se conectou, mas é cliente
-                    isHost = false;
-                    document.getElementById('roomStatus').textContent = 'Iniciando Conexão';
-                    // Criamos outro peer temporário para o cliente conectando ao host
-                    peer.destroy();
-                    
-                    peer = new Peer(undefined, customIceConfig);
-                    peer.on('open', (clientId) => {
-                        myId = clientId;
-                        const conn = peer.connect(roomCode);
-                        conn.on('open', () => {
-                            document.getElementById('roomStatus').textContent = 'Conectado (Jogador)';
-                            document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-[10px] font-bold bg-green-900/40 text-green-300 border border-green-800';
-                            document.getElementById('btnCopyLink').classList.remove('hidden');
-                            document.getElementById('copyCodeText').textContent = roomCode;
-                            initClientLogic(conn);
-                            requestAnimationFrame(gameLoop);
-                        });
-                        conn.on('error', () => {
-                            alert('Erro na conexão com a sala informada.');
-                            window.location.hash = '';
-                            location.reload();
-                        });
-                    });
-                }
-            });
+                });
 
-            peer.on('error', (err) => {
-                document.getElementById('loadingOverlay').classList.add('hidden');
-                if (err.type === 'unavailable-id') {
-                    // ID já registrado ou ocupado
-                    if (createNow) {
-                        initNetwork(true); // tenta outro código
+                peer.on('error', (err) => {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    if (err.type === 'unavailable-id') {
+                        initNetwork(true); // tenta outro código se houver colisão
                     } else {
-                        alert('Essa sala não existe ou expirou.');
+                        alert('Erro na conexão do Host: ' + err.message);
+                    }
+                });
+            } else {
+                // Modo Cliente: gera um ID aleatório temporário e tenta conectar ao host informado
+                isHost = false;
+                
+                // Prioriza a entrada de texto do input do usuário
+                roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+                if (!roomCode) {
+                    // Se o input estiver vazio, tenta ler o código diretamente do hash da URL
+                    roomCode = window.location.hash.substring(1).toUpperCase();
+                }
+
+                if (roomCode.length !== 6) {
+                    alert('Código de sala incompleto ou incorreto! O código deve conter exatamente 6 caracteres.');
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    return;
+                }
+
+                // Sincroniza a barra de endereço com o código que o cliente está tentando conectar
+                window.location.hash = roomCode;
+
+                peer = new Peer(undefined, customIceConfig);
+
+                peer.on('open', (clientId) => {
+                    myId = clientId;
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    document.getElementById('setupModal').classList.add('hidden');
+
+                    document.getElementById('roomStatus').textContent = 'Iniciando Conexão';
+                    document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-[10px] font-bold bg-amber-900/40 text-amber-300 border border-amber-800';
+
+                    const conn = peer.connect(roomCode);
+
+                    conn.on('open', () => {
+                        document.getElementById('roomStatus').textContent = 'Conectado (Jogador)';
+                        document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-[10px] font-bold bg-green-900/40 text-green-300 border border-green-800';
+                        document.getElementById('btnCopyLink').classList.remove('hidden');
+                        document.getElementById('copyCodeText').textContent = roomCode;
+                        initClientLogic(conn);
+                        requestAnimationFrame(gameLoop);
+                    });
+
+                    conn.on('error', (err) => {
+                        alert('Erro ao conectar ao Host: ' + err.message);
                         window.location.hash = '';
                         location.reload();
-                    }
-                } else {
-                    alert('Erro na conexão: ' + err.message);
-                }
-            });
+                    });
+
+                    // Mecanismo de timeout de 10 segundos
+                    setTimeout(() => {
+                        const status = document.getElementById('roomStatus').textContent;
+                        if (status === 'Iniciando Conexão') {
+                            alert('Tempo limite de conexão esgotado! Certifique-se de que o código da sala está completo e correto, ou se o Host encerrou o jogo.');
+                            window.location.hash = '';
+                            location.reload();
+                        }
+                    }, 10000);
+                });
+
+                peer.on('error', (err) => {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    alert('Erro no PeerJS (Cliente): ' + err.message);
+                });
+            }
         }
 
         // Autoridade do Host
@@ -787,6 +820,7 @@
             }
         }
 
+        // RENDERIZAÇÃO DO GRID DE INVENTÁRIO (FIVE M LOOK)
         function renderInventoryUI() {
             const grid = document.getElementById('inventoryGrid');
             grid.innerHTML = '';
@@ -1110,6 +1144,7 @@
             syncTrade(tr);
         }
 
+        // Remover item da mesa de troca
         function handleTradeRemoveItem(peerId, tradeId, itemId) {
             const tr = activeTrades[tradeId];
             if (!tr) return;
