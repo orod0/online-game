@@ -3,283 +3,397 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebRTC Coin Chase - Multiplayer P2P</title>
-    <!-- Tailwind CSS para estilização moderna -->
+    <title>WebRTC Sandbox & FiveM Inventory P2P</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Biblioteca PeerJS para networking WebRTC P2P -->
+    <!-- PeerJS -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        /* Customização da barra de rolagem do chat */
-        #chatMessages::-webkit-scrollbar {
+        #chatMessages::-webkit-scrollbar, #nearbyPlayersList::-webkit-scrollbar {
             width: 6px;
         }
-        #chatMessages::-webkit-scrollbar-track {
+        #chatMessages::-webkit-scrollbar-track, #nearbyPlayersList::-webkit-scrollbar-track {
             background: #0f172a;
         }
-        #chatMessages::-webkit-scrollbar-thumb {
+        #chatMessages::-webkit-scrollbar-thumb, #nearbyPlayersList::-webkit-scrollbar-thumb {
             background: #334155;
             border-radius: 3px;
         }
-        #chatMessages::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-500/30">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans selection:bg-indigo-500/30 overflow-x-hidden">
 
-    <!-- Tela de Configuração Inicial (Modal) -->
-    <div id="setupModal" class="fixed inset-0 bg-slate-950/95 flex items-center justify-center z-50 p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+    <!-- MENU INICIAL / SETUP DE AVATAR & SALAS -->
+    <div id="setupModal" class="fixed inset-0 bg-slate-950/98 flex items-center justify-center z-50 p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
             
-            <!-- Loader sobreposto para quando estiver conectando -->
             <div id="loadingOverlay" class="hidden absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center rounded-2xl z-50">
                 <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mb-4"></div>
-                <p class="text-indigo-300 font-semibold text-sm">Conectando ao sinal WebRTC...</p>
+                <p id="loadingText" class="text-indigo-300 font-semibold text-sm">Conectando ao sinal WebRTC...</p>
             </div>
 
-            <h2 class="text-2xl font-bold mb-2 text-center text-indigo-400">🎮 WebRTC Coin Chase</h2>
-            <p class="text-slate-400 text-xs mb-6 text-center">Um jogo multiplayer 2D p2p direto no navegador!</p>
+            <h2 class="text-2xl font-bold mb-1 text-center text-indigo-400">🎮 WebRTC RP Sandbox</h2>
+            <p class="text-slate-400 text-xs mb-6 text-center">Multiplayer 2D com Inventário FiveM e Trocas P2P</p>
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-1">Seu Apelido</label>
-                    <input id="usernameInput" type="text" maxlength="12" value="Jogador" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">Seu Apelido</label>
+                    <input id="usernameInput" type="text" maxlength="12" value="Cidadão" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Sua Cor</label>
-                    <div class="grid grid-cols-6 gap-2" id="colorContainer">
-                        <!-- Botões de cores preenchidos via JavaScript -->
-                    </div>
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">Sua Cor</label>
+                    <div class="grid grid-cols-6 gap-2" id="colorContainer"></div>
                     <div class="flex items-center gap-2 mt-3">
-                        <span class="text-xs text-slate-400">Personalizada:</span>
-                        <input id="customColorInput" type="color" value="#6366f1" class="w-8 h-8 rounded border border-slate-700 bg-slate-800 cursor-pointer">
+                        <span class="text-xs text-slate-400">Customizada:</span>
+                        <input id="customColorInput" type="color" value="#6366f1" class="w-8 h-8 rounded border border-zinc-700 bg-zinc-800 cursor-pointer">
+                    </div>
+                </div>
+
+                <div class="border-t border-zinc-800 pt-4 flex flex-col gap-2">
+                    <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">Acesso ao Servidor</label>
+                    
+                    <!-- Botões principais de salas -->
+                    <div class="grid grid-cols-2 gap-2" id="mainLobbyActions">
+                        <button id="btnCreateRoomOpt" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-lg text-sm transition">
+                            Criar Sala
+                        </button>
+                        <button id="btnSearchRoomOpt" class="bg-zinc-800 hover:bg-zinc-700 text-slate-200 font-semibold py-2.5 rounded-lg text-sm transition">
+                            Buscar Sala
+                        </button>
+                    </div>
+
+                    <!-- Input para buscar sala (oculto por padrão) -->
+                    <div id="searchRoomForm" class="hidden space-y-2 mt-2">
+                        <input id="roomCodeInput" type="text" placeholder="Código da Sala (ex: B8K3R9)" maxlength="6" class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-white text-center focus:outline-none focus:ring-2 focus:ring-indigo-500 uppercase tracking-widest font-mono text-sm">
+                        <div class="flex gap-2">
+                            <button id="btnConnectByCode" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 rounded-lg text-xs transition">
+                                Conectar
+                            </button>
+                            <button id="btnBackToMenu" class="bg-zinc-800 hover:bg-zinc-700 text-slate-400 font-semibold py-2 px-3 rounded-lg text-xs transition">
+                                Voltar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <button id="btnJoin" class="mt-6 w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 px-4 rounded-lg shadow-lg hover:shadow-indigo-500/20 transition duration-200">
-                Entrar no Jogo
-            </button>
         </div>
     </div>
 
-    <!-- Interface Principal do Jogo -->
+    <!-- NOTIFICAÇÃO DE TROCA RECEBIDA (POPUP) -->
+    <div id="tradeInvitePopup" class="hidden fixed bottom-6 right-6 bg-zinc-900 border-2 border-indigo-500 rounded-xl p-4 shadow-2xl text-white max-w-xs z-50 animate-bounce">
+        <p class="text-xs text-zinc-400">🤝 Proposta de Negócio</p>
+        <p id="tradeInviteText" class="text-sm font-bold mt-1">Jogador deseja trocar com você.</p>
+        <div class="flex gap-2 mt-3">
+            <button id="btnAcceptInvite" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-1.5 rounded text-xs transition">Aceitar</button>
+            <button id="btnDeclineInvite" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-bold py-1.5 rounded text-xs transition">Recusar</button>
+        </div>
+    </div>
+
+    <!-- TELA DE NEGOCIAÇÃO (TRADE SYSTEM) -->
+    <div id="tradeModal" class="hidden fixed inset-0 bg-slate-950/90 flex items-center justify-center z-40 p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl text-white flex flex-col gap-4">
+            <h3 class="text-lg font-bold text-center text-indigo-400 border-b border-zinc-800 pb-3 flex items-center justify-center gap-2">
+                🤝 Negociação Direta
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Esquerda: Sua Oferta -->
+                <div class="bg-zinc-950/40 p-4 rounded-xl border border-zinc-800 flex flex-col gap-2">
+                    <h4 class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Sua Oferta</h4>
+                    <div id="myOfferGrid" class="grid grid-cols-3 gap-2 p-2 bg-zinc-900/50 rounded-lg min-h-[90px]"></div>
+                    <button id="btnConfirmTrade" class="mt-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 rounded-lg transition text-xs">
+                        Confirmar Oferta
+                    </button>
+                    <span id="myTradeStatus" class="text-center text-[9px] text-zinc-500 font-bold uppercase mt-1">Aguardando</span>
+                </div>
+                
+                <!-- Direita: Oferta do Parceiro -->
+                <div class="bg-zinc-950/40 p-4 rounded-xl border border-zinc-800 flex flex-col gap-2">
+                    <h4 id="partnerOfferTitle" class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Oferta de Parceiro</h4>
+                    <div id="partnerOfferGrid" class="grid grid-cols-3 gap-2 p-2 bg-zinc-900/50 rounded-lg min-h-[90px]"></div>
+                    <button id="btnCancelTrade" class="mt-2 w-full bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2 rounded-lg transition text-xs">
+                        Cancelar Negócio
+                    </button>
+                    <span id="partnerTradeStatus" class="text-center text-[9px] text-zinc-500 font-bold uppercase mt-1">Aguardando</span>
+                </div>
+            </div>
+            
+            <!-- Selecionador de Itens para Troca -->
+            <div class="border-t border-zinc-800 pt-3">
+                <p class="text-[11px] text-zinc-400 mb-2">Selecione um item do seu inventário abaixo para colocar na mesa:</p>
+                <div id="tradeInventoryGrid" class="flex gap-2 overflow-x-auto pb-2 h-20"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INVENTÁRIO ESTILO FIVEM (GRID OVERLAY) -->
+    <div id="inventoryOverlay" class="hidden fixed inset-0 bg-slate-950/80 flex items-center justify-center z-30 p-4 backdrop-blur-sm">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl max-w-3xl w-full p-6 shadow-2xl text-white flex flex-col gap-4 relative">
+            <button onclick="toggleInventory()" class="absolute top-4 right-4 text-zinc-500 hover:text-zinc-200">✕</button>
+            
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <h3 class="text-lg font-bold text-indigo-400 flex items-center gap-2">🎒 Inventário do Cidadão</h3>
+                <span class="text-xs text-zinc-500">[TAB] ou [I] para Fechar</span>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- Grid de Itens (Esquerda) -->
+                <div class="grid grid-cols-4 gap-2 bg-zinc-950/40 p-4 rounded-xl border border-zinc-800 max-w-lg w-full" id="inventoryGrid">
+                    <!-- Gerado de forma dinâmica por JS -->
+                </div>
+                
+                <!-- Interações / Trocas (Direita) -->
+                <div class="flex-1 bg-zinc-950/60 p-4 rounded-xl border border-zinc-800 flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-xs font-bold text-zinc-400 border-b border-zinc-800 pb-2 mb-3 uppercase tracking-wider">🤝 Jogadores Conectados</h4>
+                        <div class="space-y-2 max-h-48 overflow-y-auto pr-1" id="nearbyPlayersList"></div>
+                    </div>
+                    
+                    <div class="mt-4 pt-3 border-t border-zinc-800 text-xs text-zinc-400 space-y-1">
+                        <p>🎒 Equipado: <span id="equipIndicator" class="text-indigo-400 font-bold">Nenhum</span></p>
+                        <p>💵 Saldo Total: <span id="moneyIndicator" class="text-emerald-400 font-bold">$500</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING ACTIONS DO ITEM CLICADO -->
+    <div id="actionMenu" class="hidden absolute bg-zinc-950 border border-zinc-700 rounded-lg shadow-2xl p-2 z-50 flex flex-col gap-1 w-28">
+        <button id="actionBtnUse" class="hover:bg-zinc-800 text-left px-2 py-1 text-xs font-semibold rounded"></button>
+        <button id="actionBtnDrop" class="hover:bg-rose-950 hover:text-rose-300 text-left px-2 py-1 text-xs font-semibold rounded">Descartar</button>
+        <button id="actionBtnCancel" class="hover:bg-zinc-800 text-left px-2 py-1 text-xs rounded text-zinc-500">Voltar</button>
+    </div>
+
+    <!-- UI PRINCIPAL -->
     <header class="p-4 border-b border-slate-900 bg-slate-900/50 backdrop-blur">
         <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
-            <h1 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-                🟡 <span class="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">Coin Chase P2P</span>
+            <h1 class="text-md font-bold text-slate-100 flex items-center gap-2">
+                🟢 <span class="bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">P2P RP Sandbox</span>
             </h1>
             <div class="flex items-center gap-3">
-                <span id="roomStatus" class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-800 text-slate-400 border border-slate-700">Iniciando...</span>
+                <span id="roomStatus" class="px-3 py-1 rounded-full text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">Iniciando...</span>
                 <span id="playerCount" class="text-xs text-slate-400 font-medium">Jogadores: 1</span>
             </div>
         </div>
     </header>
 
-    <main class="flex-1 max-w-6xl w-full mx-auto p-4 flex flex-col lg:flex-row gap-4 justify-center items-stretch">
-        <!-- Coluna do Jogo 2D -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 flex flex-col lg:flex-row gap-4 justify-center items-stretch relative">
         <div class="flex-1 flex flex-col">
-            <div class="flex justify-end mb-2">
-                <button id="btnCopyLink" class="hidden px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium transition border border-slate-700 flex items-center gap-1.5">
-                    🔗 Copiar Link para Amigos
+            <div class="flex justify-between items-center mb-2">
+                <!-- Botão de Inventário -->
+                <button onclick="toggleInventory()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-indigo-500/10">
+                    🎒 Abrir Inventário [I]
+                </button>
+                <button id="btnCopyLink" class="hidden px-3 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-slate-300 rounded-lg text-xs font-medium transition border border-zinc-800 flex items-center gap-1.5">
+                    🔗 Código da Sala: <span id="copyCodeText" class="font-mono font-bold text-indigo-400">------</span>
                 </button>
             </div>
-            <!-- Canvas do Jogo -->
             <canvas id="gameCanvas" width="800" height="500" class="w-full h-auto bg-slate-950 border border-slate-800 rounded-xl shadow-2xl cursor-pointer"></canvas>
-            <p class="text-[10px] text-slate-500 mt-2 text-center">Use as teclas <span class="text-slate-400 font-bold">W, A, S, D</span>, as <span class="text-slate-400 font-bold">Setas do Teclado</span> ou <span class="text-slate-400 font-bold">clique/toque no mapa</span> para mover seu círculo.</p>
         </div>
         
-        <!-- Coluna do Chat -->
-        <div class="w-full lg:w-80 bg-slate-900 border border-slate-800 rounded-xl flex flex-col h-[300px] lg:h-auto shadow-2xl">
+        <div class="w-full lg:w-80 bg-slate-900 border border-slate-800 rounded-xl flex flex-col h-[280px] lg:h-auto shadow-2xl">
             <div class="p-3 border-b border-slate-800 font-bold text-sm text-slate-300 flex justify-between items-center bg-slate-950/20">
                 <span>💬 Chat da Sala</span>
-                <span class="text-[10px] text-indigo-400 font-normal">P2P Direto</span>
             </div>
-            <!-- Caixa de Mensagens -->
-            <div id="chatMessages" class="flex-1 p-3 overflow-y-auto space-y-2 text-xs font-mono">
-                <!-- Mensagens adicionadas em tempo real -->
-            </div>
-            <!-- Formulário de Envio -->
+            <div id="chatMessages" class="flex-1 p-3 overflow-y-auto space-y-2 text-xs font-mono"></div>
             <form id="chatForm" class="p-3 border-t border-slate-800 flex gap-2">
-                <input id="chatInput" type="text" autocomplete="off" placeholder="Escreva aqui..." class="flex-1 bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                <input id="chatInput" type="text" autocomplete="off" placeholder="Mensagem..." class="flex-1 bg-slate-800 border border-slate-700 rounded px-2.5 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500">
                 <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-3 py-1.5 rounded text-xs transition">Enviar</button>
             </form>
         </div>
     </main>
 
-    <footer class="text-center py-4 text-[11px] text-slate-600 border-t border-slate-900 max-w-6xl mx-auto w-full">
-        Desenvolvido usando PeerJS (WebRTC Peer-to-Peer). Sem necessidade de servidores intermediários de partida.
+    <footer class="text-center py-4 text-[10px] text-slate-600 max-w-6xl mx-auto w-full">
+        RP Sandbox P2P - Feito para rodar diretamente do GitHub Pages.
     </footer>
 
-    <!-- JavaScript do Jogo -->
     <script>
-        // Configurações Globais do Jogo
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const presetColors = ['#f87171', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#c084fc'];
-        
+        // Tabelas de Drops e Itens Possíveis
+        const possibleDrops = [
+            { id: 'burger', name: 'Hambúrguer', emoji: '🍔' },
+            { id: 'chocolate', name: 'Chocolate', emoji: '🍫' },
+            { id: 'bk_meal', name: 'Combo BK', emoji: '🍱' },
+            { id: 'pistol_mag', name: 'Pente Pistol', emoji: '🔋' },
+            { id: 'ar_mag', name: 'Pente AR', emoji: '💣' },
+            { id: 'bat', name: 'Bastão', emoji: '🏏' },
+            { id: 'pistol', name: 'Pistola Glock', emoji: '🔫' },
+            { id: 'ar_pistol', name: 'Fuzil M4', emoji: '🔌' },
+            { id: 'sns_pistol', name: 'Pistola SNS', emoji: '🔫' }
+        ];
+
+        // Lógica de Lobby / Setup
         let peer = null;
         let myId = null;
         let isHost = false;
-        let hostConnection = null; // Usado pelo cliente para enviar dados ao host
+        let hostConnection = null;
+        let currentTradeId = null;
+        let pendingTradePartnerId = null;
 
-        // Estado do Personagem Local
         const localPlayer = {
             name: '',
             color: presetColors[0],
             x: Math.floor(Math.random() * 500) + 150,
             y: Math.floor(Math.random() * 300) + 100,
-            score: 0
+            score: 0,
+            equipped: null,
+            inventory: [
+                { id: 'money', name: 'Dinheiro', emoji: '💵', qty: 500 },
+                { id: 'burger', name: 'Hambúrguer', emoji: '🍔', qty: 1 },
+                { id: 'bat', name: 'Bastão', emoji: '🏏', qty: 1 }
+            ]
         };
 
-        // Estado Global sincronizado de todos os jogadores
         const players = {}; 
-        const connections = {}; // Exclusivo do Host: armazena conexões dos clientes
+        const connections = {}; 
+        const activeTrades = {}; 
         let coin = { x: 400, y: 250 };
+        let droppedItems = []; // Itens no chão
         const keys = {};
+        let targetX = null, targetY = null;
 
-        // Variáveis de movimentação via clique/toque
-        let targetX = null;
-        let targetY = null;
-
-        // 1. Configurar a seleção de cores na UI
-        let selectedColor = presetColors[0];
-        const colorContainer = document.getElementById('colorContainer');
-        presetColors.forEach(color => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'w-9 h-9 rounded-full border-2 border-transparent focus:outline-none transition duration-150 transform hover:scale-110';
-            btn.style.backgroundColor = color;
-            if (color === selectedColor) {
-                btn.classList.add('border-white', 'scale-110');
-            }
-            btn.onclick = () => {
-                document.querySelectorAll('#colorContainer button').forEach(b => b.classList.remove('border-white', 'scale-110'));
-                btn.classList.add('border-white', 'scale-110');
-                selectedColor = color;
-                document.getElementById('customColorInput').value = color;
-            };
-            colorContainer.appendChild(btn);
-        });
-
-        document.getElementById('customColorInput').oninput = (e) => {
-            document.querySelectorAll('#colorContainer button').forEach(b => b.classList.remove('border-white', 'scale-110'));
-            selectedColor = e.target.value;
+        // Gerenciamento de Inputs do Setup
+        document.getElementById('btnSearchRoomOpt').onclick = () => {
+            document.getElementById('mainLobbyActions').classList.add('hidden');
+            document.getElementById('searchRoomForm').classList.remove('hidden');
+        };
+        document.getElementById('btnBackToMenu').onclick = () => {
+            document.getElementById('searchRoomForm').classList.add('hidden');
+            document.getElementById('mainLobbyActions').classList.remove('hidden');
         };
 
-        // 2. Evento do Botão Entrar
-        document.getElementById('btnJoin').onclick = () => {
-            const nameInput = document.getElementById('usernameInput').value.trim();
-            if (!nameInput) {
-                alert('Por favor, escolha um apelido!');
+        document.getElementById('btnCreateRoomOpt').onclick = () => {
+            localPlayer.name = document.getElementById('usernameInput').value.trim() || 'Cidadão';
+            localPlayer.color = selectedColor;
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            initNetwork(true);
+        };
+
+        document.getElementById('btnConnectByCode').onclick = () => {
+            const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+            if (code.length !== 6) {
+                alert('O código de sala precisa conter exatamente 6 dígitos!');
                 return;
             }
-            localPlayer.name = nameInput;
+            localPlayer.name = document.getElementById('usernameInput').value.trim() || 'Cidadão';
             localPlayer.color = selectedColor;
-            
             document.getElementById('loadingOverlay').classList.remove('hidden');
-            initPeerConnection();
+            window.location.hash = code;
+            initNetwork(false);
         };
 
-        // 3. Inicializar Conexão PeerJS (P2P)
-        function initPeerConnection() {
-            const targetHostId = window.location.hash.substring(1); // Lê o ID da URL se houver
+        // Verifica hash da URL para pular o menu
+        window.onload = () => {
+            const code = window.location.hash.substring(1);
+            if (code && code.length === 6) {
+                document.getElementById('roomCodeInput').value = code;
+                document.getElementById('mainLobbyActions').classList.add('hidden');
+                document.getElementById('searchRoomForm').classList.remove('hidden');
+            }
+        };
 
-            // Cria uma instância PeerJS vazia (usa o servidor público global da PeerJS para sinalização de handshake)
-            peer = new Peer();
+        // Gerador de códigos curtos (6 dígitos)
+        function generateRoomCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let res = '';
+            for (let i = 0; i < 6; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+            return res;
+        }
+
+        // 3. Conexão WebRTC
+        function initNetwork(createNow) {
+            let roomCode = generateRoomCode();
+            if (!createNow) {
+                roomCode = window.location.hash.substring(1).toUpperCase();
+            }
+
+            // Forçar o PeerJS a registrar o ID de 6 dígitos que geramos
+            peer = new Peer(roomCode);
 
             peer.on('open', (id) => {
                 myId = id;
                 document.getElementById('loadingOverlay').classList.add('hidden');
                 document.getElementById('setupModal').classList.add('hidden');
                 
-                if (targetHostId) {
-                    // Modo Cliente: Conecta à sala existente
-                    isHost = false;
-                    document.getElementById('roomStatus').textContent = 'Conectando ao Host...';
-                    document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-xs font-semibold bg-amber-900/40 text-amber-300 border border-amber-800';
-                    
-                    const conn = peer.connect(targetHostId);
-                    
-                    conn.on('open', () => {
-                        document.getElementById('roomStatus').textContent = 'Conectado (Jogador)';
-                        document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-xs font-semibold bg-green-900/40 text-green-300 border border-green-800';
-                        initClientLogic(conn);
-                        requestAnimationFrame(gameLoop);
-                    });
-                    
-                    conn.on('error', (err) => {
-                        alert('Falha ao conectar à sala especificada. Uma nova sala será iniciada.');
-                        window.location.hash = '';
-                        location.reload();
-                    });
-                } else {
-                    // Modo Host: Cria uma nova sala
+                if (createNow) {
                     isHost = true;
                     window.location.hash = id;
-                    document.getElementById('roomStatus').textContent = 'Hospedando Sala';
-                    document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-xs font-semibold bg-indigo-900/40 text-indigo-300 border border-indigo-800';
-                    
-                    // Mostra botão de compartilhar
-                    const copyBtn = document.getElementById('btnCopyLink');
-                    copyBtn.classList.remove('hidden');
-                    copyBtn.onclick = () => {
-                        navigator.clipboard.writeText(window.location.href);
-                        const origText = copyBtn.innerHTML;
-                        copyBtn.innerHTML = '✅ Link Copiado!';
-                        setTimeout(() => copyBtn.innerHTML = origText, 2000);
-                    };
-                    
+                    document.getElementById('roomStatus').textContent = 'Hospedando';
+                    document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-[10px] font-bold bg-indigo-900/40 text-indigo-300 border border-indigo-800';
+                    document.getElementById('btnCopyLink').classList.remove('hidden');
+                    document.getElementById('copyCodeText').textContent = id;
                     initHostLogic();
+                } else {
+                    // Se conectou, mas é cliente
+                    isHost = false;
+                    document.getElementById('roomStatus').textContent = 'Iniciando Conexão';
+                    // Criamos outro peer temporário para o cliente conectando ao host
+                    peer.destroy();
+                    
+                    peer = new Peer();
+                    peer.on('open', (clientId) => {
+                        myId = clientId;
+                        const conn = peer.connect(roomCode);
+                        conn.on('open', () => {
+                            document.getElementById('roomStatus').textContent = 'Conectado (Jogador)';
+                            document.getElementById('roomStatus').className = 'px-3 py-1 rounded-full text-[10px] font-bold bg-green-900/40 text-green-300 border border-green-800';
+                            document.getElementById('btnCopyLink').classList.remove('hidden');
+                            document.getElementById('copyCodeText').textContent = roomCode;
+                            initClientLogic(conn);
+                            requestAnimationFrame(gameLoop);
+                        });
+                        conn.on('error', () => {
+                            alert('Erro na conexão com a sala informada.');
+                            window.location.hash = '';
+                            location.reload();
+                        });
+                    });
                 }
             });
 
             peer.on('error', (err) => {
                 document.getElementById('loadingOverlay').classList.add('hidden');
-                if (err.type === 'peer-not-found') {
-                    alert('A sala informada expirou ou não existe. Criando nova sala.');
-                    window.location.hash = '';
-                    location.reload();
+                if (err.type === 'unavailable-id') {
+                    // ID já registrado ou ocupado
+                    if (createNow) {
+                        initNetwork(true); // tenta outro código
+                    } else {
+                        alert('Essa sala não existe ou expirou.');
+                        window.location.hash = '';
+                        location.reload();
+                    }
                 } else {
-                    alert('Erro na conexão de rede: ' + err.message);
+                    alert('Erro na conexão: ' + err.message);
                 }
             });
         }
 
-        // 4. Lógica Exclusiva do Host (Quem iniciou a sala)
+        // Autoridade do Host
         function initHostLogic() {
-            // Adiciona o próprio host ao objeto de jogadores
-            players['host'] = {
-                name: localPlayer.name,
-                color: localPlayer.color,
-                x: localPlayer.x,
-                y: localPlayer.y,
-                score: 0
-            };
-            
+            players['host'] = localPlayer;
             spawnCoin();
-            addChatMessage('Sistema', '#38bdf8', 'Sala criada com sucesso! Copie o convite no topo para convidar amigos.', true);
+            addChatMessage('Sistema', '#38bdf8', `Sala criada! Divulgue o código ${myId} para seus amigos.`, true);
             
             peer.on('connection', (conn) => {
                 conn.on('open', () => {
                     connections[conn.peer] = conn;
-                    
-                    // Jogador temporário até receber dados de registro (join)
                     players[conn.peer] = {
                         name: 'Conectando...',
                         color: '#cccccc',
                         x: 400,
                         y: 250,
-                        score: 0
+                        score: 0,
+                        equipped: null,
+                        inventory: JSON.parse(JSON.stringify(localPlayer.inventory)) // deep copy
                     };
                     
-                    // Envia dados do mundo de forma imediata
                     conn.send({
                         type: 'init',
                         id: conn.peer,
                         coin: coin,
-                        players: players
+                        players: players,
+                        droppedItems: droppedItems
                     });
                 });
                 
@@ -287,273 +401,304 @@
                     if (data.type === 'join') {
                         players[conn.peer].name = data.name;
                         players[conn.peer].color = data.color;
-                        
-                        const msg = `${data.name} entrou na sala.`;
+                        const msg = `${data.name} entrou na cidade.`;
                         addChatMessage('Sistema', '#64748b', msg, true);
                         broadcast({ type: 'chat', sender: 'Sistema', color: '#64748b', text: msg, isSystem: true });
                         updatePlayerCount();
                     }
-                    
                     if (data.type === 'move') {
                         if (players[conn.peer]) {
                             players[conn.peer].x = data.x;
                             players[conn.peer].y = data.y;
                         }
                     }
-                    
                     if (data.type === 'chat') {
                         if (players[conn.peer]) {
-                            const senderName = players[conn.peer].name;
-                            const senderColor = players[conn.peer].color;
-                            addChatMessage(senderName, senderColor, data.text);
-                            broadcast({ type: 'chat', sender: senderName, color: senderColor, text: data.text });
+                            addChatMessage(players[conn.peer].name, players[conn.peer].color, data.text);
+                            broadcast({ type: 'chat', sender: players[conn.peer].name, color: players[conn.peer].color, text: data.text });
                         }
                     }
+                    // Itens & Ações
+                    if (data.type === 'drop_item') handleP2PDrop(conn.peer, data.slotIndex);
+                    if (data.type === 'use_item') handleP2PUse(conn.peer, data.slotIndex);
+
+                    // Sistema de Trocas (P2P Handshake)
+                    if (data.type === 'trade_request') {
+                        if (data.targetId === 'host') showTradeInvite(conn.peer, players[conn.peer].name);
+                        else if (connections[data.targetId]) {
+                            connections[data.targetId].send({ type: 'trade_invite', fromId: conn.peer, fromName: players[conn.peer].name });
+                        }
+                    }
+                    if (data.type === 'trade_accept') handleTradeAccept(conn.peer, data.partnerId);
+                    if (data.type === 'trade_decline') {
+                        if (connections[data.partnerId]) connections[data.partnerId].send({ type: 'trade_declined', fromName: players[conn.peer].name });
+                    }
+                    if (data.type === 'trade_add_item') handleTradeAddItem(conn.peer, data.tradeId, data.slotIndex);
+                    if (data.type === 'trade_remove_item') handleTradeRemoveItem(conn.peer, data.tradeId, data.itemId);
+                    if (data.type === 'trade_confirm') handleTradeConfirm(conn.peer, data.tradeId);
+                    if (data.type === 'trade_cancel') handleTradeCancel(conn.peer, data.tradeId);
                 });
                 
                 conn.on('close', () => {
                     if (players[conn.peer]) {
-                        const leftName = players[conn.peer].name;
-                        const msg = `${leftName} saiu do jogo.`;
+                        const msg = `${players[conn.peer].name} saiu da cidade.`;
                         addChatMessage('Sistema', '#64748b', msg, true);
                         broadcast({ type: 'chat', sender: 'Sistema', color: '#64748b', text: msg, isSystem: true });
-                        
                         delete players[conn.peer];
                         delete connections[conn.peer];
                         updatePlayerCount();
                     }
                 });
             });
-            
             requestAnimationFrame(gameLoop);
         }
 
-        // 5. Lógica Exclusiva do Cliente (Quem se juntou)
+        // Conexão dos Clientes
         function initClientLogic(conn) {
             hostConnection = conn;
-            addChatMessage('Sistema', '#38bdf8', 'Você entrou na sala! Diga oi no chat.', true);
+            addChatMessage('Sistema', '#38bdf8', 'Você entrou na cidade. Abra o inventário em [I] ou [TAB].', true);
             
             conn.on('data', (data) => {
                 if (data.type === 'init') {
                     myId = data.id;
                     coin = data.coin;
-                    
-                    // Registra nosso avatar localmente
+                    droppedItems = data.droppedItems || [];
                     players[myId] = localPlayer;
                     
-                    // Copia os jogadores enviados pelo Host
                     for (const id in data.players) {
-                        if (id !== myId) {
-                            players[id] = data.players[id];
-                        }
+                        if (id !== myId) players[id] = data.players[id];
                     }
                     
-                    // Registra-se oficialmente no Host
-                    conn.send({
-                        type: 'join',
-                        name: localPlayer.name,
-                        color: localPlayer.color
-                    });
-                    
+                    conn.send({ type: 'join', name: localPlayer.name, color: localPlayer.color });
                     updatePlayerCount();
                 }
                 
                 if (data.type === 'state') {
                     coin = data.coin;
+                    droppedItems = data.droppedItems || [];
                     for (const id in data.players) {
                         if (id === myId) {
                             localPlayer.score = data.players[id].score;
+                            localPlayer.inventory = data.players[id].inventory;
+                            localPlayer.equipped = data.players[id].equipped;
                         } else {
                             players[id] = data.players[id];
                         }
                     }
-                    // Remove quem saiu
                     for (const id in players) {
                         if (!data.players[id]) delete players[id];
                     }
                     updatePlayerCount();
+                    if (!document.getElementById('inventoryOverlay').classList.contains('hidden')) {
+                        renderInventoryUI();
+                    }
                 }
                 
-                if (data.type === 'chat') {
-                    addChatMessage(data.sender, data.color, data.text, data.isSystem);
+                if (data.type === 'chat') addChatMessage(data.sender, data.color, data.text, data.isSystem);
+                if (data.type === 'trade_invite') showTradeInvite(data.fromId, data.fromName);
+                
+                if (data.type === 'trade_start') {
+                    currentTradeId = data.tradeId;
+                    openTradeUI(data.partnerId, data.partnerName);
+                }
+                if (data.type === 'trade_sync') {
+                    updateTradeUI(data.myOffer, data.partnerOffer, data.myConfirmed, data.partnerConfirmed);
+                }
+                if (data.type === 'trade_complete') {
+                    closeTradeUI('completed');
+                }
+                if (data.type === 'trade_aborted') {
+                    closeTradeUI('aborted');
+                }
+                if (data.type === 'trade_declined') {
+                    alert(`O convite de negociação foi recusado por ${data.fromName}.`);
                 }
             });
             
             conn.on('close', () => {
-                alert('A conexão com a sala foi encerrada pelo Host.');
+                alert('Servidor encerrado pelo host.');
                 window.location.hash = '';
                 location.reload();
             });
         }
 
-        // Envia mensagem para todos os peers conectados (Exclusivo Host)
-        function broadcast(data) {
-            for (const id in connections) {
-                if (connections[id].open) {
-                    connections[id].send(data);
+        // LÓGICA DE EXECUÇÃO DE ITENS COM AUTORIDADE
+        function addItemToInv(player, itemToAdd) {
+            const existing = player.inventory.find(i => i.id === itemToAdd.id);
+            if (existing && itemToAdd.id === 'money') {
+                existing.qty += itemToAdd.qty;
+            } else if (existing && itemToAdd.id !== 'money' && itemToAdd.id !== 'pistol' && itemToAdd.id !== 'ar_pistol' && itemToAdd.id !== 'bat' && itemToAdd.id !== 'sns_pistol') {
+                existing.qty += itemToAdd.qty;
+            } else {
+                if (player.inventory.length < 12) {
+                    player.inventory.push({ id: itemToAdd.id, name: itemToAdd.name, emoji: itemToAdd.emoji, qty: itemToAdd.qty });
                 }
             }
         }
 
-        // Sorteia posição da moeda (Exclusivo Host)
-        function spawnCoin() {
-            coin.x = Math.floor(Math.random() * 720) + 40;
-            coin.y = Math.floor(Math.random() * 420) + 40;
+        function handleP2PDrop(peerId, slotIndex) {
+            const p = players[peerId];
+            if (p && p.inventory[slotIndex]) {
+                const item = p.inventory[slotIndex];
+                
+                // Spawn físico do item no chão
+                droppedItems.push({
+                    id: 'drop_' + Date.now() + '_' + Math.random().toString(36).substring(2, 5),
+                    item: { id: item.id, name: item.name, emoji: item.emoji, qty: 1 },
+                    x: p.x + (Math.random() * 40 - 20),
+                    y: p.y + (Math.random() * 40 - 20)
+                });
+
+                item.qty -= 1;
+                if (item.qty <= 0) p.inventory.splice(slotIndex, 1);
+
+                const msg = `${p.name} descartou ${item.name}.`;
+                addChatMessage('Sistema', '#f43f5e', msg, true);
+                broadcast({ type: 'chat', sender: 'Sistema', color: '#f43f5e', text: msg, isSystem: true });
+                broadcastGameState();
+            }
         }
 
-        // Verifica colisões com a moeda (Exclusivo Host com autoridade)
-        function checkCoinCollisions() {
+        function handleP2PUse(peerId, slotIndex) {
+            const p = players[peerId];
+            if (p && p.inventory[slotIndex]) {
+                const item = p.inventory[slotIndex];
+                let isWeapon = ['pistol', 'ar_pistol', 'bat', 'sns_pistol'].includes(item.id);
+                let useText = '';
+
+                if (isWeapon) {
+                    if (p.equipped === item.name) {
+                        p.equipped = null;
+                        useText = `${p.name} guardou o(a) ${item.name}.`;
+                    } else {
+                        p.equipped = item.name;
+                        useText = `${p.name} equipou o(a) ${item.name}!`;
+                    }
+                } else {
+                    item.qty -= 1;
+                    if (item.qty <= 0) p.inventory.splice(slotIndex, 1);
+                    useText = `${p.name} consumiu um ${item.name}!`;
+                }
+
+                addChatMessage('Sistema', '#10b981', useText, true);
+                broadcast({ type: 'chat', sender: 'Sistema', color: '#10b981', text: useText, isSystem: true });
+                broadcastGameState();
+            }
+        }
+
+        // LÓGICA DE MOVIMENTAÇÃO E CANVAS (DESENHO)
+        function checkCoinAndDrops() {
+            // Moedas autoritativas do Host
             for (const id in players) {
                 const p = players[id];
-                const dist = Math.hypot(p.x - coin.x, p.y - coin.y);
-                if (dist < 15 + 10) { // Player radius (15) + Coin radius (10)
+                const coinDist = Math.hypot(p.x - coin.x, p.y - coin.y);
+                if (coinDist < 15 + 10) {
                     p.score += 1;
                     spawnCoin();
-                    
-                    const collectMsg = `🎉 ${p.name} capturou a moeda!`;
-                    addChatMessage('Sistema', '#eab308', collectMsg, true);
-                    broadcast({ type: 'chat', sender: 'Sistema', color: '#eab308', text: collectMsg, isSystem: true });
-                    
-                    // Força envio rápido da mudança de estado
+
+                    // Adiciona grana
+                    const reward = Math.floor(Math.random() * 150) + 100;
+                    addItemToInv(p, { id: 'money', name: 'Dinheiro', emoji: '💵', qty: reward });
+
+                    // 40% chance de drop
+                    let dropMsg = '';
+                    if (Math.random() < 0.40) {
+                        const template = possibleDrops[Math.floor(Math.random() * possibleDrops.length)];
+                        addItemToInv(p, { ...template, qty: 1 });
+                        dropMsg = ` e encontrou um(a) ${template.name}`;
+                    }
+
+                    const pickMsg = `🎉 ${p.name} coletou a moeda, ganhou $${reward}${dropMsg}!`;
+                    addChatMessage('Sistema', '#eab308', pickMsg, true);
+                    broadcast({ type: 'chat', sender: 'Sistema', color: '#eab308', text: pickMsg, isSystem: true });
                     broadcastGameState();
                 }
-            }
-        }
 
-        // Transmissão de pacotes de estado aos clientes (Throttled)
-        function broadcastGameState() {
-            broadcast({
-                type: 'state',
-                players: Object.keys(players).reduce((acc, id) => {
-                    acc[id] = {
-                        name: players[id].name,
-                        color: players[id].color,
-                        x: players[id].x,
-                        y: players[id].y,
-                        score: players[id].score
-                    };
-                    return acc;
-                }, {}),
-                coin: coin
-            });
-        }
-
-        // 6. Loop de Atualização de Movimentos & Desenho no Canvas
-        const speed = 4;
-        let lastX = 0;
-        let lastY = 0;
-        let lastBroadcastTime = 0;
-        let lastSendTime = 0;
-
-        function updateLocalMovement() {
-            let dx = 0;
-            let dy = 0;
-            const chatInput = document.getElementById('chatInput');
-            
-            // Impede movimentação se o chat estiver focado
-            if (document.activeElement !== chatInput) {
-                if (keys['ArrowUp'] || keys['w'] || keys['W']) dy = -1;
-                if (keys['ArrowDown'] || keys['s'] || keys['S']) dy = 1;
-                if (keys['ArrowLeft'] || keys['a'] || keys['A']) dx = -1;
-                if (keys['ArrowRight'] || keys['d'] || keys['D']) dx = 1;
-            }
-            
-            let moved = false;
-            
-            if (dx !== 0 || dy !== 0) {
-                targetX = null; // Cancela clique se usar o teclado
-                targetY = null;
-                
-                const len = Math.hypot(dx, dy);
-                localPlayer.x += (dx / len) * speed;
-                localPlayer.y += (dy / len) * speed;
-                moved = true;
-            } else if (targetX !== null && targetY !== null) {
-                // Movimento em direção ao ponto de clique/toque
-                const tDx = targetX - localPlayer.x;
-                const tDy = targetY - localPlayer.y;
-                const dist = Math.hypot(tDx, tDy);
-                if (dist > 5) {
-                    localPlayer.x += (tDx / dist) * speed;
-                    localPlayer.y += (tDy / dist) * speed;
-                    moved = true;
-                } else {
-                    targetX = null;
-                    targetY = null;
+                // Drops coletados do chão
+                for (let i = droppedItems.length - 1; i >= 0; i--) {
+                    const drop = droppedItems[i];
+                    const dropDist = Math.hypot(p.x - drop.x, p.y - drop.y);
+                    if (dropDist < 15 + 15) {
+                        addItemToInv(p, drop.item);
+                        const grabMsg = `${p.name} coletou ${drop.item.name} do chão.`;
+                        addChatMessage('Sistema', '#10b981', grabMsg, true);
+                        broadcast({ type: 'chat', sender: 'Sistema', color: '#10b981', text: grabMsg, isSystem: true });
+                        droppedItems.splice(i, 1);
+                        broadcastGameState();
+                        break;
+                    }
                 }
             }
-            
-            // Limitar dentro das bordas do Canvas
-            const radius = 15;
-            localPlayer.x = Math.max(radius, Math.min(800 - radius, localPlayer.x));
-            localPlayer.y = Math.max(radius, Math.min(500 - radius, localPlayer.y));
-            
-            if (moved && (localPlayer.x !== lastX || localPlayer.y !== lastY)) {
-                lastX = localPlayer.x;
-                lastY = localPlayer.y;
-                return true;
-            }
-            return false;
+        }
+
+        function isInputFocused() {
+            const active = document.activeElement;
+            return active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable);
         }
 
         function gameLoop() {
             const hasMoved = updateLocalMovement();
-            
-            // Renderização do Canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Desenhar Grid de Fundo de ficção científica
-            ctx.strokeStyle = '#1e293b';
+            // Desenhar Grid
+            ctx.strokeStyle = '#18181b';
             ctx.lineWidth = 1;
-            const step = 40;
-            for (let x = 0; x < canvas.width; x += step) {
+            for (let x = 0; x < canvas.width; x += 40) {
                 ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
             }
-            for (let y = 0; y < canvas.height; y += step) {
+            for (let y = 0; y < canvas.height; y += 40) {
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             }
+
+            // Desenhar itens do chão
+            droppedItems.forEach(drop => {
+                ctx.font = '16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(drop.item.emoji, drop.x, drop.y);
+
+                ctx.fillStyle = 'rgba(9, 9, 11, 0.75)';
+                ctx.fillRect(drop.x - 20, drop.y + 6, 40, 10);
+                ctx.fillStyle = '#a1a1aa';
+                ctx.font = 'bold 7px monospace';
+                ctx.fillText(drop.item.name.substring(0, 8), drop.x, drop.y + 13);
+            });
             
-            // Desenhar Moeda Brilhante
+            // Desenhar Moeda
             if (coin) {
-                const pulse = 10 + Math.sin(Date.now() / 150) * 2;
+                const pulse = 10 + Math.sin(Date.now() / 150) * 1.5;
                 ctx.shadowColor = '#eab308';
-                ctx.shadowBlur = 15;
+                ctx.shadowBlur = 12;
                 ctx.fillStyle = '#facc15';
-                ctx.strokeStyle = '#ca8a04';
-                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.arc(coin.x, coin.y, pulse, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.stroke();
-                ctx.shadowBlur = 0; // Desativa sombra para os outros desenhos
+                ctx.shadowBlur = 0;
             }
             
             // Desenhar Jogadores
             for (const id in players) {
                 const p = players[id];
-                
                 ctx.fillStyle = p.color;
                 ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 3;
+                ctx.lineWidth = p.equipped ? 4 : 2;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, 15, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.stroke();
                 
-                // Apelido e Placar acima do jogador
+                // Nametag + Arma
                 ctx.fillStyle = '#ffffff';
                 ctx.font = 'bold 11px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(`${p.name} (${p.score})`, p.x, p.y - 22);
+                let tag = `${p.name} [${p.score}]`;
+                if (p.equipped) tag += ` (🔫 ${p.equipped})`;
+                ctx.fillText(tag, p.x, p.y - 22);
             }
             
-            // Desenhar Tabela de Liderança (Leaderboard) no Canvas
-            drawLeaderboard();
-            
-            // Sincronização de Rede a ~30hz (para economizar largura de banda e evitar lag)
+            // Controle de Rede (Throttled)
             const now = Date.now();
             if (isHost) {
-                checkCoinCollisions();
+                checkCoinAndDrops();
                 if (now - lastBroadcastTime > 33) {
                     broadcastGameState();
                     lastBroadcastTime = now;
@@ -561,40 +706,516 @@
             } else {
                 if (hasMoved && now - lastSendTime > 33) {
                     if (hostConnection && hostConnection.open) {
-                        hostConnection.send({
-                            type: 'move',
-                            x: localPlayer.x,
-                            y: localPlayer.y
-                        });
+                        hostConnection.send({ type: 'move', x: localPlayer.x, y: localPlayer.y });
                     }
                     lastSendTime = now;
                 }
             }
-            
             requestAnimationFrame(gameLoop);
         }
 
-        function drawLeaderboard() {
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-            ctx.fillRect(15, 15, 180, 115);
-            ctx.strokeStyle = '#334155';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(15, 15, 180, 115);
+        // RENDEREZAR INVENTÁRIO FIVE M (AESTHETIC)
+        function toggleInventory() {
+            const overlay = document.getElementById('inventoryOverlay');
+            if (overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                renderInventoryUI();
+            } else {
+                overlay.classList.add('hidden');
+                closeActionMenu();
+            }
+        }
+
+        function renderInventoryUI() {
+            const grid = document.getElementById('inventoryGrid');
+            grid.innerHTML = '';
             
-            ctx.fillStyle = '#94a3b8';
-            ctx.font = 'bold 10px monospace';
-            ctx.textAlign = 'left';
-            ctx.fillText('🏆 TOP PLACAR', 25, 33);
+            const inv = players[myId] ? players[myId].inventory : [];
             
-            const sorted = Object.values(players).sort((a, b) => b.score - a.score).slice(0, 4);
-            ctx.font = '11px monospace';
-            sorted.forEach((p, index) => {
-                ctx.fillStyle = p.color;
-                ctx.fillText(`${index + 1}. ${p.name.substring(0, 10)}: ${p.score}`, 25, 55 + index * 16);
+            for (let i = 0; i < 12; i++) {
+                const item = inv[i];
+                const slot = document.createElement('div');
+                
+                if (item) {
+                    slot.className = "relative bg-zinc-800/90 border border-zinc-700 hover:border-indigo-500 rounded-lg flex flex-col items-center justify-center h-24 w-20 p-2 select-none cursor-pointer transition";
+                    slot.innerHTML = `
+                        <span class="absolute top-1 left-1 bg-white text-zinc-950 text-[9px] font-bold px-1 rounded-sm">${i + 1}</span>
+                        <span class="absolute top-1 right-1 text-zinc-400 text-[9px] font-medium">x${item.qty}</span>
+                        <span class="text-2xl my-auto">${item.emoji}</span>
+                        <div class="absolute bottom-0 inset-x-0 bg-black/70 text-[8px] text-center py-0.5 rounded-b-lg font-semibold truncate px-1">
+                            ${item.name}
+                        </div>
+                    `;
+                    slot.onclick = (e) => showItemMenu(e, item, i);
+                } else {
+                    slot.className = "relative bg-zinc-900/40 border border-dashed border-zinc-800 rounded-lg h-24 w-20 flex items-center justify-center select-none";
+                    slot.innerHTML = `
+                        <span class="absolute top-1 left-1 text-zinc-700 text-[9px] font-bold">${i + 1}</span>
+                        <span class="text-zinc-800 text-[10px]">Vazio</span>
+                    `;
+                }
+                grid.appendChild(slot);
+            }
+            renderNearbyPlayers();
+        }
+
+        function showItemMenu(e, item, index) {
+            e.stopPropagation();
+            const menu = document.getElementById('actionMenu');
+            menu.classList.remove('hidden');
+            menu.style.left = e.pageX + 'px';
+            menu.style.top = e.pageY + 'px';
+
+            const useBtn = document.getElementById('actionBtnUse');
+            const isWeapon = ['pistol', 'ar_pistol', 'bat', 'sns_pistol'].includes(item.id);
+            
+            if (isWeapon) {
+                const local = players[myId];
+                const isEquipped = local && local.equipped === item.name;
+                useBtn.textContent = isEquipped ? 'Guardar' : 'Equipar';
+            } else {
+                useBtn.textContent = 'Consumir';
+            }
+
+            useBtn.onclick = () => {
+                triggerLocalAction('use_item', index);
+                closeActionMenu();
+            };
+
+            document.getElementById('actionBtnDrop').onclick = () => {
+                triggerLocalAction('drop_item', index);
+                closeActionMenu();
+            };
+
+            document.getElementById('actionBtnCancel').onclick = () => closeActionMenu();
+        }
+
+        function triggerLocalAction(type, index) {
+            if (isHost) {
+                if (type === 'drop_item') handleP2PDrop('host', index);
+                if (type === 'use_item') handleP2PUse('host', index);
+            } else {
+                if (hostConnection && hostConnection.open) {
+                    hostConnection.send({ type: type, slotIndex: index });
+                }
+            }
+        }
+
+        function closeActionMenu() {
+            document.getElementById('actionMenu').classList.add('hidden');
+        }
+
+        function renderNearbyPlayers() {
+            const list = document.getElementById('nearbyPlayersList');
+            list.innerHTML = '';
+            
+            let count = 0;
+            for (const id in players) {
+                if (id !== myId) {
+                    count++;
+                    const p = players[id];
+                    const div = document.createElement('div');
+                    div.className = "flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-lg p-2 hover:border-zinc-700 transition";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${p.color}"></span>
+                            <span class="text-xs font-bold text-zinc-200">${p.name}</span>
+                        </div>
+                        <button onclick="sendTradeRequest('${id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-[9px] font-bold py-1 px-2.5 rounded transition">
+                            Negociar 🤝
+                        </button>
+                    `;
+                    list.appendChild(div);
+                }
+            }
+            if (count === 0) {
+                list.innerHTML = `<p class="text-[11px] text-zinc-500 italic text-center py-4">Nenhum cidadão conectado...</p>`;
+            }
+
+            const local = players[myId];
+            if (local) {
+                document.getElementById('equipIndicator').textContent = local.equipped || 'Nenhum';
+                const moneyItem = local.inventory.find(i => i.id === 'money');
+                document.getElementById('moneyIndicator').textContent = moneyItem ? `$${moneyItem.qty}` : '$0';
+            }
+        }
+
+        // LÓGICA DO TRADE SYSTEM (P2P TRANSACTIONS)
+        function sendTradeRequest(partnerId) {
+            if (isHost) {
+                if (connections[partnerId]) {
+                    connections[partnerId].send({ type: 'trade_invite', fromId: 'host', fromName: players['host'].name });
+                }
+            } else {
+                if (hostConnection && hostConnection.open) {
+                    hostConnection.send({ type: 'trade_request', targetId: partnerId });
+                }
+            }
+            alert('Convite de negociação enviado!');
+        }
+
+        function showTradeInvite(fromId, fromName) {
+            pendingTradePartnerId = fromId;
+            document.getElementById('tradeInviteText').textContent = `${fromName} quer negociar com você.`;
+            document.getElementById('tradeInvitePopup').classList.remove('hidden');
+        }
+
+        document.getElementById('btnDeclineInvite').onclick = () => {
+            document.getElementById('tradeInvitePopup').classList.add('hidden');
+            if (pendingTradePartnerId) {
+                if (isHost) {
+                    if (connections[pendingTradePartnerId]) {
+                        connections[pendingTradePartnerId].send({ type: 'trade_declined', fromName: players['host'].name });
+                    }
+                } else {
+                    if (hostConnection && hostConnection.open) {
+                        hostConnection.send({ type: 'trade_decline', partnerId: pendingTradePartnerId });
+                    }
+                }
+            }
+        };
+
+        document.getElementById('btnAcceptInvite').onclick = () => {
+            document.getElementById('tradeInvitePopup').classList.add('hidden');
+            if (pendingTradePartnerId) {
+                if (isHost) {
+                    handleTradeAccept('host', pendingTradePartnerId);
+                } else {
+                    if (hostConnection && hostConnection.open) {
+                        hostConnection.send({ type: 'trade_accept', partnerId: pendingTradePartnerId });
+                    }
+                }
+            }
+        };
+
+        // Host gerencia a sessão de troca
+        function handleTradeAccept(p1, p2) {
+            const tradeId = 't_' + Date.now();
+            activeTrades[tradeId] = {
+                id: tradeId, p1: p1, p2: p2,
+                p1Offer: [], p2Offer: [],
+                p1Confirmed: false, p2Confirmed: false
+            };
+
+            // Iniciar em ambos
+            if (p1 === 'host') {
+                currentTradeId = tradeId;
+                openTradeUI(p2, players[p2].name);
+            } else if (connections[p1]) {
+                connections[p1].send({ type: 'trade_start', tradeId, partnerId: p2, partnerName: players[p2].name });
+            }
+
+            if (p2 === 'host') {
+                currentTradeId = tradeId;
+                openTradeUI(p1, players[p1].name);
+            } else if (connections[p2]) {
+                connections[p2].send({ type: 'trade_start', tradeId, partnerId: p1, partnerName: players[p1].name });
+            }
+        }
+
+        function openTradeUI(partnerId, partnerName) {
+            document.getElementById('inventoryOverlay').classList.add('hidden');
+            document.getElementById('tradeModal').classList.remove('hidden');
+            document.getElementById('partnerOfferTitle').textContent = `Oferta de ${partnerName}`;
+            
+            // Reset local trade buttons
+            document.getElementById('myTradeStatus').textContent = "Aguardando Confirmação";
+            document.getElementById('partnerTradeStatus').textContent = "Aguardando Confirmação";
+            
+            updateTradeUI([], [], false, false);
+        }
+
+        function updateTradeUI(myOffer, partnerOffer, myConfirmed, partnerConfirmed) {
+            const myGrid = document.getElementById('myOfferGrid');
+            const partnerGrid = document.getElementById('partnerOfferGrid');
+            
+            myGrid.innerHTML = '';
+            partnerGrid.innerHTML = '';
+            
+            // Preenche e completa os grids de troca (FiveM style)
+            const buildSlots = (grid, items, isMine) => {
+                items.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = `bg-zinc-800 border ${isMine ? 'hover:bg-rose-950 hover:border-rose-700 border-zinc-700 cursor-pointer' : 'border-zinc-700'} rounded-lg p-1.5 flex flex-col items-center justify-center relative h-16 w-14 select-none transition`;
+                    el.innerHTML = `
+                        <span class="text-lg">${item.emoji}</span>
+                        <span class="absolute bottom-1 right-1 text-[8px] font-bold text-zinc-400">x${item.qty}</span>
+                        ${isMine ? '<span class="absolute top-1 left-1 text-[7px] text-zinc-500">Remover</span>' : ''}
+                    `;
+                    if (isMine) el.onclick = () => removeTradeItem(item.id);
+                    grid.appendChild(el);
+                });
+                for (let i = items.length; i < 3; i++) {
+                    const pad = document.createElement('div');
+                    pad.className = "bg-zinc-950/40 border border-dashed border-zinc-800 rounded-lg h-16 w-14";
+                    grid.appendChild(pad);
+                }
+            };
+
+            buildSlots(myGrid, myOffer, true);
+            buildSlots(partnerGrid, partnerOffer, false);
+
+            const myStatus = document.getElementById('myTradeStatus');
+            const partnerStatus = document.getElementById('partnerTradeStatus');
+            const confirmBtn = document.getElementById('btnConfirmTrade');
+
+            if (myConfirmed) {
+                myStatus.textContent = "CONFIRMADO ✓";
+                myStatus.className = "text-center text-[10px] text-emerald-400 font-extrabold uppercase mt-1 animate-pulse";
+                confirmBtn.className = "mt-2 w-full bg-zinc-800 text-zinc-500 font-semibold py-2 rounded-lg text-xs cursor-not-allowed";
+                confirmBtn.disabled = true;
+            } else {
+                myStatus.textContent = "Aguardando Confirmação";
+                myStatus.className = "text-center text-[10px] text-zinc-500 font-bold uppercase mt-1";
+                confirmBtn.className = "mt-2 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2 rounded-lg transition text-xs";
+                confirmBtn.disabled = false;
+            }
+
+            if (partnerConfirmed) {
+                partnerStatus.textContent = "CONFIRMADO ✓";
+                partnerStatus.className = "text-center text-[10px] text-emerald-400 font-extrabold uppercase mt-1 animate-pulse";
+            } else {
+                partnerStatus.textContent = "Aguardando Confirmação";
+                partnerStatus.className = "text-center text-[10px] text-zinc-500 font-bold uppercase mt-1";
+            }
+
+            // Exibir inventário clicável para troca na parte inferior
+            const tradeInv = document.getElementById('tradeInventoryGrid');
+            tradeInv.innerHTML = '';
+            const p = players[myId];
+            if (p) {
+                p.inventory.forEach((item, idx) => {
+                    const box = document.createElement('div');
+                    box.className = "flex-shrink-0 bg-zinc-800 border border-zinc-700 hover:border-indigo-500 rounded-lg p-2 flex flex-col items-center justify-center h-14 w-14 cursor-pointer select-none transition relative";
+                    box.innerHTML = `
+                        <span class="text-xl">${item.emoji}</span>
+                        <span class="absolute bottom-1 right-1 text-[8px] font-bold text-zinc-400">x${item.qty}</span>
+                    `;
+                    box.onclick = () => addTradeItem(idx);
+                    tradeInv.appendChild(box);
+                });
+            }
+        }
+
+        // Operações Interativas de Itens de Troca
+        function addTradeItem(idx) {
+            if (isHost) handleTradeAddItem('host', currentTradeId, idx);
+            else if (hostConnection && hostConnection.open) {
+                hostConnection.send({ type: 'trade_add_item', tradeId: currentTradeId, slotIndex: idx });
+            }
+        }
+
+        function removeTradeItem(itemId) {
+            if (isHost) handleTradeRemoveItem('host', currentTradeId, itemId);
+            else if (hostConnection && hostConnection.open) {
+                hostConnection.send({ type: 'trade_remove_item', tradeId: currentTradeId, itemId: itemId });
+            }
+        }
+
+        document.getElementById('btnConfirmTrade').onclick = () => {
+            if (isHost) handleTradeConfirm('host', currentTradeId);
+            else if (hostConnection && hostConnection.open) {
+                hostConnection.send({ type: 'trade_confirm', tradeId: currentTradeId });
+            }
+        };
+
+        document.getElementById('btnCancelTrade').onclick = () => {
+            if (isHost) handleTradeCancel('host', currentTradeId);
+            else if (hostConnection && hostConnection.open) {
+                hostConnection.send({ type: 'trade_cancel', tradeId: currentTradeId });
+            }
+        };
+
+        // Handlers de Troca Exclusivos do Host (Validador Autorizado)
+        function handleTradeAddItem(peerId, tradeId, slotIndex) {
+            const tr = activeTrades[tradeId];
+            if (!tr) return;
+            const p = players[peerId];
+            const item = p.inventory[slotIndex];
+            if (!item || item.qty <= 0) return;
+
+            const isP1 = tr.p1 === peerId;
+            const offer = isP1 ? tr.p1Offer : tr.p2Offer;
+
+            const alreadyOffered = offer.filter(o => o.id === item.id).reduce((sum, o) => sum + o.qty, 0);
+            if (alreadyOffered >= item.qty) return; // Não dá pra oferecer o que não tem
+
+            const existOffer = offer.find(o => o.id === item.id);
+            if (existOffer) existOffer.qty += 1;
+            else offer.push({ id: item.id, name: item.name, emoji: item.emoji, qty: 1 });
+
+            tr.p1Confirmed = false;
+            tr.p2Confirmed = false;
+            syncTrade(tr);
+        }
+
+        function handleTradeRemoveItem(peerId, tradeId, itemId) {
+            const tr = activeTrades[tradeId];
+            if (!tr) return;
+            const isP1 = tr.p1 === peerId;
+            const offer = isP1 ? tr.p1Offer : tr.p2Offer;
+
+            const idx = offer.findIndex(o => o.id === itemId);
+            if (idx !== -1) {
+                offer[idx].qty -= 1;
+                if (offer[idx].qty <= 0) offer.splice(idx, 1);
+            }
+
+            tr.p1Confirmed = false;
+            tr.p2Confirmed = false;
+            syncTrade(tr);
+        }
+
+        function handleTradeConfirm(peerId, tradeId) {
+            const tr = activeTrades[tradeId];
+            if (!tr) return;
+            if (tr.p1 === peerId) tr.p1Confirmed = true;
+            if (tr.p2 === peerId) tr.p2Confirmed = true;
+
+            if (tr.p1Confirmed && tr.p2Confirmed) {
+                // Efetuar troca segura e transacionar inventários
+                executeTradeSwap(tr);
+            } else {
+                syncTrade(tr);
+            }
+        }
+
+        function handleTradeCancel(peerId, tradeId) {
+            const tr = activeTrades[tradeId];
+            if (!tr) return;
+            closeTradeOnClients(tr, 'trade_aborted');
+            delete activeTrades[tradeId];
+        }
+
+        function executeTradeSwap(tr) {
+            const p1 = players[tr.p1];
+            const p2 = players[tr.p2];
+            if (p1 && p2) {
+                // Remover ofertas
+                tr.p1Offer.forEach(off => {
+                    const target = p1.inventory.find(i => i.id === off.id);
+                    if (target) target.qty -= off.qty;
+                    addItemToInv(p2, off);
+                });
+                tr.p2Offer.forEach(off => {
+                    const target = p2.inventory.find(i => i.id === off.id);
+                    if (target) target.qty -= off.qty;
+                    addItemToInv(p1, off);
+                });
+
+                p1.inventory = p1.inventory.filter(i => i.qty > 0);
+                p2.inventory = p2.inventory.filter(i => i.qty > 0);
+
+                const sysMsg = `🤝 Negociação efetuada com sucesso entre ${p1.name} e ${p2.name}!`;
+                addChatMessage('Sistema', '#10b981', sysMsg, true);
+                broadcast({ type: 'chat', sender: 'Sistema', color: '#10b981', text: sysMsg, isSystem: true });
+
+                closeTradeOnClients(tr, 'trade_complete');
+                delete activeTrades[tr.id];
+                broadcastGameState();
+            }
+        }
+
+        function syncTrade(tr) {
+            const sendSync = (peerId, mine, partner, myConf, partConf) => {
+                if (peerId === 'host') updateTradeUI(mine, partner, myConf, partConf);
+                else if (connections[peerId]) connections[peerId].send({ type: 'trade_sync', myOffer: mine, partnerOffer: partner, myConfirmed: myConf, partnerConfirmed: partConf });
+            };
+            sendSync(tr.p1, tr.p1Offer, tr.p2Offer, tr.p1Confirmed, tr.p2Confirmed);
+            sendSync(tr.p2, tr.p2Offer, tr.p1Offer, tr.p2Confirmed, tr.p1Confirmed);
+        }
+
+        function closeTradeOnClients(tr, signalType) {
+            const closeTarget = (peerId) => {
+                if (peerId === 'host') closeTradeUI(signalType === 'trade_complete' ? 'completed' : 'aborted');
+                else if (connections[peerId]) connections[peerId].send({ type: signalType });
+            };
+            closeTarget(tr.p1);
+            closeTarget(tr.p2);
+        }
+
+        function closeTradeUI(status) {
+            document.getElementById('tradeModal').classList.add('hidden');
+            currentTradeId = null;
+            if (status === 'completed') {
+                alert('Negociação concluída com sucesso! Verifique seu inventário.');
+            } else if (status === 'aborted') {
+                alert('A negociação foi cancelada.');
+            }
+        }
+
+        // LÓGICA GERAL DE LOOP E ENVIOS
+        function broadcast(data) {
+            for (const id in connections) {
+                if (connections[id].open) connections[id].send(data);
+            }
+        }
+
+        function spawnCoin() {
+            coin.x = Math.floor(Math.random() * 720) + 40;
+            coin.y = Math.floor(Math.random() * 420) + 40;
+        }
+
+        function broadcastGameState() {
+            broadcast({
+                type: 'state',
+                coin: coin,
+                droppedItems: droppedItems,
+                players: Object.keys(players).reduce((acc, id) => {
+                    acc[id] = {
+                        name: players[id].name,
+                        color: players[id].color,
+                        x: players[id].x,
+                        y: players[id].y,
+                        score: players[id].score,
+                        equipped: players[id].equipped,
+                        inventory: players[id].inventory
+                    };
+                    return acc;
+                }, {})
             });
         }
 
-        // 7. Lógica de Interação com o Chat
+        function updateLocalMovement() {
+            let dx = 0, dy = 0;
+            if (!isInputFocused()) {
+                if (keys['ArrowUp'] || keys['w'] || keys['W']) dy = -1;
+                if (keys['ArrowDown'] || keys['s'] || keys['S']) dy = 1;
+                if (keys['ArrowLeft'] || keys['a'] || keys['A']) dx = -1;
+                if (keys['ArrowRight'] || keys['d'] || keys['D']) dx = 1;
+            }
+            
+            let moved = false;
+            if (dx !== 0 || dy !== 0) {
+                targetX = null; targetY = null;
+                const len = Math.hypot(dx, dy);
+                localPlayer.x += (dx / len) * speed;
+                localPlayer.y += (dy / len) * speed;
+                moved = true;
+            } else if (targetX !== null && targetY !== null) {
+                const tDx = targetX - localPlayer.x, tDy = targetY - localPlayer.y;
+                const dist = Math.hypot(tDx, tDy);
+                if (dist > 5) {
+                    localPlayer.x += (tDx / dist) * speed;
+                    localPlayer.y += (tDy / dist) * speed;
+                    moved = true;
+                } else {
+                    targetX = null; targetY = null;
+                }
+            }
+            
+            const radius = 15;
+            localPlayer.x = Math.max(radius, Math.min(800 - radius, localPlayer.x));
+            localPlayer.y = Math.max(radius, Math.min(500 - radius, localPlayer.y));
+            
+            if (moved && (localPlayer.x !== lastX || localPlayer.y !== lastY)) {
+                lastX = localPlayer.x; lastY = localPlayer.y;
+                return true;
+            }
+            return false;
+        }
+
+        // CHAT SUBMISSION
         document.getElementById('chatForm').onsubmit = (e) => {
             e.preventDefault();
             const input = document.getElementById('chatInput');
@@ -604,13 +1225,8 @@
             if (isHost) {
                 addChatMessage(localPlayer.name, localPlayer.color, text);
                 broadcast({ type: 'chat', sender: localPlayer.name, color: localPlayer.color, text: text });
-            } else {
-                if (hostConnection && hostConnection.open) {
-                    hostConnection.send({
-                        type: 'chat',
-                        text: text
-                    });
-                }
+            } else if (hostConnection && hostConnection.open) {
+                hostConnection.send({ type: 'chat', text: text });
             }
             input.value = '';
         };
@@ -625,7 +1241,7 @@
                 msgEl.textContent = text;
             } else {
                 const nameSpan = document.createElement('span');
-                nameSpan.className = 'font-bold mr-1';
+                nameSpan.className = 'font-extrabold mr-1';
                 nameSpan.style.color = color;
                 nameSpan.textContent = sender + ':';
                 
@@ -636,19 +1252,50 @@
                 msgEl.appendChild(nameSpan);
                 msgEl.appendChild(textSpan);
             }
-            
             chatBox.appendChild(msgEl);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         function updatePlayerCount() {
             const count = Object.keys(players).length;
-            document.getElementById('playerCount').textContent = `Jogadores: ${count}`;
+            document.getElementById('playerCount').textContent = `Cidadãos: ${count}`;
         }
 
-        // 8. Eventos de Escuta e Toque
-        window.addEventListener('keydown', (e) => { keys[e.key] = true; });
+        // ESCOPO DOS BOTÕES DO SETUP DE COR DO INVENTÁRIO
+        const colorContainer = document.getElementById('colorContainer');
+        let selectedColor = presetColors[0];
+        presetColors.forEach(color => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'w-8 h-8 rounded-full border-2 border-transparent hover:scale-110 transition';
+            btn.style.backgroundColor = color;
+            if (color === selectedColor) btn.classList.add('border-white', 'scale-110');
+            btn.onclick = () => {
+                document.querySelectorAll('#colorContainer button').forEach(b => b.classList.remove('border-white', 'scale-110'));
+                btn.classList.add('border-white', 'scale-110');
+                selectedColor = color;
+                document.getElementById('customColorInput').value = color;
+            };
+            colorContainer.appendChild(btn);
+        });
+
+        document.getElementById('customColorInput').oninput = (e) => {
+            document.querySelectorAll('#colorContainer button').forEach(b => b.classList.remove('border-white', 'scale-110'));
+            selectedColor = e.target.value;
+        };
+
+        // KEY LISTENERS GERAIS
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (!isInputFocused()) {
+                if (e.key === 'i' || e.key === 'I' || e.key === 'Tab') {
+                    e.preventDefault();
+                    toggleInventory();
+                }
+            }
+        });
         window.addEventListener('keyup', (e) => { keys[e.key] = false; });
+        window.addEventListener('click', () => { closeActionMenu(); });
 
         canvas.addEventListener('mousedown', (e) => handleCanvasClick(e.clientX, e.clientY));
         canvas.addEventListener('touchstart', (e) => {
@@ -659,7 +1306,6 @@
 
         function handleCanvasClick(clientX, clientY) {
             const rect = canvas.getBoundingClientRect();
-            // Ajustar proporção real do canvas devido ao estilo CSS responsivo
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
             targetX = (clientX - rect.left) * scaleX;
