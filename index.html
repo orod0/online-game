@@ -209,7 +209,14 @@
         RP Sandbox P2P - Feito para rodar diretamente do GitHub Pages.
     </footer>
 
+    <!-- JavaScript do Jogo -->
     <script>
+        // DECLARAÇÕES GLOBAIS ESSENCIAIS
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const presetColors = ['#f87171', '#fb923c', '#facc15', '#4ade80', '#38bdf8', '#c084fc'];
+        const speed = 4;
+
         // Tabelas de Drops e Itens Possíveis
         const possibleDrops = [
             { id: 'burger', name: 'Hambúrguer', emoji: '🍔' },
@@ -252,6 +259,12 @@
         let droppedItems = []; // Itens no chão
         const keys = {};
         let targetX = null, targetY = null;
+
+        // Variáveis de tempo para controle de rede
+        let lastX = 0;
+        let lastY = 0;
+        let lastBroadcastTime = 0;
+        let lastSendTime = 0;
 
         // Gerenciamento de Inputs do Setup
         document.getElementById('btnSearchRoomOpt').onclick = () => {
@@ -301,7 +314,7 @@
             return res;
         }
 
-        // 3. Conexão WebRTC
+        // Conexão WebRTC
         function initNetwork(createNow) {
             let roomCode = generateRoomCode();
             if (!createNow) {
@@ -695,6 +708,9 @@
                 ctx.fillText(tag, p.x, p.y - 22);
             }
             
+            // Desenhar Tabela de Liderança (Leaderboard) no Canvas
+            drawLeaderboard();
+            
             // Controle de Rede (Throttled)
             const now = Date.now();
             if (isHost) {
@@ -712,6 +728,26 @@
                 }
             }
             requestAnimationFrame(gameLoop);
+        }
+
+        function drawLeaderboard() {
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+            ctx.fillRect(15, 15, 180, 115);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(15, 15, 180, 115);
+            
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = 'bold 10px monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText('🏆 TOP PLACAR', 25, 33);
+            
+            const sorted = Object.values(players).sort((a, b) => b.score - a.score).slice(0, 4);
+            ctx.font = '11px monospace';
+            sorted.forEach((p, index) => {
+                ctx.fillStyle = p.color;
+                ctx.fillText(`${index + 1}. ${p.name.substring(0, 10)}: ${p.score}`, 25, 55 + index * 16);
+            });
         }
 
         // RENDEREZAR INVENTÁRIO FIVE M (AESTHETIC)
