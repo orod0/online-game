@@ -2,1835 +2,2828 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DUO ARCADE</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>BARTER ZONE - PARTY ARENA</title>
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Outfit:wght@300;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
 :root {
-  --bg: #0d0b18;
-  --panel: #1b162e;
-  --panel2: #251e3e;
-  --border: #3b2f63;
-  --text: #f5f6fa;
-  --muted: #8c82b5;
-  --accent: #ff5e97; /* Pink */
-  --accent-hover: #ff7faa;
-  --teal: #00d2d3;
-  --yellow: #fbc531;
-  --success: #4cd137;
-  --danger: #e84118;
+  --bg: #07090e;
+  --bg2: #0d111a;
+  --card: #141b29;
+  --card2: #1e293b;
+  --border: #2e3e59;
+  --text: #f1f5f9;
+  --muted: #64748b;
+  --accent: #38bdf8;
+  --accent2: #0ea5e9;
+  --gold: #f59e0b;
+  --success: #10b981;
+  --danger: #ef4444;
 }
-
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  touch-action: manipulation;
+  margin: 0; padding: 0; box-sizing: border-box;
+  user-select: none; -webkit-user-select: none;
+  touch-action: none;
 }
-
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Share Tech Mono', monospace;
   overflow: hidden;
   height: 100vh;
   width: 100vw;
-  user-select: none;
 }
-
-/* MENUS */
-#menu {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  background: var(--bg);
+input, button, select {
+  font-family: inherit;
 }
-#menu::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 20% 30%, rgba(255, 94, 151, 0.15) 0%, transparent 50%),
-              radial-gradient(circle at 80% 70%, rgba(0, 210, 211, 0.1) 0%, transparent 50%);
+/* TELAS */
+.screen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 16px; z-index: 10;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
 }
-
+.screen.active {
+  opacity: 1; pointer-events: auto;
+}
+/* MENU INICIAL */
+#screen-menu::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 30% 40%, rgba(56,189,248,0.1) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 60%, rgba(245,158,11,0.05) 0%, transparent 50%);
+}
 .menu-box {
-  position: relative;
-  z-index: 2;
-  background: rgba(27, 22, 46, 0.9);
+  position: relative; z-index: 2;
+  background: var(--card);
   border: 2px solid var(--border);
-  border-radius: 24px;
-  padding: 30px;
-  max-width: 440px;
-  width: 90%;
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%; max-width: 460px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   text-align: center;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-  backdrop-filter: blur(10px);
 }
-
 .menu-title {
-  font-family: 'Fredoka', sans-serif;
-  font-size: 2.8rem;
-  font-weight: 700;
-  color: var(--accent);
-  text-shadow: 0 0 20px rgba(255, 94, 151, 0.3);
-  margin-bottom: 5px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 3.5rem; font-weight: 700;
+  color: var(--accent); letter-spacing: 3px;
+  line-height: 1; text-shadow: 0 0 20px rgba(56,189,248,0.3);
 }
 .menu-sub {
-  color: var(--muted);
-  font-size: 0.85rem;
-  margin-bottom: 20px;
+  color: var(--muted); font-size: 0.85rem;
+  margin: 8px 0 24px; letter-spacing: 3px;
+}
+.menu-label {
+  text-align: left; color: var(--muted);
+  font-size: 0.75rem; margin: 12px 0 6px;
   letter-spacing: 1px;
 }
-
-.avatar-selector {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin: 10px 0 20px;
-}
-.avatar-dot {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  cursor: pointer;
-  border: 3px solid transparent;
-  transition: transform 0.2s, border-color 0.2s;
-}
-.avatar-dot.selected {
-  border-color: var(--text);
-  transform: scale(1.15);
-}
-
 .menu-input {
-  width: 100%;
-  padding: 12px 16px;
-  background: var(--panel2);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 16px; /* Evita zoom automático no iOS */
-  outline: none;
-  transition: border-color 0.2s;
-  text-align: center;
-  margin-bottom: 12px;
+  width: 100%; padding: 12px 16px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text);
+  font-size: 1rem; outline: none; transition: border-color 0.2s;
 }
-.menu-input:focus {
-  border-color: var(--accent);
-}
-
+.menu-input:focus { border-color: var(--accent); }
 .menu-btn {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 12px;
-  font-family: 'Fredoka', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  width: 100%; padding: 14px; margin-top: 12px;
+  border: none; border-radius: 8px;
+  font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 700;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 1px;
 }
-.menu-btn.primary {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 4px 15px rgba(255, 94, 151, 0.3);
-}
-.menu-btn.primary:hover {
-  background: var(--accent-hover);
-}
-.menu-btn.secondary {
-  background: var(--panel2);
-  color: var(--text);
-  border: 2px solid var(--border);
-}
-.menu-btn.secondary:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-.menu-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
+.menu-btn.primary { background: var(--accent); color: var(--bg); }
+.menu-btn.primary:hover { background: var(--accent2); transform: translateY(-1px); }
+.menu-btn.secondary { background: var(--bg2); color: var(--text); border: 1px solid var(--border); }
+.menu-btn.secondary:hover { border-color: var(--accent); color: var(--accent); }
+.menu-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 .menu-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 15px 0;
-  color: var(--muted);
-  font-size: 0.8rem;
+  display: flex; align-items: center; gap: 12px;
+  margin: 20px 0; color: var(--muted); font-size: 0.75rem;
 }
 .menu-divider::before, .menu-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
+  content: ''; flex: 1; height: 1px; background: var(--border);
 }
-
-.menu-msg {
-  margin-top: 10px;
-  font-size: 0.85rem;
-  min-height: 20px;
-}
+.menu-msg { margin-top: 12px; font-size: 0.8rem; min-height: 20px; }
 .menu-msg.ok { color: var(--success); }
 .menu-msg.err { color: var(--danger); }
 
-.code-display {
-  font-family: 'Fredoka', sans-serif;
-  font-size: 2.2rem;
-  color: var(--yellow);
-  letter-spacing: 5px;
-  margin: 10px 0;
-  cursor: pointer;
+/* LOBBY PRINCIPAL */
+.lobby-layout {
+  display: grid; grid-template-columns: 1fr 340px;
+  gap: 16px; width: 100%; max-width: 1100px; height: 90vh;
 }
-
-/* INTERFACE DO JOGO */
-#game-stage {
-  display: none;
-  position: relative;
-  width: 100vw;
-  height: 100vh;
+.lobby-main, .lobby-side {
+  background: var(--card); border: 2px solid var(--border);
+  border-radius: 16px; padding: 20px;
+  display: flex; flex-direction: column; overflow: hidden;
 }
-
-#canvas-container {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #110e1d;
+.lobby-header {
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 16px;
 }
-canvas {
-  background: #161226;
-  border-radius: 16px;
-  border: 4px solid var(--border);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-  max-width: 100%;
-  max-height: 100%;
-  aspect-ratio: 8/5;
+.lobby-room-code {
+  font-family: 'Rajdhani', sans-serif; font-size: 1.8rem;
+  font-weight: 700; color: var(--gold); letter-spacing: 3px; cursor: pointer;
 }
-
-/* HUD GERAL */
-.hud-top-left {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.lobby-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px; flex: 1; overflow-y: auto; padding-right: 4px;
 }
-.room-badge {
-  background: rgba(27, 22, 46, 0.85);
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  padding: 8px 14px;
-  backdrop-filter: blur(8px);
+.lobby-player-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  position: relative; transition: transform 0.2s;
 }
-.room-badge-label {
-  font-size: 0.65rem;
-  color: var(--muted);
-  letter-spacing: 1px;
+.lobby-player-card.ready { border-color: var(--success); box-shadow: 0 0 10px rgba(16,185,129,0.15); }
+.lobby-avatar {
+  width: 50px; height: 50px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; font-weight: bold; margin-bottom: 8px;
+  border: 2px solid transparent;
 }
-.room-badge-code {
-  font-family: 'Fredoka', sans-serif;
-  font-size: 1.3rem;
-  color: var(--yellow);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.lobby-pname { font-size: 0.9rem; font-weight: bold; margin-bottom: 4px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lobby-prole { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.lobby-pstatus {
+  position: absolute; bottom: 8px; right: 8px;
+  font-size: 0.65rem; padding: 2px 6px; border-radius: 4px;
+  background: var(--card2); color: var(--muted);
 }
-
-.hud-players {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  z-index: 10;
-  background: rgba(27, 22, 46, 0.85);
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  padding: 10px 16px;
-  min-width: 180px;
-  backdrop-filter: blur(8px);
-}
-.players-title {
-  font-size: 0.7rem;
-  color: var(--muted);
-  margin-bottom: 6px;
-  letter-spacing: 1px;
-}
-.player-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-  margin: 4px 0;
-}
-.player-color-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-/* CHAT INTEGRADO */
-.chat-area {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  z-index: 10;
-  width: 320px;
-  background: rgba(27, 22, 46, 0.85);
-  border: 1.5px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  backdrop-filter: blur(8px);
-  display: flex;
-  flex-direction: column;
-  transition: all 0.3s ease;
-}
-.chat-history {
-  height: 140px;
-  overflow-y: auto;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 0.82rem;
-  scrollbar-width: thin;
-}
-.chat-msg {
-  word-wrap: break-word;
-}
-.chat-msg .author {
-  font-weight: 700;
-  margin-right: 4px;
-}
-.chat-input-bar {
-  display: flex;
+.lobby-player-card.ready .lobby-pstatus { background: var(--success); color: var(--bg); font-weight: bold; }
+.lobby-controls-box {
+  margin-top: 16px; padding-top: 16px;
   border-top: 1px solid var(--border);
+  display: flex; gap: 12px;
 }
-.chat-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--text);
-  padding: 10px;
-  font-size: 0.85rem;
-  font-family: inherit;
+.lobby-side-section {
+  flex: 1; display: flex; flex-direction: column; overflow: hidden;
 }
-.chat-input::placeholder { color: var(--muted); }
-.chat-send-btn {
-  background: transparent;
-  border: none;
-  color: var(--accent);
-  padding: 0 14px;
-  cursor: pointer;
-  font-size: 1rem;
+.lobby-side-title {
+  font-size: 0.8rem; color: var(--muted); letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
 }
-.chat-send-btn:hover { color: var(--accent-hover); }
+.lobby-settings-list {
+  display: flex; flex-direction: column; gap: 10px; overflow-y: auto; padding-right: 4px;
+}
+.setting-item {
+  background: var(--bg2); padding: 8px 12px; border-radius: 8px;
+  display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem;
+}
+.setting-item label { color: var(--muted); }
+.setting-item select, .setting-item input {
+  background: var(--card); border: 1px solid var(--border); color: var(--text);
+  padding: 4px 8px; border-radius: 4px; outline: none; font-size: 0.75rem;
+}
+.lobby-chat {
+  height: 180px; margin-top: 16px; display: flex; flex-direction: column;
+}
+.chat-msgs {
+  flex: 1; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px 8px 0 0; padding: 8px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 4px; font-size: 0.75rem;
+}
+.chat-input-row {
+  display: flex; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; overflow: hidden;
+}
+.chat-inp {
+  flex: 1; background: var(--card); border: none; color: var(--text);
+  padding: 8px 12px; font-size: 0.8rem; outline: none;
+}
+.chat-btn { background: var(--accent); color: var(--bg); border: none; padding: 0 16px; font-weight: bold; cursor: pointer; }
 
-/* CONTROLES / REAÇÕES */
-.actions-area {
-  position: absolute;
-  bottom: 16px;
-  right: 16px;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* TELA DE JOGO */
+#screen-game {
+  padding: 0; background: #000;
+}
+#game-container {
+  position: relative; width: 100vw; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+}
+#game-canvas {
+  background: #0d0f14;
+  aspect-ratio: 4 / 3;
+  max-width: 100%; max-height: 100%;
+  object-fit: contain;
+  box-shadow: 0 0 40px rgba(0,0,0,0.8);
+}
+.game-hud {
+  position: absolute; top: 16px; left: 16px; right: 16px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  pointer-events: none; z-index: 12;
+}
+.hud-panel {
+  background: rgba(13,17,26,0.85); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 16px; backdrop-filter: blur(8px);
+  display: flex; flex-direction: column; gap: 2px; pointer-events: auto;
+}
+.hud-timer { font-size: 1.4rem; font-weight: bold; color: var(--gold); }
+.hud-pname { font-size: 0.8rem; color: var(--muted); }
+.hud-phealth-container {
+  display: flex; align-items: center; gap: 8px; width: 120px; margin-top: 4px;
+}
+.hud-phealth-bar {
+  flex: 1; height: 6px; background: var(--card2); border-radius: 3px; overflow: hidden;
+}
+.hud-phealth-fill { height: 100%; background: var(--danger); width: 100%; transition: width 0.1s ease; }
+.hud-right-panel {
   align-items: flex-end;
 }
-.btn-reaction {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 50px;
-  padding: 10px 18px;
-  font-family: 'Fredoka', sans-serif;
-  font-size: 0.9rem;
-  cursor: pointer;
-  box-shadow: 0 4px 10px rgba(255, 94, 151, 0.3);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: transform 0.1s;
+.mini-score-row {
+  font-size: 0.75rem; display: flex; align-items: center; gap: 6px;
 }
-.btn-reaction:active { transform: scale(0.95); }
+.mini-score-dot { width: 6px; height: 6px; border-radius: 50%; }
 
-/* ANALÓGICO VIRTUAL (MOBILE) */
-.joystick-container {
-  position: absolute;
-  bottom: 24px;
-  left: 24px;
-  z-index: 15;
-  display: none; /* Ativado via JS apenas em dispositivos touch */
+/* CONTROLES MOVEIS */
+.touch-controls {
+  position: absolute; inset: 0; pointer-events: none; z-index: 15;
+  display: none;
 }
-.joystick-base {
-  width: 100px;
-  height: 100px;
-  background: rgba(27, 22, 46, 0.5);
-  border: 2.5px solid var(--border);
-  border-radius: 50%;
-  position: relative;
-  box-shadow: 0 0 15px rgba(59, 47, 99, 0.4);
+.touch-controls.active { display: block; }
+.joystick-zone {
+  position: absolute; bottom: 32px; left: 32px;
+  width: 120px; height: 120px; border-radius: 50%;
+  background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: auto;
 }
 .joystick-knob {
-  width: 44px;
-  height: 44px;
-  background: var(--accent);
-  border-radius: 50%;
-  position: absolute;
-  top: 28px;
-  left: 28px;
-  box-shadow: 0 4px 10px rgba(255, 94, 151, 0.4);
-  pointer-events: none;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: var(--accent); border: 2px solid rgba(255,255,255,0.3);
+  box-shadow: 0 0 10px rgba(56,189,248,0.5);
+  transition: transform 0.05s ease;
+}
+.action-buttons-zone {
+  position: absolute; bottom: 32px; right: 32px;
+  display: flex; gap: 16px; pointer-events: auto;
+}
+.btn-touch-action {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text); font-size: 1.2rem; cursor: pointer;
+}
+.btn-touch-action:active {
+  background: var(--accent); color: var(--bg);
+  box-shadow: 0 0 15px var(--accent);
 }
 
-/* BOTÃO DE AÇÃO MOBILE */
-.mobile-action-btn {
-  display: none;
-  background: var(--teal);
-  color: #fff;
-  border: none;
-  border-radius: 50px;
-  padding: 14px 24px;
-  font-family: 'Fredoka', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0, 210, 211, 0.4);
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 5px;
-}
-.mobile-action-btn.active {
-  display: flex !important;
-}
-
-/* BOTÃO COMPACTO CHAT (MOBILE) */
-.btn-toggle-chat {
-  display: none;
-  background: var(--panel2);
-  border: 1.5px solid var(--border);
-  color: var(--text);
-  padding: 8px 14px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
-/* OVERLAYS DOS MINIJOGOS */
+/* OVERLAYS DO MINIGAME */
 .game-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(13, 11, 24, 0.95);
-  z-index: 50;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+  position: absolute; inset: 0;
+  background: rgba(7,9,14,0.9);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 14; opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease;
 }
-.game-overlay.active { display: flex; }
-
-.overlay-container {
-  background: var(--panel);
-  border: 3px solid var(--border);
-  border-radius: 24px;
-  width: 90%;
-  max-width: 600px;
-  padding: 30px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.game-overlay.active { opacity: 1; pointer-events: auto; }
+.rules-title {
+  font-family: 'Rajdhani', sans-serif; font-size: 2.2rem; font-weight: 700;
+  color: var(--gold); margin-bottom: 12px; text-transform: uppercase;
 }
-
-.overlay-title {
-  font-family: 'Fredoka', sans-serif;
-  font-size: 1.8rem;
-  color: var(--accent);
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.rules-desc {
+  max-width: 500px; text-align: center; color: var(--text);
+  font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px; padding: 0 16px;
 }
-
-.btn-exit-game {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: var(--panel2);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.controls-demo {
+  display: flex; gap: 24px; background: var(--card);
+  padding: 16px 24px; border-radius: 12px; border: 1px solid var(--border);
 }
-.btn-exit-game:hover { color: var(--danger); }
-
-/* QUIZ INTERFACE */
-#quiz-box { width: 100%; text-align: center; }
-.quiz-question { font-size: 1.25rem; font-weight: 600; margin-bottom: 20px; min-height: 50px; }
-.quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-.quiz-opt-btn {
-  background: var(--panel2);
-  border: 2px solid var(--border);
-  color: var(--text);
-  padding: 14px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 0.95rem;
-  transition: all 0.2s;
+.ctrl-demo-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--muted); }
+.ctrl-key {
+  background: var(--bg); border: 1px solid var(--border);
+  padding: 4px 8px; border-radius: 4px; color: var(--text); font-weight: bold;
 }
-.quiz-opt-btn:hover { border-color: var(--accent); }
-.quiz-opt-btn.selected { background: var(--accent); border-color: var(--accent); color: white; }
-.quiz-opt-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.quiz-feedback {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-top: 15px;
-  min-height: 40px;
+.countdown-txt {
+  font-family: 'Rajdhani', sans-serif; font-size: 6rem; font-weight: 700;
+  color: var(--accent); text-shadow: 0 0 30px rgba(56,189,248,0.5);
+  animation: scaleBounce 1s infinite;
+}
+@keyframes scaleBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
 }
 
-/* JOGO DA VELHA */
-#ttt-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* RESULTADOS DA RODADA */
+.results-box {
+  background: var(--card); border: 2px solid var(--border);
+  border-radius: 16px; padding: 24px; width: 90%; max-width: 480px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6); text-align: center;
 }
-.ttt-turn-indicator {
-  font-size: 1rem;
-  color: var(--muted);
-  margin-bottom: 15px;
+.results-title {
+  font-family: 'Rajdhani', sans-serif; font-size: 2rem; font-weight: 700;
+  color: var(--gold); margin-bottom: 16px;
 }
-.ttt-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 85px);
-  grid-template-rows: repeat(3, 85px);
-  gap: 8px;
+.results-list {
+  display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;
 }
-.ttt-cell {
-  background: var(--panel2);
-  border: 2px solid var(--border);
-  border-radius: 12px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Fredoka', sans-serif;
-  font-size: 2rem;
-  font-weight: bold;
-  transition: background 0.15s, border-color 0.15s;
+.results-item {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 16px;
+  display: flex; justify-content: space-between; align-items: center;
 }
-.ttt-cell:hover { border-color: var(--accent); }
-.ttt-cell.X { color: var(--accent); text-shadow: 0 0 10px rgba(255,94,151,0.5); }
-.ttt-cell.O { color: var(--teal); text-shadow: 0 0 10px rgba(0,210,211,0.5); }
+.results-item.winner { border-color: var(--gold); background: rgba(245,158,11,0.05); }
+.results-rank { font-weight: bold; font-size: 1.1rem; width: 24px; text-align: left; }
+.results-item.winner .results-rank { color: var(--gold); }
+.results-pname { flex: 1; text-align: left; margin-left: 8px; font-weight: bold; }
+.results-pts { color: var(--accent); font-weight: bold; }
 
-/* TOAST NOTIFICACOES */
+/* CONFIGURACOES */
+#screen-settings { background: rgba(7,9,14,0.95); }
+.settings-box {
+  background: var(--card); border: 2px solid var(--border);
+  border-radius: 16px; padding: 28px; width: 100%; max-width: 420px;
+}
+.settings-title {
+  font-family: 'Rajdhani', sans-serif; font-size: 1.8rem; font-weight: 700;
+  color: var(--text); margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+}
+
+/* PODIUM FINAL */
+.podium-box {
+  background: var(--card); border: 2px solid var(--border);
+  border-radius: 16px; padding: 32px; width: 90%; max-width: 680px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6); text-align: center;
+}
+.podium-title {
+  font-family: 'Rajdhani', sans-serif; font-size: 2.5rem; font-weight: 700;
+  color: var(--gold); margin-bottom: 24px; text-shadow: 0 0 20px rgba(245,158,11,0.3);
+}
+.podium-visual {
+  display: flex; justify-content: center; align-items: flex-end; gap: 16px; margin: 24px 0 32px;
+}
+.podium-col {
+  width: 100px; display: flex; flex-direction: column; align-items: center;
+}
+.podium-pedestal {
+  width: 100%; background: var(--border); border-radius: 8px 8px 0 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Rajdhani', sans-serif; font-size: 2rem; font-weight: 700; color: var(--bg);
+}
+.podium-col.first { width: 120px; }
+.podium-col.first .podium-pedestal { height: 120px; background: var(--gold); box-shadow: 0 0 15px rgba(245,158,11,0.3); }
+.podium-col.second .podium-pedestal { height: 90px; background: #94a3b8; }
+.podium-col.third .podium-pedestal { height: 60px; background: #b45309; }
+.podium-avatar {
+  width: 44px; height: 44px; border-radius: 50%; margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: center; font-weight: bold;
+}
+.podium-name { font-size: 0.8rem; font-weight: bold; margin-bottom: 4px; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.podium-score { font-size: 0.75rem; color: var(--accent); margin-bottom: 4px; }
+.podium-stats-list {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left;
+}
+.stat-card { font-size: 0.75rem; display: flex; flex-direction: column; gap: 2px; }
+.stat-card span:first-child { color: var(--muted); text-transform: uppercase; }
+.stat-card span:last-child { color: var(--text); font-weight: bold; font-size: 0.95rem; }
+
+/* TOASTS */
 .toast-container {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 200;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  pointer-events: none;
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+  z-index: 999; display: flex; flex-direction: column; gap: 8px; pointer-events: none;
 }
 .toast {
-  background: rgba(27, 22, 46, 0.95);
-  border: 1.5px solid var(--border);
-  color: var(--text);
-  padding: 10px 24px;
-  border-radius: 30px;
-  font-size: 0.9rem;
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--text); padding: 10px 20px; border-radius: 8px;
+  font-size: 0.85rem; font-weight: bold;
+  animation: slideInDown 0.25s ease forwards;
   box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
-@keyframes toastIn { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: none; } }
-@keyframes toastOut { to { opacity: 0; transform: translateY(-15px); } }
-
-/* PROMPT DE INTERACAO NO CANVAS */
-.canvas-prompt {
-  position: absolute;
-  top: 20%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 5;
-  background: rgba(255, 94, 151, 0.9);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: bold;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+@keyframes slideInDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
-.canvas-prompt.show { opacity: 1; }
 
+/* UTILS */
+.hidden { display: none !important; }
 @media (max-width: 768px) {
-  .actions-area { right: 16px; bottom: 16px; }
-  .chat-area {
-    width: 280px;
-    height: 180px;
-    bottom: 80px;
-    left: 16px;
-    display: none; /* Ocultado por padrão no mobile para liberar espaço */
-  }
-  .chat-area.active-mobile {
-    display: flex !important;
-  }
-  .btn-toggle-chat {
-    display: block !important;
-  }
-  .joystick-container {
-    display: block; /* Ativa analógico */
-  }
-  .canvas-prompt {
-    display: none !important; /* Substituído pelo botão de ação de toque */
-  }
+  .lobby-layout { grid-template-columns: 1fr; height: auto; overflow-y: auto; }
+  .lobby-side { height: 400px; }
+  .menu-box { padding: 20px; }
 }
 </style>
 </head>
 <body>
 
-<!-- MENU INICIAL -->
-<div id="menu">
-  <div class="menu-box">
-    <div class="menu-title">DUO ARCADE</div>
-    <div class="menu-sub">SALÃO DE MINIJOGOS ONLINE / P2P</div>
-    
-    <div class="menu-label" style="text-align: left; font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">SEU NOME</div>
-    <input class="menu-input" id="inp-name" placeholder="Nome..." maxlength="12">
-
-    <div class="menu-label" style="text-align: left; font-size: 0.8rem; color: var(--muted); margin-bottom: 5px;">COR DO AVATAR</div>
-    <div class="avatar-selector" id="avatar-selector"></div>
-
-    <button class="menu-btn primary" id="btn-create" onclick="_doCreate()"><i class="fa-solid fa-heart"></i> CRIAR SALA</button>
-    <div class="menu-divider">OU ENTRE COM UM CODIGO</div>
-    <input class="menu-input" id="inp-code" placeholder="CÓDIGO (EX: A9F3B)" maxlength="6" style="text-transform: uppercase; letter-spacing: 4px; font-weight: bold;">
-    <button class="menu-btn secondary" id="btn-join" onclick="_doJoin()"><i class="fa-solid fa-gamepad"></i> ENTRAR NA SALA</button>
-    
-    <div class="menu-msg" id="menu-msg"></div>
-
-    <!-- Aguardo do Host -->
-    <div id="create-waiting" style="display: none; margin-top: 20px;">
-      <div style="font-size: 0.8rem; color: var(--muted)">COMPARTILHE ESSE CÓDIGO COM SEU PAR:</div>
-      <div class="code-display" id="room-code-display" onclick="_copyCode()" title="Clique para copiar">------</div>
-      <div style="color: var(--accent); font-size: 0.9rem; font-weight: bold;" class="pulse">Aguardando seu par entrar...</div>
-    </div>
-  </div>
-</div>
-
-<!-- ETAPA DO JOGO -->
-<div id="game-stage">
-  <div id="canvas-container">
-    <canvas id="mainCanvas" width="800" height="500"></canvas>
-    <div class="canvas-prompt" id="canvas-prompt">Pressione [E] ou Espaço para jogar!</div>
-  </div>
-
-  <!-- HUD esquerda (Código da sala) -->
-  <div class="hud-top-left">
-    <div class="room-badge">
-      <div class="room-badge-label">SALA ATIVA</div>
-      <div class="room-badge-code" id="hud-code" onclick="_copyCode()"><span id="hud-code-txt"></span> <i class="fa-regular fa-copy" style="font-size: 0.8rem;"></i></div>
-    </div>
-    <!-- Botão de Chat para Celulares -->
-    <button class="btn-toggle-chat" id="btn-toggle-chat" onclick="_toggleMobileChat()"><i class="fa-solid fa-comments"></i> Abrir Chat</button>
-  </div>
-
-  <!-- HUD direita (Lista de jogadores) -->
-  <div class="hud-players">
-    <div class="players-title">CONECTADOS</div>
-    <div id="player-list"></div>
-  </div>
-
-  <!-- Analógico Virtual para Celular -->
-  <div class="joystick-container">
-    <div class="joystick-base" id="joy-base">
-      <div class="joystick-knob" id="joy-knob"></div>
-    </div>
-  </div>
-
-  <!-- Chat Integrado -->
-  <div class="chat-area" id="chat-area">
-    <div class="chat-history" id="chat-history"></div>
-    <div class="chat-input-bar">
-      <input class="chat-input" id="chat-input" placeholder="Conversar com seu par..." maxlength="80">
-      <button class="chat-send-btn" onclick="_sendChat()"><i class="fa-solid fa-paper-plane"></i></button>
-    </div>
-  </div>
-
-  <!-- Controles, Botões e Reações -->
-  <div class="actions-area">
-    <button class="mobile-action-btn" id="mobile-action-btn" onclick="_triggerInteraction()"><i class="fa-solid fa-gamepad"></i> ENTRAR NO FLIPERAMA</button>
-    <button class="btn-reaction" onclick="_sendReaction()"><i class="fa-solid fa-heart"></i> Reagir Coração</button>
-  </div>
-</div>
-
-<!-- OVERLAY: CHUVA DE AMOR -->
-<div class="game-overlay" id="overlay-catch">
-  <div class="overlay-container" style="max-width: 700px;">
-    <button class="btn-exit-game" onclick="_backToLobby()"><i class="fa-solid fa-xmark"></i></button>
-    <div class="overlay-title"><i class="fa-solid fa-star"></i> Chuva de Amor</div>
-    <div style="font-size: 0.95rem; color: var(--muted); text-align: center; margin-bottom: 15px;">
-      Arraste o analógico (ou use A/D) para coletar corações (+10) e estrelas (+25). Desvie das nuvens de chuva (-15)!
-    </div>
-    <div style="font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-bottom: 10px;" id="catch-timer">30s</div>
-    <div style="display: flex; gap: 40px; margin-bottom: 20px;">
-      <div style="text-align: center;"><div style="font-size: 0.8rem; color: var(--muted)">SUA PONTUAÇÃO</div><div style="font-size: 1.8rem; font-weight: bold;" id="catch-my-score">0</div></div>
-      <div style="text-align: center;"><div style="font-size: 0.8rem; color: var(--muted)">PAR PONTUAÇÃO</div><div style="font-size: 1.8rem; font-weight: bold;" id="catch-their-score">0</div></div>
-    </div>
-    <!-- Mini Canvas para a Chuva -->
-    <canvas id="catchCanvas" width="600" height="250" style="border: 2px solid var(--border); border-radius: 12px;"></canvas>
-  </div>
-</div>
-
-<!-- OVERLAY: QUIZ DE CASAL -->
-<div class="game-overlay" id="overlay-quiz">
-  <div class="overlay-container">
-    <button class="btn-exit-game" onclick="_backToLobby()"><i class="fa-solid fa-xmark"></i></button>
-    <div class="overlay-title"><i class="fa-solid fa-comments"></i> Quiz de Afinidade</div>
-    <div id="quiz-box">
-      <div class="quiz-question" id="quiz-q-text">Carregando pergunta...</div>
-      <div class="quiz-options" id="quiz-options-box"></div>
-      <div class="quiz-feedback" id="quiz-feedback"></div>
-    </div>
-  </div>
-</div>
-
-<!-- OVERLAY: JOGO DA VELHA -->
-<div class="game-overlay" id="overlay-tictactoe">
-  <div class="overlay-container" style="max-width: 400px;">
-    <button class="btn-exit-game" onclick="_backToLobby()"><i class="fa-solid fa-xmark"></i></button>
-    <div class="overlay-title"><i class="fa-solid fa-grid-2"></i> Jogo da Velha</div>
-    <div id="ttt-box">
-      <div class="ttt-turn-indicator" id="ttt-turn-txt">Aguardando jogada...</div>
-      <div class="ttt-grid" id="ttt-grid"></div>
-    </div>
-  </div>
-</div>
-
 <div class="toast-container" id="toasts"></div>
+
+<!-- TELA INICIAL / MENU -->
+<div class="screen active" id="screen-menu">
+  <div class="menu-box">
+    <div class="menu-title">BARTER ZONE</div>
+    <div class="menu-sub">PARTY ARENA ONLINE</div>
+    
+    <div class="menu-label"><i class="fa-solid fa-user"></i> SEU NOME</div>
+    <input class="menu-input" id="inp-name" placeholder="Digite seu nome..." maxlength="12">
+    
+    <button class="menu-btn primary" id="btn-create" onclick="App.net.createRoom()"><i class="fa-solid fa-plus"></i> CRIAR SALA</button>
+    <div class="menu-divider">OU ENTRE EM UMA SALA</div>
+    
+    <div class="menu-label"><i class="fa-solid fa-key"></i> CÓDIGO DA SALA</div>
+    <input class="menu-input" id="inp-code" placeholder="Ex: AB3K7N" maxlength="6" style="text-transform:uppercase; letter-spacing:4px; text-align:center; font-size:1.1rem; font-weight:bold;">
+    
+    <button class="menu-btn secondary" id="btn-join" onclick="App.net.joinRoom()"><i class="fa-solid fa-right-to-bracket"></i> ENTRAR NA SALA</button>
+    <div class="menu-msg" id="menu-msg"></div>
+  </div>
+</div>
+
+<!-- LOBBY DA SALA -->
+<div class="screen" id="screen-lobby">
+  <div class="lobby-layout">
+    <div class="lobby-main">
+      <div class="lobby-header">
+        <div>
+          <div style="font-size: 0.7rem; color: var(--muted); letter-spacing: 1px;">CÓDIGO DA SALA</div>
+          <div class="lobby-room-code" id="lobby-code-display" onclick="App.ui.copyRoomCode()">------</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="menu-btn secondary" style="margin:0; padding: 8px 14px;" onclick="App.ui.openSettings()"><i class="fa-solid fa-gear"></i></button>
+          <button class="menu-btn secondary" style="margin:0; padding: 8px 14px; color: var(--danger);" onclick="App.net.disconnect()"><i class="fa-solid fa-door-open"></i></button>
+        </div>
+      </div>
+      <div class="lobby-side-title"><i class="fa-solid fa-users"></i> JOGADORES NA ARENA (<span id="lobby-player-count">0</span>/8)</div>
+      <div class="lobby-grid" id="lobby-players-grid"></div>
+      
+      <div class="lobby-controls-box">
+        <button class="menu-btn secondary" id="btn-ready" style="margin:0; flex:1;" onclick="App.net.toggleReady()"><i class="fa-solid fa-check"></i> PRONTO</button>
+        <button class="menu-btn primary" id="btn-start-game" style="margin:0; flex:1.5;" onclick="App.net.requestStartGame()"><i class="fa-solid fa-play"></i> INICIAR PARTIDA</button>
+      </div>
+    </div>
+    
+    <div class="lobby-side">
+      <div class="lobby-side-section" style="max-height: 220px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+        <div class="lobby-side-title"><i class="fa-solid fa-sliders"></i> CONFIGURAÇÕES DA SALA</div>
+        <div class="lobby-settings-list" id="lobby-settings-display">
+          <div class="setting-item"><label>Rodadas:</label><span id="set-disp-rounds">3</span></div>
+          <div class="setting-item"><label>Duração:</label><span id="set-disp-time">30s</span></div>
+          <div class="setting-item"><label>Sons:</label><span id="set-disp-sound">Sim</span></div>
+        </div>
+      </div>
+      
+      <div class="lobby-side-section" style="flex:1; border-bottom: 1px solid var(--border); padding-top:12px; padding-bottom: 12px;">
+        <div class="lobby-side-title"><i class="fa-solid fa-trophy"></i> PLACAR DA SESSÃO</div>
+        <div class="lobby-settings-list" id="lobby-leaderboard-display" style="gap:4px;"></div>
+      </div>
+
+      <div class="lobby-chat">
+        <div class="chat-msgs" id="chat-messages"></div>
+        <div class="chat-input-row">
+          <input class="chat-inp" id="chat-input" placeholder="Mensagem do chat..." maxlength="80">
+          <button class="chat-btn" onclick="App.ui.sendChat()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TELA DE JOGO -->
+<div class="screen" id="screen-game">
+  <div id="game-container">
+    <div class="game-hud">
+      <div class="hud-panel">
+        <div class="hud-timer" id="hud-timer">00</div>
+        <div class="hud-pname" id="hud-current-game">PISO PERIGOSO</div>
+        <div class="hud-phealth-container" id="hud-health-wrap">
+          <div class="hud-phealth-bar"><div class="hud-phealth-fill" id="hud-hp-fill"></div></div>
+        </div>
+      </div>
+      <div class="hud-panel hud-right-panel" id="hud-mini-scores"></div>
+    </div>
+    
+    <canvas id="game-canvas" width="800" height="600"></canvas>
+    
+    <!-- CONTROLES TOQUE -->
+    <div class="touch-controls" id="game-touch-controls">
+      <div class="joystick-zone" id="joy-zone">
+        <div class="joystick-knob" id="joy-knob"></div>
+      </div>
+      <div class="action-buttons-zone">
+        <div class="btn-touch-action" id="btn-touch-a">A</div>
+      </div>
+    </div>
+
+    <!-- OVERLAY DE REGRAS -->
+    <div class="game-overlay" id="overlay-rules">
+      <div class="rules-title" id="rule-game-title">JOGO</div>
+      <div class="rules-desc" id="rule-game-desc">Instruções do jogo aqui.</div>
+      <div class="controls-demo" id="rule-controls-demo"></div>
+    </div>
+
+    <!-- OVERLAY DE CONTAGEM REGRESSIVA -->
+    <div class="game-overlay" id="overlay-countdown">
+      <div class="countdown-txt" id="countdown-txt">3</div>
+    </div>
+
+    <!-- OVERLAY DE RESULTADO DA RODADA -->
+    <div class="game-overlay" id="overlay-round-results">
+      <div class="results-box">
+        <div class="results-title">FIM DA RODADA!</div>
+        <div class="results-list" id="round-results-list"></div>
+        <button class="menu-btn primary" id="btn-result-continue" onclick="App.net.playerReadyForNext()">CONTINUAR</button>
+        <div style="font-size:0.7rem; color:var(--muted); margin-top:8px;" id="result-wait-msg">Aguardando outros jogadores...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TELA DE PODIUM FINAL -->
+<div class="screen" id="screen-podium">
+  <div class="podium-box">
+    <div class="podium-title"><i class="fa-solid fa-crown"></i> CAMPEÃO DA ARENA</div>
+    <div class="podium-visual" id="podium-visual-container"></div>
+    
+    <div class="podium-stats-list">
+      <div class="stat-card"><span>Mestre da Reação</span><span id="st-fastest">-</span></div>
+      <div class="stat-card"><span>Mais Azarado</span><span id="st-bomb-target">-</span></div>
+      <div class="stat-card"><span>Papa Moedas</span><span id="st-collector">-</span></div>
+      <div class="stat-card"><span>Rei do Empurrão</span><span id="st-pusher">-</span></div>
+    </div>
+    
+    <button class="menu-btn primary" style="margin-top:24px; max-width:280px;" onclick="App.ui.backToLobby()"><i class="fa-solid fa-house"></i> VOLTAR AO LOBBY</button>
+  </div>
+</div>
+
+<!-- TELA DE CONFIGURAÇÕES -->
+<div class="screen" id="screen-settings">
+  <div class="settings-box">
+    <div class="settings-title"><i class="fa-solid fa-sliders"></i> AJUSTES DE ARENA</div>
+    
+    <div class="menu-label">NÚMERO DE RODADAS</div>
+    <select class="menu-input" id="set-rounds" style="background:var(--bg)">
+      <option value="3">3 Rodadas</option>
+      <option value="5">5 Rodadas</option>
+      <option value="10">10 Rodadas</option>
+    </select>
+    
+    <div class="menu-label">TEMPO DE CADA MINIGAME</div>
+    <select class="menu-input" id="set-duration" style="background:var(--bg)">
+      <option value="30">30 Segundos</option>
+      <option value="45">45 Segundos</option>
+      <option value="60">60 Segundos</option>
+    </select>
+    
+    <div class="menu-label">ÁUDIO DO JOGO</div>
+    <select class="menu-input" id="set-audio" style="background:var(--bg)">
+      <option value="1">Ativado</option>
+      <option value="0">Mutado</option>
+    </select>
+
+    <div class="menu-label">SELEÇÃO DE MINIGAMES</div>
+    <select class="menu-input" id="set-playlist" style="background:var(--bg)">
+      <option value="all">Todos os Minigames</option>
+      <option value="random">Sempre Aleatório</option>
+    </select>
+    
+    <div style="display:flex; gap:12px; margin-top:20px;">
+      <button class="menu-btn secondary" style="margin:0" onclick="App.ui.closeSettings()">CANCELAR</button>
+      <button class="menu-btn primary" style="margin:0" id="btn-save-settings" onclick="App.net.saveSettings()">SALVAR</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ============================================================
-   ESTADOS E DECLARAÇÕES GLOBAIS
+   ESTRUTURA PRINCIPAL DO SISTEMA
    ============================================================ */
-var COLORS = ['#ff5e97', '#00d2d3', '#fbc531', '#9b59b6', '#2ecc71'];
-var chosenColor = COLORS[0];
-var myName = "Jogador";
+const App = {
+  version: "1.0",
+  peer: null,
+  conns: {},
+  isHost: false,
+  myId: null,
+  roomId: null,
+  players: {}, // Sincronizado pelo host
+  scores: {},  // {playerId: score} acumulado da sessão
+  sessionStats: {}, // Métricas para fim de sessão
+  localPrefs: { name: "Sobrevivente", avatar: "👤", color: "#38bdf8", sound: true, volume: 0.5 },
+  settings: { rounds: 3, duration: 30, sound: true, playlist: "all" },
+  activeGame: null,
+  gameState: { phase: "lobby", timer: 0, currentRound: 0, cycle: 0 },
+  gameQueue: [],
+  deviceType: "desktop",
 
-var peer = null;
-var conns = {};
-var isHost = false;
-var myId = null;
-var roomId = null;
-
-var players = {};
-var keys = {};
-var gameRunning = false;
-var activeGame = null; // 'lobby', 'catch', 'quiz', 'ttt'
-
-/* Analógico de Toque */
-var joystickInput = { x: 0, y: 0, active: false };
-
-/* Canvas Config */
-var canvas = document.getElementById('mainCanvas');
-var ctx = canvas.getContext('2d');
-
-/* Entidades do Lobby */
-var obstacles = [
-  {x: 100, y: 150, w: 120, h: 100, type: 'arcade', label: 'Chuva de Amor', game: 'catch', color: '#ff5e97', icon: '\u2B50'},
-  {x: 340, y: 150, w: 120, h: 100, type: 'arcade', label: 'Quiz de Afinidade', game: 'quiz', color: '#fbc531', icon: '\u2764'},
-  {x: 580, y: 150, w: 120, h: 100, type: 'arcade', label: 'Jogo da Velha', game: 'ttt', color: '#00d2d3', icon: '\u2694'},
-  {x: 350, y: 350, w: 100, h: 60, type: 'sofa', label: 'Sofá do Amor', color: '#3b2f63'}
-];
-
-var lobbyParticles = [];
-
-/* ============================================================
-   GERENCIADOR DO INÍCIO E AVATARES
-   ============================================================ */
-(function() {
-  var container = document.getElementById('avatar-selector');
-  COLORS.forEach(function(color, idx) {
-    var dot = document.createElement('div');
-    dot.className = 'avatar-dot';
-    dot.style.background = color;
-    if (idx === 0) dot.classList.add('selected');
-    dot.onclick = function() {
-      var dots = container.querySelectorAll('.avatar-dot');
-      dots.forEach(function(d) { d.classList.remove('selected'); });
-      dot.classList.add('selected');
-      chosenColor = color;
-    };
-    container.appendChild(dot);
-  });
-  
-  var nameHints = ["Sobrevivente", "Cupido", "Romântico", "Anjo", "Docinho", "Mozão", "Amor"];
-  document.getElementById('inp-name').value = nameHints[Math.floor(Math.random() * nameHints.length)] + "#" + Math.floor(Math.random() * 900 + 100);
-})();
-
-function _genCode() {
-  var c = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', r = '';
-  for(var i = 0; i < 5; i++) r += c[Math.floor(Math.random() * c.length)];
-  return r;
-}
-
-function _showToast(msg, icon) {
-  var container = document.getElementById('toasts');
-  var toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.innerHTML = (icon ? '<i class="' + icon + '"></i> ' : '') + msg;
-  container.appendChild(toast);
-  setTimeout(function() { toast.remove(); }, 3000);
-}
-
-function _setMenuMsg(msg, type) {
-  var el = document.getElementById('menu-msg');
-  el.textContent = msg;
-  el.className = 'menu-msg ' + (type || '');
-}
-
-function _copyCode() {
-  if (roomId) {
-    navigator.clipboard.writeText(roomId).then(function() {
-      _showToast('Código da sala copiado!', 'fa-solid fa-copy');
-    });
-  }
-}
-
-/* Toggle Mobile Chat */
-function _toggleMobileChat() {
-  var area = document.getElementById('chat-area');
-  var btn = document.getElementById('btn-toggle-chat');
-  if (area.classList.contains('active-mobile')) {
-    area.classList.remove('active-mobile');
-    btn.innerHTML = '<i class="fa-solid fa-comments"></i> Abrir Chat';
-  } else {
-    area.classList.add('active-mobile');
-    btn.innerHTML = '<i class="fa-solid fa-xmark"></i> Fechar Chat';
-  }
-}
-
-/* ============================================================
-   REDE E CONECTIVIDADE (PEERJS)
-   ============================================================ */
-function _initNet() {
-  peer.on('error', function(err) {
-    if (err.type === 'unavailable-id') {
-      _setMenuMsg('Código já em uso. Tente novamente.', 'err');
-    } else if (err.type === 'peer-unavailable') {
-      _setMenuMsg('Sala não encontrada! Verifique o código.', 'err');
-    } else {
-      _setMenuMsg('Erro na rede: ' + err.type, 'err');
+  /* ÁUDIO SINTETIZADO */
+  audio: {
+    ctx: null,
+    init() {
+      if (this.ctx) return;
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    },
+    play(type) {
+      if (!App.settings.sound || !this.ctx) return;
+      try {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        const t = this.ctx.currentTime;
+        if (type === 'click') {
+          osc.type = 'sine'; osc.frequency.setValueAtTime(600, t); osc.frequency.exponentialRampToValueAtTime(150, t + 0.1);
+          gain.gain.setValueAtTime(App.localPrefs.volume, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+          osc.start(t); osc.stop(t + 0.1);
+        } else if (type === 'hit') {
+          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, t); osc.frequency.exponentialRampToValueAtTime(40, t + 0.2);
+          gain.gain.setValueAtTime(App.localPrefs.volume, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+          osc.start(t); osc.stop(t + 0.2);
+        } else if (type === 'score') {
+          osc.type = 'triangle'; osc.frequency.setValueAtTime(300, t); osc.frequency.exponentialRampToValueAtTime(800, t + 0.15);
+          gain.gain.setValueAtTime(App.localPrefs.volume, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+          osc.start(t); osc.stop(t + 0.15);
+        } else if (type === 'explosion') {
+          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, t); osc.frequency.exponentialRampToValueAtTime(10, t + 0.5);
+          gain.gain.setValueAtTime(App.localPrefs.volume * 1.5, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+          osc.start(t); osc.stop(t + 0.5);
+        } else if (type === 'win') {
+          osc.type = 'sine'; osc.frequency.setValueAtTime(440, t); osc.frequency.exponentialRampToValueAtTime(880, t + 0.3);
+          gain.gain.setValueAtTime(App.localPrefs.volume, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+          osc.start(t); osc.stop(t + 0.3);
+        } else if (type === 'countdown') {
+          osc.type = 'sine'; osc.frequency.setValueAtTime(800, t);
+          gain.gain.setValueAtTime(App.localPrefs.volume, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.08);
+          osc.start(t); osc.stop(t + 0.08);
+        } else if (type === 'go') {
+          osc.type = 'sine'; osc.frequency.setValueAtTime(1200, t);
+          gain.gain.setValueAtTime(App.localPrefs.volume, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+          osc.start(t); osc.stop(t + 0.2);
+        }
+      } catch(e) {}
     }
-    document.getElementById('btn-create').disabled = false;
-    document.getElementById('btn-join').disabled = false;
-  });
-}
+  },
 
-function _doCreate() {
-  myName = document.getElementById('inp-name').value.trim() || 'Jogador';
-  var code = _genCode();
-  roomId = code;
-  document.getElementById('btn-create').disabled = true;
-  document.getElementById('btn-join').disabled = true;
-  _setMenuMsg('Instanciando servidor...', '');
-
-  peer = new Peer('duo_' + code);
-  _initNet();
-
-  peer.on('open', function() {
-    isHost = true;
-    myId = peer.id;
-    players[myId] = { id: myId, name: myName, x: 200, y: 380, color: chosenColor, isHost: true };
-    
-    document.getElementById('room-code-display').textContent = code;
-    document.getElementById('create-waiting').style.display = 'block';
-    _setMenuMsg('', '');
-  });
-
-  peer.on('connection', function(conn) {
-    if (Object.keys(conns).length >= 1) {
-      conn.on('open', function() { conn.close(); });
-      return; // Apenas permite o par
-    }
-    _handleConn(conn);
-  });
-}
-
-function _doJoin() {
-  myName = document.getElementById('inp-name').value.trim() || 'Jogador';
-  var code = document.getElementById('inp-code').value.trim().toUpperCase();
-  if (code.length < 4) {
-    _setMenuMsg('Código inválido', 'err');
-    return;
-  }
-  roomId = code;
-  document.getElementById('btn-create').disabled = true;
-  document.getElementById('btn-join').disabled = true;
-  _setMenuMsg('Conectando ao par...', '');
-
-  peer = new Peer();
-  _initNet();
-
-  peer.on('open', function() {
-    myId = peer.id;
-    var conn = peer.connect('duo_' + code, { metadata: { name: myName, color: chosenColor } });
-    _handleConn(conn);
-  });
-}
-
-function _handleConn(conn) {
-  conn.on('open', function() {
-    conns[conn.peer] = conn;
-    if (isHost) {
-      var guestName = conn.metadata ? conn.metadata.name : 'Par';
-      var guestColor = conn.metadata ? conn.metadata.color : COLORS[1];
-      players[conn.peer] = { id: conn.peer, name: guestName, x: 600, y: 380, color: guestColor, isHost: false };
-      
-      conn.send({
-        type: 'init',
-        players: players,
-        roomId: roomId
+  /* INPUT HANDLER */
+  input: {
+    keys: {},
+    touch: { x: 0, y: 0, active: false, id: null },
+    joyPos: { dx: 0, dy: 0 },
+    actionPressed: false,
+    init() {
+      window.addEventListener('keydown', e => {
+        const k = e.key.toLowerCase();
+        this.keys[k] = true;
+        if (k === ' ' || k === 'f' || k === 'e') {
+          this.actionPressed = true;
+          e.preventDefault();
+        }
       });
-      _startGameStage();
-    }
-  });
-
-  conn.on('data', function(data) {
-    _onData(data, conn.peer);
-  });
-
-  conn.on('close', function() {
-    _showToast('Seu par desconectou.', 'fa-solid fa-ghost');
-    setTimeout(function() { window.location.reload(); }, 2000);
-  });
-}
-
-function _sendToPar(data) {
-  for (var id in conns) {
-    try { conns[id].send(data); } catch(e) {}
-  }
-}
-
-function _startGameStage() {
-  activeGame = 'lobby';
-  gameRunning = true;
-  document.getElementById('menu').style.display = 'none';
-  document.getElementById('game-stage').style.display = 'block';
-  document.getElementById('hud-code-txt').textContent = roomId;
-  _updatePlayerList();
-  _initJoystick();
-  _addChatSystemMessage('Conectados com sucesso na sala! 🌟');
-  requestAnimationFrame(_gameLoop);
-}
-
-/* ============================================================
-   MENSAGENS DO FLUXO MULTIPLAYER
-   ============================================================ */
-function _onData(data, fromId) {
-  switch(data.type) {
-    case 'init':
-      roomId = data.roomId;
-      players = data.players;
-      _startGameStage();
-      break;
-    case 'lobby_move':
-      if (players[fromId]) {
-        players[fromId].x = data.x;
-        players[fromId].y = data.y;
-      }
-      break;
-    case 'chat':
-      _addChatMessage(data.name, data.msg, data.color);
-      break;
-    case 'reaction':
-      _triggerVisualReaction(data.x, data.y);
-      break;
-    case 'start_game':
-      _launchGameUI(data.game);
-      break;
-    case 'sync_game':
-      if (data.game === 'catch') _syncCatchData(data);
-      if (data.game === 'quiz') _syncQuizData(data);
-      if (data.game === 'ttt') _syncTTTData(data);
-      break;
-    case 'exit_game':
-      _closeAllOverlays();
-      activeGame = 'lobby';
-      break;
-  }
-}
-
-/* ============================================================
-   LOBBY E INTERATIVIDADE COM ANALÓGICO / ENTRADAS
-   ============================================================ */
-function _updatePlayerList() {
-  var box = document.getElementById('player-list');
-  box.innerHTML = '';
-  for (var id in players) {
-    var p = players[id];
-    var row = document.createElement('div');
-    row.className = 'player-row';
-    row.innerHTML = '<span class="player-color-dot" style="background:'+p.color+'"></span>' + p.name + (id === myId ? ' (Você)' : '');
-    box.appendChild(row);
-  }
-}
-
-/* Configuração do Analógico Virtual */
-function _initJoystick() {
-  var joyBase = document.getElementById('joy-base');
-  var joyKnob = document.getElementById('joy-knob');
-  if (!joyBase) return;
-
-  var activeTouchId = null;
-
-  function handleStart(e) {
-    e.preventDefault();
-    var touch = e.changedTouches[0];
-    activeTouchId = touch.identifier;
-    joystickInput.active = true;
-    handleMove(e);
-  }
-
-  function handleMove(e) {
-    if (!joystickInput.active) return;
-    var touch = null;
-    for (var i = 0; i < e.touches.length; i++) {
-      if (e.touches[i].identifier === activeTouchId) {
-        touch = e.touches[i];
-        break;
-      }
-    }
-    if (!touch) return;
-
-    var rect = joyBase.getBoundingClientRect();
-    var centerX = rect.left + rect.width / 2;
-    var centerY = rect.top + rect.height / 2;
-    var dx = touch.clientX - centerX;
-    var dy = touch.clientY - centerY;
-    var dist = Math.hypot(dx, dy);
-    var maxDist = rect.width / 2;
-
-    if (dist > maxDist) {
-      dx = (dx / dist) * maxDist;
-      dy = (dy / dist) * maxDist;
-    }
-
-    joyKnob.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
-    
-    // Normalizar entrada de direção entre -1 e 1
-    joystickInput.x = dx / maxDist;
-    joystickInput.y = dy / maxDist;
-  }
-
-  function handleEnd(e) {
-    var touchEnd = false;
-    for (var i = 0; i < e.changedTouches.length; i++) {
-      if (e.changedTouches[i].identifier === activeTouchId) {
-        touchEnd = true;
-        break;
-      }
-    }
-    if (touchEnd) {
-      joystickInput.active = false;
-      joystickInput.x = 0;
-      joystickInput.y = 0;
-      activeTouchId = null;
-      joyKnob.style.transform = 'translate(0px, 0px)';
-    }
-  }
-
-  joyBase.addEventListener('touchstart', handleStart, {passive: false});
-  window.addEventListener('touchmove', handleMove, {passive: false});
-  window.addEventListener('touchend', handleEnd, {passive: false});
-  window.addEventListener('touchcancel', handleEnd, {passive: false});
-}
-
-function _checkArcadeCollision() {
-  var myPl = players[myId];
-  if (!myPl || activeGame !== 'lobby') return;
-  
-  var overlap = null;
-  obstacles.forEach(function(o) {
-    if (o.type === 'arcade') {
-      if (myPl.x + 12 > o.x && myPl.x - 12 < o.x + o.w &&
-          myPl.y + 12 > o.y && myPl.y - 12 < o.y + o.h) {
-        overlap = o;
-      }
-    }
-  });
-
-  var prompt = document.getElementById('canvas-prompt');
-  var mobileActionBtn = document.getElementById('mobile-action-btn');
-
-  if (overlap) {
-    prompt.classList.add('show');
-    prompt.dataset.game = overlap.game;
-    
-    mobileActionBtn.classList.add('active');
-    mobileActionBtn.dataset.game = overlap.game;
-  } else {
-    prompt.classList.remove('show');
-    delete prompt.dataset.game;
-
-    mobileActionBtn.classList.remove('active');
-    delete mobileActionBtn.dataset.game;
-  }
-}
-
-function _triggerInteraction() {
-  var targetGame = null;
-  
-  // Confere se está jogando via mobile ou desktop
-  var prompt = document.getElementById('canvas-prompt');
-  var mobileBtn = document.getElementById('mobile-action-btn');
-  
-  if (prompt.classList.contains('show')) targetGame = prompt.dataset.game;
-  else if (mobileBtn.classList.contains('active')) targetGame = mobileBtn.dataset.game;
-
-  if (targetGame) {
-    if (isHost) {
-      _launchGame(targetGame);
-    } else {
-      _showToast("Apenas o líder do saguão pode iniciar as máquinas!", "fa-solid fa-crown");
-    }
-  }
-}
-
-/* ============================================================
-   GAME LOOP PRINCIPAL
-   ============================================================ */
-function _gameLoop(timestamp) {
-  if (!gameRunning) return;
-  _updateLobbyMovement();
-  _updateLobbyParticles();
-  _drawLobby();
-  requestAnimationFrame(_gameLoop);
-}
-
-function _updateLobbyMovement() {
-  var p = players[myId];
-  if (!p || activeGame !== 'lobby') return;
-
-  var speed = 4;
-  var nx = p.x;
-  var ny = p.y;
-
-  // Processar controle por analógico de toque (prioritário)
-  if (joystickInput.active) {
-    nx += joystickInput.x * speed;
-    ny += joystickInput.y * speed;
-  } else {
-    // Processar controle por teclado (fallback desktop)
-    if (keys['w'] || keys['arrowup']) ny -= speed;
-    if (keys['s'] || keys['arrowdown']) ny += speed;
-    if (keys['a'] || keys['arrowleft']) nx -= speed;
-    if (keys['d'] || keys['arrowright']) nx += speed;
-  }
-
-  // Limites do canvas
-  if (nx < 15) nx = 15;
-  if (nx > 785) nx = 785;
-  if (ny < 15) ny = 15;
-  if (ny > 485) ny = 485;
-
-  if (nx !== p.x || ny !== p.y) {
-    p.x = nx;
-    p.y = ny;
-    _sendToPar({ type: 'lobby_move', x: p.x, y: p.y });
-    _checkArcadeCollision();
-  }
-}
-
-function _updateLobbyParticles() {
-  for (var i = lobbyParticles.length - 1; i >= 0; i--) {
-    var pt = lobbyParticles[i];
-    pt.x += pt.vx;
-    pt.y += pt.vy;
-    pt.opacity -= 0.015;
-    if (pt.opacity <= 0) {
-      lobbyParticles.splice(i, 1);
-    }
-  }
-}
-
-function _drawLobby() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Chão pixelated aconchegante
-  ctx.fillStyle = '#161226';
-  ctx.fillRect(0,0, canvas.width, canvas.height);
-
-  // Desenhar tapete do centro
-  ctx.fillStyle = 'rgba(255, 94, 151, 0.08)';
-  ctx.beginPath();
-  ctx.arc(400, 250, 160, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Desenhar Obstáculos / Gabinetes de Arcade
-  obstacles.forEach(function(o) {
-    if (o.type === 'arcade') {
-      // Glow do gabinete
-      ctx.shadowColor = o.color;
-      ctx.shadowBlur = 15;
+      window.addEventListener('keyup', e => {
+        const k = e.key.toLowerCase();
+        this.keys[k] = false;
+        if (k === ' ' || k === 'f' || k === 'e') this.actionPressed = false;
+      });
+      this.setupTouch();
+    },
+    setupTouch() {
+      const zone = document.getElementById('joy-zone');
+      const knob = document.getElementById('joy-knob');
+      const actionA = document.getElementById('btn-touch-a');
       
-      ctx.fillStyle = '#110e1d';
-      ctx.strokeStyle = o.color;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.roundRect(o.x, o.y, o.w, o.h, 12);
-      ctx.fill();
-      ctx.stroke();
-      
-      // Tela interna
-      ctx.fillStyle = '#06050a';
-      ctx.beginPath();
-      ctx.roundRect(o.x + 10, o.y + 10, o.w - 20, o.h - 40, 6);
-      ctx.fill();
-
-      // Icone e Texto
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = '#fff';
-      ctx.font = '22px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(o.icon, o.x + o.w/2, o.y + o.h/2 - 2);
-
-      ctx.font = 'bold 11px Outfit';
-      ctx.fillStyle = o.color;
-      ctx.fillText(o.label, o.x + o.w/2, o.y + o.h - 12);
-    } else if (o.type === 'sofa') {
-      ctx.fillStyle = '#2a2245';
-      ctx.strokeStyle = '#3b2f63';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(o.x, o.y, o.w, o.h, 10);
-      ctx.fill();
-      ctx.stroke();
-      
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 11px Outfit';
-      ctx.textAlign = 'center';
-      ctx.fillText(o.label, o.x + o.w/2, o.y + o.h/2 + 4);
-    }
-  });
-
-  // Desenhar Jogadores
-  for (var id in players) {
-    var pl = players[id];
-    
-    // Sombrinha sob os pés
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.beginPath();
-    ctx.ellipse(pl.x, pl.y + 12, 12, 4, 0, 0, Math.PI*2);
-    ctx.fill();
-
-    // Corpo redondo fofo
-    ctx.fillStyle = pl.color;
-    ctx.beginPath();
-    ctx.arc(pl.x, pl.y, 14, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // Detalhe de olhinhos
-    ctx.fillStyle = '#000';
-    ctx.beginPath();
-    ctx.arc(pl.x - 4, pl.y - 2, 2, 0, Math.PI * 2);
-    ctx.arc(pl.x + 4, pl.y - 2, 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Nome
-    ctx.font = '600 12px Outfit';
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.fillText(pl.name, pl.x, pl.y - 22);
-  }
-
-  // Partículas de corações flutuantes
-  lobbyParticles.forEach(function(pt) {
-    ctx.globalAlpha = pt.opacity;
-    ctx.font = pt.size + 'px Arial';
-    ctx.fillText('\u2764', pt.x, pt.y);
-  });
-  ctx.globalAlpha = 1.0;
-}
-
-/* ============================================================
-   SISTEMA DE CHAT E INTERAÇÕES ADICIONAIS
-   ============================================================ */
-function _addChatMessage(author, msg, color) {
-  var hist = document.getElementById('chat-history');
-  var div = document.createElement('div');
-  div.className = 'chat-msg';
-  div.innerHTML = '<span class="author" style="color:' + color + '">' + author + ':</span>' + msg;
-  hist.appendChild(div);
-  hist.scrollTop = hist.scrollHeight;
-}
-
-function _addChatSystemMessage(msg) {
-  var hist = document.getElementById('chat-history');
-  var div = document.createElement('div');
-  div.className = 'chat-msg';
-  div.style.color = 'var(--muted)';
-  div.style.fontStyle = 'italic';
-  div.textContent = msg;
-  hist.appendChild(div);
-  hist.scrollTop = hist.scrollHeight;
-}
-
-function _sendChat() {
-  var inp = document.getElementById('chat-input');
-  var val = inp.value.trim();
-  if (!val) return;
-  inp.value = '';
-
-  _addChatMessage(myName, val, chosenColor);
-  _sendToPar({
-    type: 'chat',
-    name: myName,
-    msg: val,
-    color: chosenColor
-  });
-}
-
-function _sendReaction() {
-  var myPl = players[myId];
-  if (!myPl) return;
-  _triggerVisualReaction(myPl.x, myPl.y);
-  _sendToPar({ type: 'reaction', x: myPl.x, y: myPl.y });
-}
-
-function _triggerVisualReaction(x, y) {
-  for (var i = 0; i < 8; i++) {
-    lobbyParticles.push({
-      x: x,
-      y: y - 10,
-      vx: (Math.random() - 0.5) * 4,
-      vy: -1 - Math.random() * 3,
-      size: 10 + Math.random() * 15,
-      opacity: 1.0
-    });
-  }
-}
-
-/* Escuta de teclas físicas */
-document.addEventListener('keydown', function(e) {
-  var key = e.key.toLowerCase();
-  keys[key] = true;
-  if (key === ' ' || key === 'e') {
-    _triggerInteraction();
-  }
-  if (e.key === 'Enter') {
-    if (document.activeElement === document.getElementById('chat-input')) {
-      _sendChat();
-      document.getElementById('chat-input').blur();
-    } else {
-      document.getElementById('chat-input').focus();
-    }
-  }
-});
-document.addEventListener('keyup', function(e) {
-  keys[e.key.toLowerCase()] = false;
-});
-
-/* ============================================================
-   MÁQUINA DO MINIJOGO: FLUXO DE ENTRADA/SAÍDA
-   ============================================================ */
-function _launchGame(gameKey) {
-  if (!isHost) return;
-  _launchGameUI(gameKey);
-  _sendToPar({ type: 'start_game', game: gameKey });
-}
-
-function _launchGameUI(gameKey) {
-  _closeAllOverlays();
-  activeGame = gameKey;
-
-  if (gameKey === 'catch') {
-    document.getElementById('overlay-catch').classList.add('active');
-    _startCatchGame();
-  } else if (gameKey === 'quiz') {
-    document.getElementById('overlay-quiz').classList.add('active');
-    _startQuizGame();
-  } else if (gameKey === 'ttt') {
-    document.getElementById('overlay-tictactoe').classList.add('active');
-    _startTTTGame();
-  }
-}
-
-function _backToLobby() {
-  _closeAllOverlays();
-  activeGame = 'lobby';
-  _sendToPar({ type: 'exit_game' });
-}
-
-function _closeAllOverlays() {
-  document.getElementById('overlay-catch').classList.remove('active');
-  document.getElementById('overlay-quiz').classList.remove('active');
-  document.getElementById('overlay-tictactoe').classList.remove('active');
-  _stopCatchGameLoop();
-}
-
-
-/* ============================================================
-   MINIJOGO 1: CHUVA DE AMOR (CATCHING MINIGAME)
-   ============================================================ */
-var catchCanvas = document.getElementById('catchCanvas');
-var catchCtx = catchCanvas.getContext('2d');
-var catchActive = false;
-var catchTimerVal = 30;
-var catchMyScore = 0;
-var catchTheirScore = 0;
-var catchTimerInterval = null;
-
-var catchLocalPlayerX = 300;
-var catchTheirPlayerX = 300;
-
-var catchItems = []; // Array de itens {x, y, type, id}
-
-function _startCatchGame() {
-  catchActive = true;
-  catchMyScore = 0;
-  catchTheirScore = 0;
-  catchTimerVal = 30;
-  catchItems = [];
-  catchLocalPlayerX = 300;
-  catchTheirPlayerX = 300;
-
-  document.getElementById('catch-my-score').textContent = "0";
-  document.getElementById('catch-their-score').textContent = "0";
-  document.getElementById('catch-timer').textContent = "30s";
-
-  if (isHost) {
-    clearInterval(catchTimerInterval);
-    catchTimerInterval = setInterval(function() {
-      catchTimerVal--;
-      _syncCatchHost();
-      if (catchTimerVal <= 0) {
-        clearInterval(catchTimerInterval);
-        _finishCatchGame();
-      }
-    }, 1000);
-  }
-
-  _runCatchLoop();
-}
-
-function _stopCatchGameLoop() {
-  catchActive = false;
-  clearInterval(catchTimerInterval);
-}
-
-function _finishCatchGame() {
-  var finalMsg = "Fim da Chuva! Vocês somaram juntos " + (catchMyScore + catchTheirScore) + " pontos!";
-  _showToast(finalMsg, "fa-solid fa-trophy");
-  _addChatSystemMessage("Resultado da Chuva de Amor: " + finalMsg);
-}
-
-function _syncCatchHost() {
-  if (!isHost) return;
-  // Criar novo item caindo
-  if (Math.random() < 0.6) {
-    var types = ['heart', 'heart', 'star', 'bomb'];
-    var selectedType = types[Math.floor(Math.random() * types.length)];
-    catchItems.push({
-      id: Math.random().toString(),
-      x: 20 + Math.random() * (catchCanvas.width - 40),
-      y: 0,
-      type: selectedType
-    });
-  }
-
-  _sendToPar({
-    type: 'sync_game',
-    game: 'catch',
-    timer: catchTimerVal,
-    items: catchItems,
-    hostScore: catchMyScore,
-    guestScore: catchTheirScore,
-    hostX: catchLocalPlayerX
-  });
-}
-
-function _syncCatchData(data) {
-  if (isHost) {
-    // Host recebe posicao do Guest e atualiza placar
-    catchTheirPlayerX = data.guestX;
-  } else {
-    // Guest recebe estado do Host
-    catchTimerVal = data.timer;
-    catchItems = data.items;
-    catchMyScore = data.guestScore;
-    catchTheirScore = data.hostScore;
-    catchTheirPlayerX = data.hostX;
-
-    document.getElementById('catch-timer').textContent = catchTimerVal + "s";
-    document.getElementById('catch-my-score').textContent = catchMyScore;
-    document.getElementById('catch-their-score').textContent = catchTheirScore;
-    
-    if (catchTimerVal <= 0) {
-      _finishCatchGame();
-    }
-  }
-}
-
-function _runCatchLoop() {
-  if (!catchActive) return;
-
-  var speed = 6;
-  
-  // Controle de deslocamento horizontal
-  if (joystickInput.active) {
-    catchLocalPlayerX = Math.max(15, Math.min(catchCanvas.width - 15, catchLocalPlayerX + joystickInput.x * speed));
-  } else {
-    if (keys['a'] || keys['arrowleft']) {
-      catchLocalPlayerX = Math.max(15, catchLocalPlayerX - speed);
-    }
-    if (keys['d'] || keys['arrowright']) {
-      catchLocalPlayerX = Math.min(catchCanvas.width - 15, catchLocalPlayerX + speed);
-    }
-  }
-
-  if (!isHost) {
-    // Guest envia posicao para o Host sincronizar
-    _sendToPar({
-      type: 'sync_game',
-      game: 'catch',
-      guestX: catchLocalPlayerX
-    });
-  }
-
-  // Atualizar itens (Apenas Host processa lógica de movimentação de itens e colisão)
-  if (isHost) {
-    for (var i = catchItems.length - 1; i >= 0; i--) {
-      var item = catchItems[i];
-      item.y += 3; // Velocidade de queda
-
-      // Checa colisao com Host Player
-      if (item.y > catchCanvas.height - 25 && item.y < catchCanvas.height && Math.abs(item.x - catchLocalPlayerX) < 20) {
-        if (item.type === 'heart') catchMyScore += 10;
-        else if (item.type === 'star') catchMyScore += 25;
-        else if (item.type === 'bomb') catchMyScore = Math.max(0, catchMyScore - 15);
-        catchItems.splice(i, 1);
-        continue;
-      }
-
-      // Checa colisao com Guest Player
-      if (item.y > catchCanvas.height - 25 && item.y < catchCanvas.height && Math.abs(item.x - catchTheirPlayerX) < 20) {
-        if (item.type === 'heart') catchTheirScore += 10;
-        else if (item.type === 'star') catchTheirScore += 25;
-        else if (item.type === 'bomb') catchTheirScore = Math.max(0, catchTheirScore - 15);
-        catchItems.splice(i, 1);
-        continue;
-      }
-
-      // Saiu da tela
-      if (item.y > catchCanvas.height) {
-        catchItems.splice(i, 1);
-      }
-    }
-    
-    document.getElementById('catch-timer').textContent = catchTimerVal + "s";
-    document.getElementById('catch-my-score').textContent = catchMyScore;
-    document.getElementById('catch-their-score').textContent = catchTheirScore;
-  }
-
-  // Desenhar Tela de Captura
-  catchCtx.clearRect(0,0, catchCanvas.width, catchCanvas.height);
-  catchCtx.fillStyle = '#1c1635';
-  catchCtx.fillRect(0,0, catchCanvas.width, catchCanvas.height);
-
-  // Desenhar Itens
-  catchItems.forEach(function(item) {
-    catchCtx.font = '20px Arial';
-    var sym = '\u2764'; // Coração
-    if (item.type === 'star') sym = '\u2B50';
-    if (item.type === 'bomb') sym = '\u2614'; // Nuvem de chuva
-    catchCtx.fillText(sym, item.x - 10, item.y);
-  });
-
-  // Desenhar Personagem Local
-  catchCtx.fillStyle = chosenColor;
-  catchCtx.beginPath();
-  catchCtx.arc(catchLocalPlayerX, catchCanvas.height - 15, 12, 0, Math.PI*2);
-  catchCtx.fill();
-  catchCtx.strokeStyle = '#fff';
-  catchCtx.stroke();
-
-  // Desenhar Personagem Remoto
-  var otherColor = COLORS[1];
-  for (var id in players) { if (id !== myId) otherColor = players[id].color; }
-  catchCtx.fillStyle = otherColor;
-  catchCtx.beginPath();
-  catchCtx.arc(catchTheirPlayerX, catchCanvas.height - 15, 12, 0, Math.PI*2);
-  catchCtx.fill();
-  catchCtx.strokeStyle = 'rgba(255,255,255,0.6)';
-  catchCtx.stroke();
-
-  requestAnimationFrame(_runCatchLoop);
-}
-
-
-/* ============================================================
-   MINIJOGO 2: QUIZ DE AFINIDADE (COMPATIBILITY TEST)
-   ============================================================ */
-var quizQuestions = [
-  { q: "Quem dorme mais fácil assistindo um filme/série?", opt: ["Eu", "Meu par", "Ambos", "Ninguém"] },
-  { q: "Qual o programa perfeito para o final de semana?", opt: ["Maratonar em casa", "Sair para comer", "Festa/Social", "Viajar/Natureza"] },
-  { q: "Quem tem maior tendência a se perder na rua?", opt: ["Eu", "Meu par", "Ambos", "Nenhum"] },
-  { q: "Qual superpoder seria melhor para nós?", opt: ["Teletransporte", "Ler Mentes", "Voar", "Parar o tempo"] },
-  { q: "Se pudéssemos comer apenas um prato para sempre:", opt: ["Pizza/Hambúrguer", "Comida japonesa", "Doce/Chocolate", "Arroz, feijão e carne"] }
-];
-
-var quizCurrentIdx = 0;
-var quizMyAnswer = null;
-var quizTheirAnswer = null;
-var quizMatches = 0;
-
-function _startQuizGame() {
-  quizCurrentIdx = 0;
-  quizMatches = 0;
-  _loadQuizQuestion();
-}
-
-function _loadQuizQuestion() {
-  quizMyAnswer = null;
-  quizTheirAnswer = null;
-  document.getElementById('quiz-feedback').innerHTML = "";
-
-  var question = quizQuestions[quizCurrentIdx];
-  document.getElementById('quiz-q-text').textContent = (quizCurrentIdx + 1) + ". " + question.q;
-
-  var optsBox = document.getElementById('quiz-options-box');
-  optsBox.innerHTML = '';
-  question.opt.forEach(function(opt, idx) {
-    var btn = document.createElement('button');
-    btn.className = 'quiz-opt-btn';
-    btn.textContent = opt;
-    btn.onclick = function() {
-      _selectQuizAnswer(idx);
-    };
-    optsBox.appendChild(btn);
-  });
-}
-
-function _selectQuizAnswer(index) {
-  quizMyAnswer = index;
-  // Desativa os botões para evitar re-clique
-  var btns = document.querySelectorAll('.quiz-opt-btn');
-  btns.forEach(function(b, idx) {
-    b.disabled = true;
-    if (idx === index) b.classList.add('selected');
-  });
-
-  document.getElementById('quiz-feedback').innerHTML = "<span style='color: var(--yellow);'>Aguardando a resposta do seu par...</span>";
-
-  _sendToPar({
-    type: 'sync_game',
-    game: 'quiz',
-    action: 'answer',
-    answer: index,
-    step: quizCurrentIdx
-  });
-
-  _checkQuizStepComplete();
-}
-
-function _syncQuizData(data) {
-  if (data.action === 'answer' && data.step === quizCurrentIdx) {
-    quizTheirAnswer = data.answer;
-    _checkQuizStepComplete();
-  } else if (data.action === 'next') {
-    quizCurrentIdx = data.nextStep;
-    _loadQuizQuestion();
-  }
-}
-
-function _checkQuizStepComplete() {
-  if (quizMyAnswer !== null && quizTheirAnswer !== null) {
-    var feedbackBox = document.getElementById('quiz-feedback');
-    var isMatch = quizMyAnswer === quizTheirAnswer;
-    
-    var question = quizQuestions[quizCurrentIdx];
-    var ansTxt = question.opt[quizMyAnswer];
-    var parAnsTxt = question.opt[quizTheirAnswer];
-
-    if (isMatch) {
-      quizMatches++;
-      feedbackBox.innerHTML = "<span style='color: var(--success); font-size: 1.1rem;'><i class='fa-solid fa-heart-circle-check'></i> Vocês Combinaram! Ambos responderam: <strong>" + ansTxt + "</strong></span>";
-    } else {
-      feedbackBox.innerHTML = "<span style='color: var(--danger);'>Respostas divergentes! Você respondeu: <strong>" + ansTxt + "</strong> e seu par respondeu: <strong>" + parAnsTxt + "</strong></span>";
-    }
-
-    // Botão para avançar (Apenas Host envia sinalizador de troca de fase)
-    if (isHost) {
-      var nextBtn = document.createElement('button');
-      nextBtn.className = 'menu-btn primary';
-      nextBtn.style.maxWidth = '180px';
-      nextBtn.style.margin = '15px auto 0';
-      nextBtn.textContent = (quizCurrentIdx < quizQuestions.length - 1) ? "Próxima Pergunta" : "Ver Compatibilidade";
-      nextBtn.onclick = function() {
-        if (quizCurrentIdx < quizQuestions.length - 1) {
-          quizCurrentIdx++;
-          _sendToPar({ type: 'sync_game', game: 'quiz', action: 'next', nextStep: quizCurrentIdx });
-          _loadQuizQuestion();
-        } else {
-          _finishQuizGame();
+      zone.addEventListener('pointerdown', e => {
+        this.touch.active = true;
+        this.touch.id = e.pointerId;
+        zone.setPointerCapture(e.pointerId);
+        this.updateJoystick(e, zone, knob);
+      });
+      zone.addEventListener('pointermove', e => {
+        if (this.touch.active && this.touch.id === e.pointerId) {
+          this.updateJoystick(e, zone, knob);
+        }
+      });
+      const endPointer = e => {
+        if (this.touch.active && this.touch.id === e.pointerId) {
+          this.touch.active = false;
+          this.touch.id = null;
+          knob.style.transform = `translate(0px, 0px)`;
+          this.joyPos = { dx: 0, dy: 0 };
         }
       };
-      feedbackBox.appendChild(nextBtn);
+      zone.addEventListener('pointerup', endPointer);
+      zone.addEventListener('pointercancel', endPointer);
+
+      actionA.addEventListener('pointerdown', e => { this.actionPressed = true; if(navigator.vibrate) navigator.vibrate(20); });
+      actionA.addEventListener('pointerup', e => { this.actionPressed = false; });
+      actionA.addEventListener('pointercancel', e => { this.actionPressed = false; });
+    },
+    updateJoystick(e, zone, knob) {
+      const r = zone.getBoundingClientRect();
+      const cx = r.left + r.width / 2;
+      const cy = r.top + r.height / 2;
+      let dx = e.clientX - cx;
+      let dy = e.clientY - cy;
+      const dist = Math.hypot(dx, dy);
+      const limit = r.width / 2 - 10;
+      if (dist > limit) {
+        dx = (dx / dist) * limit;
+        dy = (dy / dist) * limit;
+      }
+      knob.style.transform = `translate(${dx}px, ${dy}px)`;
+      this.joyPos = { dx: dx / limit, dy: dy / limit };
+    },
+    getDir() {
+      let x = 0, y = 0;
+      if (this.keys['a'] || this.keys['arrowleft']) x = -1;
+      if (this.keys['d'] || this.keys['arrowright']) x = 1;
+      if (this.keys['w'] || this.keys['arrowup']) y = -1;
+      if (this.keys['s'] || this.keys['arrowdown']) y = 1;
+      
+      if (this.touch.active) {
+        x = this.joyPos.dx;
+        y = this.joyPos.dy;
+      }
+      return { x, y };
+    }
+  },
+
+  /* MÓDULO REDE (PEERJS) */
+  net: {
+    generateCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let res = '';
+      for (let i = 0; i < 6; i++) res += chars[Math.floor(Math.random() * chars.length)];
+      return res;
+    },
+    createRoom() {
+      App.audio.init();
+      const name = document.getElementById('inp-name').value.trim() || "Jogador";
+      App.localPrefs.name = name;
+      localStorage.setItem('bz_prefs', JSON.stringify(App.localPrefs));
+      
+      const code = this.generateCode();
+      App.roomId = code;
+      App.isHost = true;
+      App.myId = 'bz_' + code;
+      
+      App.ui.setMsg("Conectando e criando sala...", "");
+      App.peer = new Peer(App.myId, { debug: 1 });
+      this.bindPeerEvents();
+    },
+    joinRoom() {
+      App.audio.init();
+      const name = document.getElementById('inp-name').value.trim() || "Jogador";
+      const code = document.getElementById('inp-code').value.trim().toUpperCase();
+      if (code.length !== 6) { App.ui.setMsg("Código inválido", "err"); return; }
+      
+      App.localPrefs.name = name;
+      localStorage.setItem('bz_prefs', JSON.stringify(App.localPrefs));
+      App.roomId = code;
+      App.isHost = false;
+      App.myId = 'bz_client_' + Math.random().toString(36).substr(2, 9);
+      
+      App.ui.setMsg("Localizando sala...", "");
+      App.peer = new Peer(App.myId, { debug: 1 });
+      this.bindPeerEvents();
+    },
+    bindPeerEvents() {
+      App.peer.on('open', (id) => {
+        if (App.isHost) {
+          App.ui.setMsg("Sala aberta com sucesso!", "ok");
+          App.players[App.myId] = {
+            id: App.myId, name: App.localPrefs.name, color: App.localPrefs.color,
+            avatar: App.localPrefs.avatar, ready: true, active: true
+          };
+          App.scores[App.myId] = 0;
+          App.ui.transitionToScreen('lobby');
+          App.ui.updateLobby();
+        } else {
+          App.ui.setMsg("Conectando ao host...", "");
+          const conn = App.peer.connect('bz_' + App.roomId, {
+            metadata: { name: App.localPrefs.name, avatar: App.localPrefs.avatar, color: App.localPrefs.color }
+          });
+          this.setupClientConn(conn);
+        }
+      });
+      App.peer.on('error', (err) => {
+        App.ui.setMsg("Falha na rede: " + err.type, "err");
+        this.disconnect();
+      });
+      App.peer.on('connection', (conn) => {
+        if (App.isHost) {
+          this.setupHostConn(conn);
+        }
+      });
+    },
+    setupHostConn(conn) {
+      conn.on('open', () => {
+        if (Object.keys(App.players).length >= 8) {
+          conn.send({ type: 'error', msg: 'Sala lotada!' });
+          conn.close();
+          return;
+        }
+        App.conns[conn.peer] = conn;
+        const meta = conn.metadata || {};
+        App.players[conn.peer] = {
+          id: conn.peer, name: meta.name || "Nômade", avatar: meta.avatar || "👤",
+          color: meta.color || "#4ade80", ready: false, active: true
+        };
+        App.scores[conn.peer] = 0;
+        this.broadcast({
+          type: 'room_state', players: App.players, scores: App.scores, settings: App.settings
+        });
+        App.ui.updateLobby();
+        App.ui.addChatSystem("[Sistema]", `${meta.name || "Nômade"} entrou na arena!`, "var(--success)");
+      });
+      conn.on('data', (data) => { this.handleData(conn.peer, data); });
+      conn.on('close', () => { this.handleDisconnect(conn.peer); });
+    },
+    setupClientConn(conn) {
+      App.conns[App.peer.id] = conn;
+      conn.on('open', () => { App.ui.transitionToScreen('lobby'); });
+      conn.on('data', (data) => { this.handleData('host', data); });
+      conn.on('close', () => { App.ui.showToast("Desconectado do Host!", "err"); this.disconnect(); });
+    },
+    handleDisconnect(peerId) {
+      if (App.players[peerId]) {
+        const name = App.players[peerId].name;
+        delete App.players[peerId];
+        delete App.conns[peerId];
+        App.ui.addChatSystem("[Sistema]", `${name} saiu da arena!`, "var(--danger)");
+        this.broadcast({ type: 'room_state', players: App.players, scores: App.scores, settings: App.settings });
+        App.ui.updateLobby();
+        if (App.activeGame) { App.activeGame.playerDisconnected(peerId); }
+      }
+    },
+    disconnect() {
+      if (App.peer) { App.peer.destroy(); App.peer = null; }
+      App.conns = {}; App.players = {}; App.scores = {}; App.activeGame = null;
+      App.ui.transitionToScreen('menu');
+    },
+    broadcast(data) {
+      for (let p in App.conns) {
+        if (App.conns[p] && App.conns[p].open) App.conns[p].send(data);
+      }
+    },
+    sendToHost(data) {
+      for (let p in App.conns) { App.conns[p].send(data); }
+    },
+    toggleReady() {
+      if (App.isHost) return;
+      const me = App.players[App.peer.id];
+      if (me) {
+        me.ready = !me.ready;
+        this.sendToHost({ type: 'ready', state: me.ready });
+        App.ui.updateLobby();
+      }
+    },
+    requestStartGame() {
+      if (!App.isHost) return;
+      let allReady = true;
+      for (let p in App.players) { if (!App.players[p].ready) allReady = false; }
+      if (!allReady) { App.ui.showToast("Todos os jogadores precisam estar prontos!", "err"); return; }
+      if (Object.keys(App.players).length < 2) { App.ui.showToast("Mínimo de 2 jogadores!", "err"); return; }
+      
+      this.generateGameQueue();
+      this.startNextQueuedGame();
+    },
+    generateGameQueue() {
+      App.gameQueue = Object.keys(Minigames);
+      App.gameQueue.sort(() => Math.random() - 0.5);
+      App.gameQueue = App.gameQueue.slice(0, App.settings.rounds);
+      App.gameState.currentRound = 0;
+      App.sessionStats = { fastest: "-", fastestTime: 999999, bombTarget: "-", bombCount: {}, collector: "-", coinCount: {}, pusher: "-", pushCount: {} };
+    },
+    startNextQueuedGame() {
+      if (App.gameQueue.length === 0) {
+        this.finishSession();
+        return;
+      }
+      App.gameState.currentRound++;
+      const nextGameKey = App.gameQueue.shift();
+      this.broadcast({ type: 'load_game', gameId: nextGameKey, round: App.gameState.currentRound });
+      this.hostLoadGame(nextGameKey);
+    },
+    hostLoadGame(gameId) {
+      App.ui.transitionToScreen('game');
+      const gameDef = Minigames[gameId];
+      App.activeGame = Object.create(gameDef);
+      App.activeGame.init();
+      App.ui.showRules(gameDef.name, gameDef.desc, gameDef.controls);
+      
+      setTimeout(() => {
+        this.broadcast({ type: 'start_countdown' });
+        App.ui.startCountdown(() => {
+          if (App.isHost) App.activeGame.start();
+        });
+      }, 4000);
+    },
+    playerReadyForNext() {
+      App.audio.play('click');
+      if (App.isHost) {
+        App.players[App.myId].nextReady = true;
+        this.checkAllReadyForNext();
+      } else {
+        this.sendToHost({ type: 'ready_next' });
+        document.getElementById('btn-result-continue').disabled = true;
+        document.getElementById('result-wait-msg').classList.remove('hidden');
+      }
+    },
+    checkAllReadyForNext() {
+      let readyCount = 0;
+      let total = 0;
+      for (let p in App.players) {
+        total++;
+        if (App.players[p].nextReady) readyCount++;
+      }
+      if (readyCount >= total) {
+        for (let p in App.players) App.players[p].nextReady = false;
+        this.startNextQueuedGame();
+      }
+    },
+    saveSettings() {
+      App.settings.rounds = parseInt(document.getElementById('set-rounds').value);
+      App.settings.duration = parseInt(document.getElementById('set-duration').value);
+      App.settings.sound = document.getElementById('set-audio').value === "1";
+      App.settings.playlist = document.getElementById('set-playlist').value;
+      if (App.isHost) {
+        this.broadcast({ type: 'room_state', players: App.players, scores: App.scores, settings: App.settings });
+      }
+      App.ui.closeSettings();
+      App.ui.updateLobby();
+    },
+    finishSession() {
+      let finalLeaderboard = [];
+      for (let p in App.players) {
+        finalLeaderboard.push({ id: p, name: App.players[p].name, avatar: App.players[p].avatar, color: App.players[p].color, score: App.scores[p] });
+      }
+      finalLeaderboard.sort((a,b) => b.score - a.score);
+      
+      // Encontrar stats de sessão
+      let bombMax = 0, bombWho = "-";
+      for (let p in App.sessionStats.bombCount) {
+        if (App.sessionStats.bombCount[p] > bombMax) { bombMax = App.sessionStats.bombCount[p]; bombWho = App.players[p]?.name || "-"; }
+      }
+      App.sessionStats.bombTarget = bombWho;
+
+      let coinMax = 0, coinWho = "-";
+      for (let p in App.sessionStats.coinCount) {
+        if (App.sessionStats.coinCount[p] > coinMax) { coinMax = App.sessionStats.coinCount[p]; coinWho = App.players[p]?.name || "-"; }
+      }
+      App.sessionStats.collector = coinWho;
+
+      let pushMax = 0, pushWho = "-";
+      for (let p in App.sessionStats.pushCount) {
+        if (App.sessionStats.pushCount[p] > pushMax) { pushMax = App.sessionStats.pushCount[p]; pushWho = App.players[p]?.name || "-"; }
+      }
+      App.sessionStats.pusher = pushWho;
+
+      this.broadcast({ type: 'session_complete', leaderboard: finalLeaderboard, stats: App.sessionStats });
+      App.ui.showFinalPodium(finalLeaderboard, App.sessionStats);
+    },
+    handleData(peerId, data) {
+      if (App.isHost) {
+        if (data.type === 'ready') {
+          if (App.players[peerId]) { App.players[peerId].ready = data.state; this.broadcast({ type: 'room_state', players: App.players, scores: App.scores, settings: App.settings }); App.ui.updateLobby(); }
+        } else if (data.type === 'chat') {
+          this.broadcast({ type: 'chat', name: App.players[peerId].name, msg: data.msg, color: App.players[peerId].color });
+          App.ui.addChat(App.players[peerId].name, data.msg, App.players[peerId].color);
+        } else if (data.type === 'ready_next') {
+          if (App.players[peerId]) { App.players[peerId].nextReady = true; this.checkAllReadyForNext(); }
+        } else if (data.type === 'settings') {
+          App.settings = data.settings;
+          this.broadcast({ type: 'room_state', players: App.players, scores: App.scores, settings: App.settings });
+          App.ui.updateLobby();
+        } else if (App.activeGame) {
+          App.activeGame.handleNetworkMessage(peerId, data);
+        }
+      } else {
+        /* CLIENTE TRATANDO RESPOSTAS DO HOST */
+        if (data.type === 'room_state') {
+          App.players = data.players; App.scores = data.scores; App.settings = data.settings;
+          App.ui.updateLobby();
+        } else if (data.type === 'chat') {
+          App.ui.addChat(data.name, data.msg, data.color);
+        } else if (data.type === 'load_game') {
+          App.gameState.currentRound = data.round;
+          this.hostLoadGame(data.gameId);
+        } else if (data.type === 'start_countdown') {
+          App.ui.startCountdown();
+        } else if (data.type === 'game_state') {
+          if (App.activeGame) App.activeGame.clientStateUpdate(data);
+        } else if (data.type === 'round_complete') {
+          App.ui.showRoundResults(data.ranks, data.ptsEarned);
+        } else if (data.type === 'session_complete') {
+          App.ui.showFinalPodium(data.leaderboard, data.stats);
+        } else if (data.type === 'error') {
+          App.ui.showToast(data.msg, "err");
+        }
+      }
+    }
+  },
+
+  /* MÓDULO INTERFACE GRÁFICA (UI) */
+  ui: {
+    activeScreen: 'menu',
+    transitionToScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const active = document.getElementById('screen-' + screenId);
+      if (active) {
+        active.classList.add('active');
+        this.activeScreen = screenId;
+      }
+    },
+    setMsg(msg, type) {
+      const el = document.getElementById('menu-msg');
+      el.textContent = msg;
+      el.className = "menu-msg " + (type || "");
+    },
+    showToast(msg, type) {
+      const container = document.getElementById('toasts');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type || 'info'}`;
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => { toast.remove(); }, 3000);
+    },
+    copyRoomCode() {
+      if (!App.roomId) return;
+      navigator.clipboard.writeText(App.roomId).then(() => {
+        this.showToast("Código copiado!", "success");
+      });
+    },
+    openSettings() {
+      if (!App.isHost) { this.showToast("Apenas o Host pode alterar configurações!", "err"); return; }
+      document.getElementById('set-rounds').value = App.settings.rounds;
+      document.getElementById('set-duration').value = App.settings.duration;
+      document.getElementById('set-audio').value = App.settings.sound ? "1" : "0";
+      document.getElementById('set-playlist').value = App.settings.playlist;
+      document.getElementById('screen-settings').classList.add('active');
+    },
+    closeSettings() {
+      document.getElementById('screen-settings').classList.remove('active');
+    },
+    updateLobby() {
+      document.getElementById('lobby-code-display').textContent = App.roomId || "------";
+      const list = document.getElementById('lobby-players-grid');
+      list.innerHTML = '';
+      
+      let count = 0;
+      for (let p in App.players) {
+        count++;
+        const pData = App.players[p];
+        const card = document.createElement('div');
+        card.className = `lobby-player-card ${pData.ready ? 'ready' : ''}`;
+        
+        const avatarCol = pData.color;
+        card.innerHTML = `
+          <div class="lobby-avatar" style="background:${avatarCol}20; border-color:${avatarCol}; color:${avatarCol}">${pData.avatar}</div>
+          <div class="lobby-pname">${pData.name}</div>
+          <div class="lobby-prole">${pData.id === 'bz_' + App.roomId ? 'Host' : 'Jogador'}</div>
+          <div class="lobby-pstatus">${pData.ready ? 'PRONTO' : 'PENDENTE'}</div>
+        `;
+        list.appendChild(card);
+      }
+      document.getElementById('lobby-player-count').textContent = count;
+      
+      /* Atualiza display configs */
+      document.getElementById('set-disp-rounds').textContent = App.settings.rounds;
+      document.getElementById('set-disp-time').textContent = App.settings.duration + "s";
+      document.getElementById('set-disp-sound').textContent = App.settings.sound ? "Sim" : "Não";
+
+      /* Atualiza Placar do lobby */
+      const lb = document.getElementById('lobby-leaderboard-display');
+      lb.innerHTML = '';
+      const listSorted = Object.keys(App.players).map(k => {
+        return { name: App.players[k].name, score: App.scores[k] || 0, color: App.players[k].color };
+      }).sort((a,b) => b.score - a.score);
+      
+      listSorted.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'setting-item';
+        row.innerHTML = `<span style="color:${p.color}; font-weight:bold;">${p.name}</span><span>${p.score} pts</span>`;
+        lb.appendChild(row);
+      });
+
+      /* Controles de inicialização visíveis apenas para Host */
+      if (App.isHost) {
+        document.getElementById('btn-start-game').style.display = 'block';
+        document.getElementById('btn-ready').style.display = 'none';
+      } else {
+        document.getElementById('btn-start-game').style.display = 'none';
+        document.getElementById('btn-ready').style.display = 'block';
+        document.getElementById('btn-ready').innerHTML = App.players[App.peer?.id]?.ready ? `<i class="fa-solid fa-xmark"></i> CANCELAR` : `<i class="fa-solid fa-check"></i> PRONTO`;
+      }
+    },
+    sendChat() {
+      const inp = document.getElementById('chat-input');
+      const val = inp.value.trim();
+      if (!val) return;
+      inp.value = '';
+      if (App.isHost) {
+        App.net.broadcast({ type: 'chat', name: App.players[App.myId].name, msg: val, color: App.players[App.myId].color });
+        this.addChat(App.players[App.myId].name, val, App.players[App.myId].color);
+      } else {
+        App.net.sendToHost({ type: 'chat', msg: val });
+        this.addChat(App.players[App.peer.id].name, val, App.players[App.peer.id].color);
+      }
+    },
+    addChat(name, msg, color) {
+      const container = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.innerHTML = `<span style="color:${color}; font-weight:bold;">${App.ui.escapeHTML(name)}:</span> ${App.ui.escapeHTML(msg)}`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    },
+    addChatSystem(name, msg, color) {
+      const container = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.innerHTML = `<span style="color:${color}; font-weight:bold;">${name} ${App.ui.escapeHTML(msg)}</span>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    },
+    escapeHTML(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    },
+    showRules(title, desc, controls) {
+      document.getElementById('rule-game-title').textContent = title;
+      document.getElementById('rule-game-desc').textContent = desc;
+      const demo = document.getElementById('rule-controls-demo');
+      demo.innerHTML = '';
+      
+      let keys = ["WASD", "Espaço"];
+      if (controls === 'mouse') keys = ["Teclado / Mouse / Toque"];
+      if (controls === 'reflex') keys = ["Espaço / Toque"];
+      
+      keys.forEach(k => {
+        demo.innerHTML += `<div class="ctrl-demo-item"><span class="ctrl-key">${k}</span></div>`;
+      });
+      
+      document.getElementById('overlay-rules').classList.add('active');
+      document.getElementById('overlay-countdown').classList.remove('active');
+      document.getElementById('overlay-round-results').classList.remove('active');
+    },
+    startCountdown(callback) {
+      document.getElementById('overlay-rules').classList.remove('active');
+      const box = document.getElementById('overlay-countdown');
+      const txt = document.getElementById('countdown-txt');
+      box.classList.add('active');
+      
+      let count = 3;
+      txt.textContent = count;
+      App.audio.play('countdown');
+      
+      const interval = setInterval(() => {
+        count--;
+        if (count > 0) {
+          txt.textContent = count;
+          App.audio.play('countdown');
+        } else if (count === 0) {
+          txt.textContent = "VAI!";
+          App.audio.play('go');
+        } else {
+          clearInterval(interval);
+          box.classList.remove('active');
+          if (callback) callback();
+        }
+      }, 1000);
+    },
+    showRoundResults(ranks, ptsEarned) {
+      document.getElementById('overlay-round-results').classList.add('active');
+      const list = document.getElementById('round-results-list');
+      list.innerHTML = '';
+      
+      ranks.forEach((r, idx) => {
+        const item = document.createElement('div');
+        item.className = `results-item ${idx === 0 ? 'winner' : ''}`;
+        item.innerHTML = `
+          <span class="results-rank">#${idx+1}</span>
+          <span class="results-pname" style="color:${r.color}">${r.name}</span>
+          <span class="results-pts">+${ptsEarned[r.id] || 0} pts</span>
+        `;
+        list.appendChild(item);
+      });
+      
+      /* Reset buttons status */
+      const btn = document.getElementById('btn-result-continue');
+      btn.disabled = false;
+      document.getElementById('result-wait-msg').classList.add('hidden');
+      
+      if (App.isHost) {
+        btn.textContent = "AVANÇAR";
+      } else {
+        btn.textContent = "PRONTO";
+      }
+    },
+    showFinalPodium(leaderboard, stats) {
+      this.transitionToScreen('podium');
+      const container = document.getElementById('podium-visual-container');
+      container.innerHTML = '';
+      
+      const renderCol = (player, posName, place) => {
+        if (!player) return;
+        const col = document.createElement('div');
+        col.className = `podium-col ${posName}`;
+        col.innerHTML = `
+          <div class="podium-avatar" style="background:${player.color}20; border: 2px solid ${player.color}; color:${player.color}">${player.avatar}</div>
+          <div class="podium-name">${player.name}</div>
+          <div class="podium-score">${player.score} PTS</div>
+          <div class="podium-pedestal">${place}</div>
+        `;
+        container.appendChild(col);
+      };
+      
+      renderCol(leaderboard[1], 'second', '2');
+      renderCol(leaderboard[0], 'first', '1');
+      renderCol(leaderboard[2], 'third', '3');
+      
+      document.getElementById('st-fastest').textContent = stats.fastest;
+      document.getElementById('st-bomb-target').textContent = stats.bombTarget;
+      document.getElementById('st-collector').textContent = stats.collector;
+      document.getElementById('st-pusher').textContent = stats.pusher;
+      
+      App.audio.play('win');
+    },
+    backToLobby() {
+      App.audio.play('click');
+      if (App.isHost) {
+        App.net.broadcast({ type: 'room_state', players: App.players, scores: App.scores, settings: App.settings });
+      }
+      this.transitionToScreen('lobby');
+      this.updateLobby();
     }
   }
-}
-
-function _finishQuizGame() {
-  var pct = Math.round((quizMatches / quizQuestions.length) * 100);
-  var box = document.getElementById('quiz-box');
-  
-  var heartResult = '';
-  if (pct >= 80) heartResult = "💝 Vocês são Almas Gêmeas!";
-  else if (pct >= 40) heartResult = "💞 Uma conexão muito forte e divertida!";
-  else heartResult = "🍿 Oposto se atrai! Mas a diversão é garantida.";
-
-  box.innerHTML = `
-    <div style="font-size: 1.3rem; font-weight: bold; color: var(--accent); margin-bottom: 10px;">Resultado do Afinidade</div>
-    <div style="font-size: 3rem; font-family: 'Fredoka', sans-serif; color: var(--yellow); margin-bottom: 10px;">${pct}%</div>
-    <div style="font-size: 1.1rem; margin-bottom: 25px;">${heartResult} (Combinaram em ${quizMatches}/${quizQuestions.length})</div>
-    <button class="menu-btn secondary" onclick="_backToLobby()" style="max-width: 200px; margin: 0 auto;">Voltar para o Lobby</button>
-  `;
-
-  _addChatSystemMessage("Afinidade do Casal: " + pct + "% de compatibilidade! " + heartResult);
-}
-
+};
 
 /* ============================================================
-   MINIJOGO 3: JOGO DA VELHA NEON (TIC-TAC-TOE)
+   ENGINE DO LOOP DE JOGO E RENDERIZAÇÃO
    ============================================================ */
-var tttBoard = [];
-var tttMySymbol = 'X'; // Host = X, Guest = O
-var tttActivePlayerSymbol = 'X';
-var tttWinner = null;
+const Canvas = {
+  el: null, ctx: null,
+  init() {
+    this.el = document.getElementById('game-canvas');
+    this.ctx = this.el.getContext('2d');
+    this.loop();
+  },
+  loop() {
+    requestAnimationFrame(() => this.loop());
+    if (App.ui.activeScreen !== 'game') return;
+    this.update();
+    this.render();
+  },
+  update() {
+    if (App.isHost && App.activeGame && App.activeGame.running) {
+      App.activeGame.update();
+    }
+  },
+  render() {
+    this.ctx.clearRect(0,0,800,600);
+    this.ctx.fillStyle = "#0c1017";
+    this.ctx.fillRect(0,0,800,600);
+    
+    if (App.activeGame) {
+      App.activeGame.render(this.ctx);
+    }
+  }
+};
 
-function _startTTTGame() {
-  tttBoard = Array(9).fill(null);
-  tttMySymbol = isHost ? 'X' : 'O';
-  tttActivePlayerSymbol = 'X';
-  tttWinner = null;
+/* ============================================================
+   CLASSES DE MINIGAMES COMPLETAMENTE IMPLEMENTADAS
+   ============================================================ */
+const Minigames = {};
 
-  _renderTTTGrid();
-  _updateTTTStatus();
-}
+/* 1. PONG ARENA */
+Minigames.pong = {
+  name: "Pong Arena",
+  desc: "Pontue batendo com a bola na área oposta! Rebata para acelerar.",
+  controls: "keyboard",
+  init() {
+    this.paddles = {};
+    this.ball = { x: 400, y: 300, vx: 5, vy: 3, r: 10 };
+    this.running = false;
+    this.roundTimer = App.settings.duration;
+    this.lastTick = 0;
+    this.scores = {};
+    
+    let sideIdx = 0;
+    for (let p in App.players) {
+      const isLeft = sideIdx % 2 === 0;
+      this.paddles[p] = {
+        y: 250, h: 100, w: 15, x: isLeft ? 40 : 745,
+        color: App.players[p].color, name: App.players[p].name, isLeft: isLeft
+      };
+      this.scores[p] = 0;
+      sideIdx++;
+    }
+  },
+  start() { this.running = true; this.lastTick = Date.now(); },
+  update() {
+    if (!this.running) return;
+    const now = Date.now();
+    if (now - this.lastTick >= 1000) {
+      this.roundTimer--;
+      this.lastTick = now;
+      if (this.roundTimer <= 0) this.finishGame();
+    }
 
-function _renderTTTGrid() {
-  var grid = document.getElementById('ttt-grid');
-  grid.innerHTML = '';
-  
-  for (var i = 0; i < 9; i++) {
-    var cell = document.createElement('div');
-    cell.className = 'ttt-cell';
-    if (tttBoard[i]) {
-      cell.classList.add(tttBoard[i]);
-      cell.textContent = tttBoard[i];
+    // Movimentar pás de acordo com inputs
+    for (let p in App.players) {
+      const paddle = this.paddles[p];
+      let moveDir = 0;
+      if (p === App.myId) {
+        moveDir = App.input.getDir().y;
+      } else {
+        const clientInput = App.players[p].input || { y: 0 };
+        moveDir = clientInput.y;
+      }
+      paddle.y += moveDir * 6;
+      paddle.y = Math.max(10, Math.min(490, paddle.y));
+    }
+
+    // Física Bola
+    const b = this.ball;
+    b.x += b.vx; b.y += b.vy;
+    
+    if (b.y - b.r < 0 || b.y + b.r > 600) {
+      b.vy = -b.vy;
+      App.audio.play('hit');
+    }
+
+    // Colisão com pás
+    for (let p in this.paddles) {
+      const pad = this.paddles[p];
+      if (b.x + b.r > pad.x && b.x - b.r < pad.x + pad.w && b.y > pad.y && b.y < pad.y + pad.h) {
+        b.vx = -b.vx * 1.08; // Aceleração
+        b.vy += (Math.random() - 0.5) * 2;
+        b.x = pad.isLeft ? pad.x + pad.w + b.r : pad.x - b.r;
+        App.audio.play('click');
+        break;
+      }
+    }
+
+    // Ponto
+    if (b.x < 0) {
+      this.awardPoint(false);
+      this.resetBall();
+    } else if (b.x > 800) {
+      this.awardPoint(true);
+      this.resetBall();
+    }
+
+    App.net.broadcast({
+      type: 'game_state', ball: this.ball, paddles: this.paddles, timer: this.roundTimer, gameScores: this.scores
+    });
+  },
+  awardPoint(leftScored) {
+    App.audio.play('score');
+    for (let p in this.paddles) {
+      if (this.paddles[p].isLeft === leftScored) {
+        this.scores[p] += 10;
+      }
+    }
+  },
+  resetBall() {
+    this.ball = { x: 400, y: 300, vx: (Math.random() > 0.5 ? 5 : -5), vy: (Math.random() * 6 - 3), r: 10 };
+  },
+  render(ctx) {
+    // Desenhar área central
+    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(400, 0); ctx.lineTo(400, 600); ctx.stroke();
+
+    // Pás
+    for (let p in this.paddles) {
+      const pad = this.paddles[p];
+      ctx.fillStyle = pad.color;
+      ctx.fillRect(pad.x, pad.y, pad.w, pad.h);
+      ctx.fillStyle = "#fff";
+      ctx.font = "10px Share Tech Mono";
+      ctx.fillText(pad.name.substring(0, 5), pad.x - 10, pad.y - 6);
+    }
+    // Bola
+    ctx.fillStyle = "#fff";
+    ctx.beginPath(); ctx.arc(this.ball.x, this.ball.y, this.ball.r, 0, Math.PI*2); ctx.fill();
+  },
+  handleNetworkMessage(peerId, data) {
+    if (data.type === 'input') {
+      if (App.players[peerId]) App.players[peerId].input = data.dir;
+    }
+  },
+  clientStateUpdate(data) {
+    this.ball = data.ball; this.paddles = data.paddles; this.roundTimer = data.timer; this.scores = data.gameScores;
+    App.ui.updateHUD(this.roundTimer, "PONG ARENA", 100, this.scores);
+  },
+  playerDisconnected(peerId) {
+    delete this.paddles[peerId];
+  },
+  finishGame() {
+    this.running = false;
+    App.activeGame = null;
+    const ranks = Object.keys(this.scores).map(k => {
+      return { id: k, name: App.players[k].name, color: App.players[k].color, score: this.scores[k] };
+    }).sort((a,b) => b.score - a.score);
+    
+    const basePts = [10, 7, 5, 2, 2, 2, 2, 2];
+    const ptsEarned = {};
+    ranks.forEach((r, idx) => {
+      const pts = basePts[idx] || 2;
+      ptsEarned[r.id] = pts;
+      App.scores[r.id] += pts;
+    });
+    
+    App.net.broadcast({ type: 'round_complete', ranks, ptsEarned });
+    App.ui.showRoundResults(ranks, ptsEarned);
+  }
+};
+
+/* 2. PASSE A BOMBA */
+Minigames.bomba = {
+  name: "Passe a Bomba",
+  desc: "Fuja de quem está com a bomba! Toque em outro jogador para passar a bomba.",
+  controls: "keyboard",
+  init() {
+    this.pStates = {};
+    this.running = false;
+    this.roundTimer = App.settings.duration;
+    this.lastTick = 0;
+    this.bombHolder = null;
+    this.fuseTimer = 8; // Explosão parcial aleatória
+    
+    let idx = 0;
+    const count = Object.keys(App.players).length;
+    for (let p in App.players) {
+      const angle = (idx / count) * Math.PI * 2;
+      this.pStates[p] = {
+        x: 400 + Math.cos(angle) * 150, y: 300 + Math.sin(angle) * 150,
+        r: 16, hp: 100, dead: false, color: App.players[p].color, name: App.players[p].name
+      };
+      idx++;
+    }
+    this.pickNextBombHolder();
+  },
+  pickNextBombHolder() {
+    const alive = Object.keys(this.pStates).filter(k => !this.pStates[k].dead);
+    if (alive.length > 1) {
+      this.bombHolder = alive[Math.floor(Math.random() * alive.length)];
+      this.fuseTimer = 6 + Math.floor(Math.random() * 5);
+      if (App.sessionStats.bombCount[this.bombHolder] === undefined) App.sessionStats.bombCount[this.bombHolder] = 0;
+      App.sessionStats.bombCount[this.bombHolder]++;
+    }
+  },
+  start() { this.running = true; this.lastTick = Date.now(); },
+  update() {
+    if (!this.running) return;
+    const now = Date.now();
+    if (now - this.lastTick >= 1000) {
+      this.roundTimer--;
+      this.fuseTimer--;
+      this.lastTick = now;
+      if (this.fuseTimer <= 0) {
+        this.explodeBomb();
+      }
+      if (this.roundTimer <= 0) this.finishGame();
+    }
+
+    // Movimentação
+    for (let p in App.players) {
+      const state = this.pStates[p];
+      if (state.dead) continue;
+      let moveDir = { x: 0, y: 0 };
+      if (p === App.myId) {
+        moveDir = App.input.getDir();
+      } else {
+        moveDir = App.players[p].inputDir || { x: 0, y: 0 };
+      }
+      state.x += moveDir.x * 5.5;
+      state.y += moveDir.y * 5.5;
+      state.x = Math.max(30, Math.min(770, state.x));
+      state.y = Math.max(30, Math.min(570, state.y));
+    }
+
+    // Colisão para passar bomba
+    if (this.bombHolder) {
+      const holder = this.pStates[this.bombHolder];
+      for (let p in this.pStates) {
+        if (p === this.bombHolder || this.pStates[p].dead) continue;
+        const target = this.pStates[p];
+        const dist = Math.hypot(holder.x - target.x, holder.y - target.y);
+        if (dist < holder.r + target.r + 5) {
+          this.bombHolder = p;
+          App.audio.play('click');
+          break;
+        }
+      }
+    }
+
+    App.net.broadcast({
+      type: 'game_state', pStates: this.pStates, bombHolder: this.bombHolder, timer: this.roundTimer, fuse: this.fuseTimer
+    });
+  },
+  explodeBomb() {
+    if (this.bombHolder) {
+      App.audio.play('explosion');
+      this.pStates[this.bombHolder].dead = true;
+      this.pStates[this.bombHolder].hp = 0;
     }
     
-    (function(idx) {
-      cell.onclick = function() {
-        _makeTTTMove(idx);
-      };
-    })(i);
-
-    grid.appendChild(cell);
-  }
-}
-
-function _updateTTTStatus() {
-  var txt = document.getElementById('ttt-turn-txt');
-  if (tttWinner) {
-    if (tttWinner === 'draw') {
-      txt.textContent = "Houve um empate! 🤝";
+    const alive = Object.keys(this.pStates).filter(k => !this.pStates[k].dead);
+    if (alive.length <= 1) {
+      this.finishGame();
     } else {
-      txt.textContent = tttWinner === tttMySymbol ? "Você venceu! 🎉" : "Seu par venceu!";
+      this.pickNextBombHolder();
     }
-  } else {
-    txt.textContent = tttActivePlayerSymbol === tttMySymbol ? "Sua vez de jogar!" : "Aguardando jogada do seu par...";
+  },
+  render(ctx) {
+    // Arena limite visual
+    ctx.strokeStyle = "rgba(255,255,255,0.1)";
+    ctx.lineWidth = 10;
+    ctx.strokeRect(20, 20, 760, 560);
+
+    for (let p in this.pStates) {
+      const state = this.pStates[p];
+      if (state.dead) continue;
+      
+      ctx.fillStyle = state.color;
+      ctx.beginPath(); ctx.arc(state.x, state.y, state.r, 0, Math.PI*2); ctx.fill();
+      
+      // Indicador da bomba
+      if (p === this.bombHolder) {
+        ctx.fillStyle = "#ef4444";
+        ctx.beginPath(); ctx.arc(state.x, state.y, state.r + 10, 0, Math.PI*2); ctx.stroke();
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 14px Share Tech Mono";
+        ctx.fillText("💣", state.x - 8, state.y - 25);
+      }
+      ctx.fillStyle = "#fff";
+      ctx.font = "10px Share Tech Mono";
+      ctx.fillText(state.name, state.x - 20, state.y - 18);
+    }
+  },
+  handleNetworkMessage(peerId, data) {
+    if (data.type === 'input') {
+      if (App.players[peerId]) App.players[peerId].inputDir = data.dir;
+    }
+  },
+  clientStateUpdate(data) {
+    this.pStates = data.pStates; this.bombHolder = data.bombHolder; this.roundTimer = data.timer;
+    const myState = this.pStates[App.peer.id] || { hp: 100 };
+    App.ui.updateHUD(this.roundTimer, "PASSE A BOMBA", myState.hp);
+  },
+  playerDisconnected(peerId) {
+    if (this.pStates[peerId]) this.pStates[peerId].dead = true;
+  },
+  finishGame() {
+    this.running = false;
+    App.activeGame = null;
+    const ranks = Object.keys(this.pStates).map(k => {
+      return { id: k, name: App.players[k].name, color: App.players[k].color, dead: this.pStates[k].dead };
+    }).sort((a,b) => (a.dead ? 1 : 0) - (b.dead ? 1 : 0));
+    
+    const basePts = [10, 7, 5, 2, 2, 2, 2, 2];
+    const ptsEarned = {};
+    ranks.forEach((r, idx) => {
+      const pts = basePts[idx] || 2;
+      ptsEarned[r.id] = pts;
+      App.scores[r.id] += pts;
+    });
+    App.net.broadcast({ type: 'round_complete', ranks, ptsEarned });
+    App.ui.showRoundResults(ranks, ptsEarned);
   }
-}
+};
 
-function _makeTTTMove(index) {
-  if (tttBoard[index] || tttWinner || tttActivePlayerSymbol !== tttMySymbol) return;
+/* 3. PISO PERIGOSO */
+Minigames.piso = {
+  name: "Piso Perigoso",
+  desc: "Corra para o piso da cor indicada antes do tempo expirar!",
+  controls: "keyboard",
+  init() {
+    this.pStates = {};
+    this.running = false;
+    this.roundTimer = App.settings.duration;
+    this.lastTick = 0;
+    this.grid = [];
+    this.colors = ["#ef4444", "#38bdf8", "#10b981", "#ffd166"];
+    this.targetColor = "";
+    this.tileTimer = 5; // Tempo para correr
+    this.warningMode = false;
+    
+    // Criar Grid 3x3
+    for(let r=0; r<3; r++) {
+      for(let c=0; c<3; c++) {
+        this.grid.push({
+          x: 100 + c * 200, y: 50 + r * 170, w: 180, h: 150,
+          color: this.colors[Math.floor(Math.random() * this.colors.length)]
+        });
+      }
+    }
+    
+    let idx = 0;
+    for (let p in App.players) {
+      this.pStates[p] = { x: 400, y: 300, hp: 100, dead: false, color: App.players[p].color, name: App.players[p].name };
+      idx++;
+    }
+    this.pickNextTarget();
+  },
+  pickNextTarget() {
+    this.targetColor = this.colors[Math.floor(Math.random() * this.colors.length)];
+    this.tileTimer = Math.max(2.5, 5 - (App.gameState.cycle * 0.5)); // Dificuldade progressiva
+    this.warningMode = true;
+  },
+  start() { this.running = true; this.lastTick = Date.now(); },
+  update() {
+    if (!this.running) return;
+    const now = Date.now();
+    if (now - this.lastTick >= 100) {
+      this.tileTimer -= 0.1;
+      this.lastTick = now;
+      if (this.tileTimer <= 0) {
+        if (this.warningMode) {
+          this.applyLavaDamage();
+          this.warningMode = false;
+          this.tileTimer = 1.5; // Tempo de exibição da lava
+        } else {
+          App.gameState.cycle++;
+          this.pickNextTarget();
+        }
+      }
+    }
 
-  tttBoard[index] = tttMySymbol;
-  tttActivePlayerSymbol = tttMySymbol === 'X' ? 'O' : 'X';
-  _checkTTTWinCondition();
+    // Movimentação
+    for (let p in App.players) {
+      const state = this.pStates[p];
+      if (state.dead) continue;
+      let moveDir = { x: 0, y: 0 };
+      if (p === App.myId) {
+        moveDir = App.input.getDir();
+      } else {
+        moveDir = App.players[p].inputDir || { x: 0, y: 0 };
+      }
+      state.x += moveDir.x * 6;
+      state.y += moveDir.y * 6;
+      state.x = Math.max(40, Math.min(760, state.x));
+      state.y = Math.max(40, Math.min(560, state.y));
+    }
+
+    App.net.broadcast({
+      type: 'game_state', pStates: this.pStates, grid: this.grid, targetColor: this.targetColor, tileTimer: this.tileTimer, warning: this.warningMode
+    });
+  },
+  applyLavaDamage() {
+    App.audio.play('hit');
+    for (let p in this.pStates) {
+      const state = this.pStates[p];
+      if (state.dead) continue;
+      let safe = false;
+      
+      // Encontrar em qual bloco está
+      for (let tile of this.grid) {
+        if (state.x > tile.x && state.x < tile.x + tile.w && state.y > tile.y && state.y < tile.y + tile.h) {
+          if (tile.color === this.targetColor) {
+            safe = true;
+          }
+        }
+      }
+      if (!safe) {
+        state.hp -= 35;
+        if (state.hp <= 0) {
+          state.dead = true;
+          state.hp = 0;
+        }
+      }
+    }
+    
+    const alive = Object.keys(this.pStates).filter(k => !this.pStates[k].dead);
+    if (alive.length === 0) this.finishGame();
+  },
+  render(ctx) {
+    // Desenhar Grid
+    this.grid.forEach(tile => {
+      ctx.fillStyle = (!this.warningMode && tile.color !== this.targetColor) ? "#201111" : tile.color;
+      ctx.fillRect(tile.x, tile.y, tile.w, tile.h);
+      ctx.strokeStyle = "rgba(255,255,255,0.1)";
+      ctx.strokeRect(tile.x, tile.y, tile.w, tile.h);
+    });
+
+    // Indicador da cor alvo no topo
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 16px Share Tech Mono";
+    ctx.fillText("CORRA PARA A COR:", 300, 30);
+    ctx.fillStyle = this.targetColor;
+    ctx.fillRect(460, 12, 30, 20);
+
+    // Jogadores
+    for (let p in this.pStates) {
+      const state = this.pStates[p];
+      if (state.dead) continue;
+      ctx.fillStyle = state.color;
+      ctx.beginPath(); ctx.arc(state.x, state.y, 14, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "10px Share Tech Mono";
+      ctx.fillText(state.name, state.x - 20, state.y - 18);
+    }
+  },
+  handleNetworkMessage(peerId, data) {
+    if (data.type === 'input') {
+      if (App.players[peerId]) App.players[peerId].inputDir = data.dir;
+    }
+  },
+  clientStateUpdate(data) {
+    this.pStates = data.pStates; this.grid = data.grid; this.targetColor = data.targetColor; this.tileTimer = data.tileTimer; this.warningMode = data.warning;
+    const myState = this.pStates[App.peer.id] || { hp: 100 };
+    App.ui.updateHUD(Math.ceil(this.tileTimer), "PISO PERIGOSO", myState.hp);
+  },
+  playerDisconnected(peerId) {
+    if (this.pStates[peerId]) this.pStates[peerId].dead = true;
+  },
+  finishGame() {
+    this.running = false;
+    App.activeGame = null;
+    const ranks = Object.keys(this.pStates).map(k => {
+      return { id: k, name: App.players[k].name, color: App.players[k].color, hp: this.pStates[k].hp };
+    }).sort((a,b) => b.hp - a.hp);
+    
+    const basePts = [10, 7, 5, 2, 2, 2, 2, 2];
+    const ptsEarned = {};
+    ranks.forEach((r, idx) => {
+      const pts = basePts[idx] || 2;
+      ptsEarned[r.id] = pts;
+      App.scores[r.id] += pts;
+    });
+    App.net.broadcast({ type: 'round_complete', ranks, ptsEarned });
+    App.ui.showRoundResults(ranks, ptsEarned);
+  }
+};
+
+/* 4. CORRIDA MALUCA */
+Minigames.corrida = {
+  name: "Corrida Maluca",
+  desc: "Desvie dos blocos de segurança e chegue na linha de chegada (Extremo Direito)!",
+  controls: "keyboard",
+  init() {
+    this.pStates = {};
+    this.running = false;
+    this.roundTimer = App.settings.duration;
+    this.lastTick = 0;
+    this.obstacles = [];
+    
+    // Criar barreiras que movem verticalmente
+    for(let i=0; i<6; i++) {
+      this.obstacles.push({
+        x: 180 + i * 90, y: Math.random() * 300, w: 24, h: 180,
+        vy: (1.5 + Math.random() * 2.5) * (Math.random() > 0.5 ? 1 : -1)
+      });
+    }
+
+    let idx = 0;
+    for (let p in App.players) {
+      this.pStates[p] = { x: 50, y: 100 + idx * 60, color: App.players[p].color, name: App.players[p].name, finished: false };
+      idx++;
+    }
+  },
+  start() { this.running = true; this.lastTick = Date.now(); },
+  update() {
+    if (!this.running) return;
+    const now = Date.now();
+    if (now - this.lastTick >= 1000) {
+      this.roundTimer--;
+      this.lastTick = now;
+      if (this.roundTimer <= 0) this.finishGame();
+    }
+
+    // Obstáculos movem
+    this.obstacles.forEach(o => {
+      o.y += o.vy;
+      if (o.y < 0 || o.y + o.h > 600) o.vy = -o.vy;
+    });
+
+    // Movimentação do player
+    for (let p in App.players) {
+      const state = this.pStates[p];
+      if (state.finished) continue;
+      
+      let moveDir = { x: 0, y: 0 };
+      if (p === App.myId) {
+        moveDir = App.input.getDir();
+      } else {
+        moveDir = App.players[p].inputDir || { x: 0, y: 0 };
+      }
+      
+      state.x += moveDir.x * 5;
+      state.y += moveDir.y * 5;
+      state.x = Math.max(30, state.x);
+      state.y = Math.max(30, Math.min(570, state.y));
+
+      // Colisões com barreiras
+      this.obstacles.forEach(o => {
+        if (state.x + 12 > o.x && state.x - 12 < o.x + o.w && state.y + 12 > o.y && state.y - 12 < o.y + o.h) {
+          state.x -= 80; // Penalidade: retrocede
+          App.audio.play('hit');
+        }
+      });
+
+      if (state.x >= 760) {
+        state.finished = true;
+        App.audio.play('score');
+      }
+    }
+
+    // Verificar fim
+    const active = Object.keys(this.pStates).filter(k => !this.pStates[k].finished);
+    if (active.length === 0) this.finishGame();
+
+    App.net.broadcast({
+      type: 'game_state', pStates: this.pStates, obstacles: this.obstacles, timer: this.roundTimer
+    });
+  },
+  render(ctx) {
+    // Linha de chegada
+    ctx.fillStyle = "#10b981";
+    ctx.fillRect(750, 0, 50, 600);
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 14px Share Tech Mono";
+    ctx.fillText("CHEGADA", 755, 300);
+
+    // Obstáculos
+    ctx.fillStyle = "#3b82f6";
+    this.obstacles.forEach(o => {
+      ctx.fillRect(o.x, o.y, o.w, o.h);
+    });
+
+    // Players
+    for (let p in this.pStates) {
+      const state = this.pStates[p];
+      ctx.fillStyle = state.color;
+      ctx.beginPath(); ctx.arc(state.x, state.y, 14, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "10px Share Tech Mono";
+      ctx.fillText(state.name, state.x - 20, state.y - 18);
+    }
+  },
+  handleNetworkMessage(peerId, data) {
+    if (data.type === 'input') {
+      if (App.players[peerId]) App.players[peerId].inputDir = data.dir;
+    }
+  },
+  clientStateUpdate(data) {
+    this.pStates = data.pStates; this.obstacles = data.obstacles; this.roundTimer = data.timer;
+    App.ui.updateHUD(this.roundTimer, "CORRIDA MALUCA", 100);
+  },
+  playerDisconnected(peerId) {
+    delete this.pStates[peerId];
+  },
+  finishGame() {
+    this.running = false;
+    App.activeGame = null;
+    const ranks = Object.keys(this.pStates).map(k => {
+      return { id: k, name: App.players[k].name, color: App.players[k].color, x: this.pStates[k].x };
+    }).sort((a,b) => b.x - a.x);
+    
+    const basePts = [10, 7, 5, 2, 2, 2, 2, 2];
+    const ptsEarned = {};
+    ranks.forEach((r, idx) => {
+      const pts = basePts[idx] || 2;
+      ptsEarned[r.id] = pts;
+      App.scores[r.id] += pts;
+    });
+    App.net.broadcast({ type: 'round_complete', ranks, ptsEarned });
+    App.ui.showRoundResults(ranks, ptsEarned);
+  }
+};
+
+/* 5. ARENA DE ESQUIVA */
+Minigames.esquiva = {
+  name: "Arena de Esquiva",
+  desc: "Sobreviva aos mísseis da arena! Eles surgem nas bordas continuamente.",
+  controls: "keyboard",
+  init() {
+    this.pStates = {};
+    this.running = false;
+    this.roundTimer = App.settings.duration;
+    this.lastTick = 0;
+    this.missiles = [];
+    this.missileInterval = 0;
+
+    let idx = 0;
+    for (let p in App.players) {
+      this.pStates[p] = { x: 400, y: 300, hp: 100, dead: false, color: App.players[p].color, name: App.players[p].name, invuln: 0 };
+      idx++;
+    }
+  },
+  start() { this.running = true; this.lastTick = Date.now(); },
+  update() {
+    if (!this.running) return;
+    const now = Date.now();
+    if (now - this.lastTick >= 1000) {
+      this.roundTimer--;
+      this.lastTick = now;
+      if (this.roundTimer <= 0) this.finishGame();
+    }
+
+    // Gerador de mísseis
+    this.missileInterval++;
+    if (this.missileInterval % 12 === 0) {
+      const side = Math.floor(Math.random() * 4);
+      let mx = 0, my = 0, mvx = 0, mvy = 0;
+      if (side === 0) { mx = 0; my = Math.random() * 600; mvx = 4 + Math.random()*4; mvy = (Math.random() - 0.5) * 2; }
+      else if (side === 1) { mx = 800; my = Math.random() * 600; mvx = -4 - Math.random()*4; mvy = (Math.random() - 0.5) * 2; }
+      else if (side === 2) { mx = Math.random() * 800; my = 0; mvx = (Math.random() - 0.5) * 2; mvy = 4 + Math.random()*4; }
+      else { mx = Math.random() * 800; my = 600; mvx = (Math.random() - 0.5) * 2; mvy = -4 - Math.random()*4; }
+      
+      this.missiles.push({ x: mx, y: my, vx: mvx, vy: mvy });
+    }
+
+    // Atualizar Mísseis
+    for (let i = this.missiles.length - 1; i >= 0; i--) {
+      const m = this.missiles[i];
+      m.x += m.vx; m.y += m.vy;
+      if (m.x < -20 || m.x > 820 || m.y < -20 || m.y > 620) {
+        this.missiles.splice(i, 1);
+      }
+    }
+
+    // Movimentação do player & colisões
+    for (let p in App.players) {
+      const state = this.pStates[p];
+      if (state.dead) continue;
+      if (state.invuln > 0) state.invuln--;
+
+      let moveDir = { x: 0, y: 0 };
+      if (p === App.myId) {
+        moveDir = App.input.getDir();
+      } else {
+        moveDir = App.players[p].inputDir || { x: 0, y: 0 };
+      }
+      state.x += moveDir.x * 6;
+      state.y += moveDir.y * 6;
+      state.x = Math.max(30, Math.min(770, state.x));
+      state.y = Math.max(30, Math.min(570, state.y));
+
+      // Testar colisão com mísseis
+      this.missiles.forEach(m => {
+        const d = Math.hypot(state.x - m.x, state.y - m.y);
+        if (d < 24 && state.invuln === 0) {
+          state.hp -= 20;
+          state.invuln = 30; // ~1 segundo invulnerabilidade
+          App.audio.play('hit');
+          if (state.hp <= 0) {
+            state.dead = true;
+            state.hp = 0;
+          }
+        }
+      });
+    }
+
+    const alive = Object.keys(this.pStates).filter(k => !this.pStates[k].dead);
+    if (alive.length === 0) this.finishGame();
+
+    App.net.broadcast({
+      type: 'game_state', pStates: this.pStates, missiles: this.missiles, timer: this.roundTimer
+    });
+  },
+  render(ctx) {
+    // Arena limite visual
+    ctx.strokeStyle = "rgba(239,68,68,0.2)";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(20, 20, 760, 560);
+
+    // Mísseis
+    ctx.fillStyle = "#ef4444";
+    this.missiles.forEach(m => {
+      ctx.beginPath(); ctx.arc(m.x, m.y, 8, 0, Math.PI*2); ctx.fill();
+    });
+
+    // Players
+    for (let p in this.pStates) {
+      const state = this.pStates[p];
+      if (state.dead) continue;
+      
+      // Efeito piscante se invulnerável
+      if (state.invuln > 0 && Math.floor(Date.now() / 100) % 2 === 0) continue;
+
+      ctx.fillStyle = state.color;
+      ctx.beginPath(); ctx.arc(state.x, state.y, 14, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "10px Share Tech Mono";
+      ctx.fillText(state.name, state.x - 20, state.y - 18);
+    }
+  },
+  handleNetworkMessage(peerId, data) {
+    if (data.type === 'input') {
+      if (App.players[peerId]) App.players[peerId].inputDir = data.dir;
+    }
+  },
+  clientStateUpdate(data) {
+    this.pStates = data.pStates; this.missiles = data.missiles; this.roundTimer = data.timer;
+    const myState = this.pStates[App.peer.id] || { hp: 100 };
+    App.ui.updateHUD(this.roundTimer, "ARENA DE ESQUIVA", myState.hp);
+  },
+  playerDisconnected(peerId) {
+    if (this.pStates[peerId]) this.pStates[peerId].dead = true;
+  },
+  finishGame() {
+    this.running = false;
+    App.activeGame = null;
+    const ranks = Object.keys(this.pStates).map(k => {
+      return { id: k, name: App.players[k].name, color: App.players[k].color, hp: this.pStates[k].hp };
+    }).sort((a,b) => b.hp - a.hp);
+    
+    const basePts = [10, 7, 5, 2, 2, 2, 2, 2];
+    const ptsEarned = {};
+    ranks.forEach((r, idx) => {
+      const pts = basePts[idx] || 2;
+      ptsEarned[r.id] = pts;
+      App.scores[r.id] += pts;
+    });
+    App.net.broadcast({ type: 'round_complete', ranks, ptsEarned });
+    App.ui.showRoundResults(ranks, ptsEarned);
+  }
+};
+
+/* 6. SNAKE BATTLE */
+Minigames.snake = {
+  name: "Snake Battle",
+  desc: "Colete itens brilhantes e cresça! Não bata nas bordas nem em outros jogadores.",
+  controls: "keyboard",
+  init() {
+    this.pStates = {};
+    this.running = false;
+    this.roundTimer = App.settings.duration;
+    this.lastTick = 0;
+    this.apples = [];
+    
+    // Spawn de maçãs
+    for (let i=0; i<10; i++) {
+      this.apples.push({ x: 100 + Math.random() * 600, y: 100 + Math.random() * 400, r: 8 });
+    }
+
+    let idx = 0;
+    for (let p in App.players) {
+      this.pStates[p] = {
+        trail: [{ x: 200 + idx * 80, y: 300 }],
+        dir: { x: 1, y: 0 }, hp: 100, dead: false,
+        color: App.players[p].color, name: App.players[p].name
+      };
+      idx++;
+    }
+  },
+  start() { this.running = true; this.lastTick = Date.now(); },
+  update() {
+    if (!this.running) return;
+    const now = Date.now();
+    if (now - this.lastTick >= 1000) {
+      this.roundTimer--;
+      this.lastTick = now;
+      if (this.roundTimer <= 0) this.finishGame();
+    }
+
+    // Processar direção e posições
+    for (let p in App.players) {
+      const state = this.pStates[p];
+      if (state.dead) continue;
+      
+      let inpDir = { x: 0, y: 0 };
+      if (p === App.myId) {
+        inpDir = App.input.getDir();
+      } else {
+        inpDir = App.players[p].inputDir || { x: 0, y: 0 };
+      }
+      
+      if (inpDir.x !== 0 || inpDir.y !== 0) {
+        // Evitar que morda as próprias costas imediatamente
+        if (Math.abs(inpDir.x - state.dir.x) !== 2 && Math.abs(inpDir.y - state.dir.y) !== 2) {
+          state.dir = inpDir;
+        }
+      }
+
+      const head = state.trail[0];
+      const newHead = { x: head.x + state.dir.x * 4.5, y: head.y + state.dir.y * 4.5 };
+      state.trail.unshift(newHead);
+
+      // Limitar tamanho padrão se não comer nada
+      if (state.trail.length > 30) {
+        state.trail.pop();
+      }
+
+      // Check limite mapa
+      if (newHead.x < 10 || newHead.x > 790 || newHead.y < 10 || newHead.y > 590) {
+        state.dead = true;
+        state.hp = 0;
+        App.audio.play('hit');
+      }
+
+      // Comer Maçã
+      this.apples.forEach((a, aIdx) => {
+        const d = Math.hypot(newHead.x - a.x, newHead.y - a.y);
+        if (d < 18) {
+          state.trail.push({ x: a.x, y: a.y }); // Cresce
+          this.apples[aIdx] = { x: 100 + Math.random() * 600, y: 100 + Math.random() * 400, r: 8 };
+          App.audio.play('score');
+        }
+      });
+    }
+
+    App.net.broadcast({
+      type: 'game_state', pStates: this.pStates, apples: this.apples, timer: this.roundTimer
+    });
+  },
+  render(ctx) {
+    // Maçãs
+    ctx.fillStyle = "#fbbf24";
+    this.apples.forEach(a => {
+      ctx.beginPath(); ctx.arc(a.x, a.y, a.r, 0, Math.PI*2); ctx.fill();
+    });
+
+    // Snakes
+    for (let p in this.pStates) {
+      const state = this.pStates[p];
+      if (state.dead) continue;
+      
+      ctx.fillStyle = state.color;
+      state.trail.forEach((pt, sidx) => {
+        const scale = Math.max(4, 12 - sidx * 0.2);
+        ctx.beginPath(); ctx.arc(pt.x, pt.y, scale, 0, Math.PI*2); ctx.fill();
+      });
+      
+      const head = state.trail[0];
+      ctx.fillStyle = "#fff";
+      ctx.font = "10px Share Tech Mono";
+      ctx.fillText(state.name, head.x - 20, head.y - 18);
+    }
+  },
+  handleNetworkMessage(peerId, data) {
+    if (data.type === 'input') {
+      if (App.players[peerId]) App.players[peerId].inputDir = data.dir;
+    }
+  },
+  clientStateUpdate(data) {
+    this.pStates = data.pStates; this.apples = data.apples; this.roundTimer = data.timer;
+    const myState = this.pStates[App.peer.id] || { hp: 100 };
+    App.ui.updateHUD(this.roundTimer, "SNAKE BATTLE", myState.hp);
+  },
+  playerDisconnected(peerId) {
+    if (this.pStates[peerId]) this.pStates[peerId].dead = true;
+  },
+  finishGame() {
+    this.running = false;
+    App.activeGame = null;
+    const ranks = Object.keys(this.pStates).map(k => {
+      return { id: k, name: App.players[k].name, color: App.players[k].color, len: this.pStates[k].trail.length, dead: this.pStates[k].dead };
+    }).sort((a,b) => (a.dead ? 1 : 0) - (b.dead ? 1 : 0) || b.len - a.len);
+    
+    const basePts = [10, 7, 5, 2, 2, 2, 2, 2];
+    const ptsEarned = {};
+    ranks.forEach((r, idx) => {
+      const pts = basePts[idx] || 2;
+      ptsEarned[r.id] = pts;
+      App.scores[r.id] += pts;
+    });
+    App.net.broadcast({ type: 'round_complete', ranks, ptsEarned });
+    App.ui.showRoundResults(ranks, ptsEarned);
+  }
+};
+
+/* 7. REI DA ÁREA */
+Minigames.rei = {
+  name: "Rei da Área",
+  desc: "Mantenha-se dentro da área brilhante para pontuar! Pressione Espaço para empurrar.",
+  controls: "keyboard",
+  init() {
+    this.pStates = {};
+    this.running = false;
+    this.roundTimer = App.settings.duration;
+    this.lastTick = 0;
+    this.zone = { x: 400, y: 300, r: 80 };
+    this.scores = {};
+    this.pushCooldowns = {};
+
+    let idx = 0;
+    for (let p in App.players) {
+      this.pStates[p] = { x: 150 + idx * 80, y: 300, color: App.players[p].color, name: App.players[p].name };
+      this.scores[p] = 0;
+      this.pushCooldowns[p] = 0;
+      idx++;
+    }
+  },
+  start() { this.running = true; this.lastTick = Date.now(); },
+  update() {
+    if (!this.running) return;
+    const now = Date.now();
+    if (now - this.lastTick >= 100) {
+      this.lastTick = now;
+      this.roundTimer -= 0.1;
+      
+      // Pontuar quem está dentro da área
+      for (let p in this.pStates) {
+        const state = this.pStates[p];
+        const dist = Math.hypot(state.x - this.zone.x, state.y - this.zone.y);
+        if (dist < this.zone.r) {
+          this.scores[p] += 1;
+        }
+      }
+
+      // Mover área ocasionalmente
+      if (Math.ceil(this.roundTimer) % 8 === 0 && Math.abs(this.roundTimer - Math.ceil(this.roundTimer)) < 0.1) {
+        this.zone.x = 150 + Math.random() * 500;
+        this.zone.y = 150 + Math.random() * 300;
+        App.audio.play('score');
+      }
+
+      if (this.roundTimer <= 0) this.finishGame();
+    }
+
+    // Cooldown empurrão
+    for (let p in this.pushCooldowns) {
+      if (this.pushCooldowns[p] > 0) this.pushCooldowns[p]--;
+    }
+
+    // Movimentação & Empurrão
+    for (let p in App.players) {
+      const state = this.pStates[p];
+      let moveDir = { x: 0, y: 0 };
+      let act = false;
+      if (p === App.myId) {
+        moveDir = App.input.getDir();
+        act = App.input.actionPressed;
+      } else {
+        moveDir = App.players[p].inputDir || { x: 0, y: 0 };
+        act = App.players[p].action || false;
+      }
+
+      state.x += moveDir.x * 5;
+      state.y += moveDir.y * 5;
+      state.x = Math.max(30, Math.min(770, state.x));
+      state.y = Math.max(30, Math.min(570, state.y));
+
+      if (act && this.pushCooldowns[p] === 0) {
+        this.pushCooldowns[p] = 20; // 2 segundos
+        App.audio.play('hit');
+        if (App.sessionStats.pushCount[p] === undefined) App.sessionStats.pushCount[p] = 0;
+        App.sessionStats.pushCount[p]++;
+
+        // Aplicar força em oponentes próximos
+        for (let other in this.pStates) {
+          if (other === p) continue;
+          const target = this.pStates[other];
+          const dist = Math.hypot(state.x - target.x, state.y - target.y);
+          if (dist < 80) {
+            const angle = Math.atan2(target.y - state.y, target.x - state.x);
+            target.x += Math.cos(angle) * 110;
+            target.y += Math.sin(angle) * 110;
+          }
+        }
+      }
+    }
+
+    App.net.broadcast({
+      type: 'game_state', pStates: this.pStates, zone: this.zone, gameScores: this.scores, timer: this.roundTimer
+    });
+  },
+  render(ctx) {
+    // Área Alvo
+    ctx.fillStyle = "rgba(56,189,248,0.06)";
+    ctx.strokeStyle = "rgba(56,189,248,0.25)";
+    ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(this.zone.x, this.zone.y, this.zone.r, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+
+    // Players
+    for (let p in this.pStates) {
+      const state = this.pStates[p];
+      ctx.fillStyle = state.color;
+      ctx.beginPath(); ctx.arc(state.x, state.y, 14, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "10px Share Tech Mono";
+      ctx.fillText(state.name, state.x - 20, state.y - 18);
+    }
+  },
+  handleNetworkMessage(peerId, data) {
+    if (data.type === 'input') {
+      if (App.players[peerId]) {
+        App.players[peerId].inputDir = data.dir;
+        App.players[peerId].action = data.action;
+      }
+    }
+  },
+  clientStateUpdate(data) {
+    this.pStates = data.pStates; this.zone = data.zone; this.scores = data.gameScores; this.roundTimer = data.timer;
+    App.ui.updateHUD(Math.ceil(this.roundTimer), "REI DA ÁREA", 100, this.scores);
+  },
+  playerDisconnected(peerId) {
+    delete this.pStates[peerId];
+  },
+  finishGame() {
+    this.running = false;
+    App.activeGame = null;
+    const ranks = Object.keys(this.pStates).map(k => {
+      return { id: k, name: App.players[k].name, color: App.players[k].color, score: this.scores[k] };
+    }).sort((a,b) => b.score - a.score);
+    
+    const basePts = [10, 7, 5, 2, 2, 2, 2, 2];
+    const ptsEarned = {};
+    ranks.forEach((r, idx) => {
+      const pts = basePts[idx] || 2;
+      ptsEarned[r.id] = pts;
+      App.scores[r.id] += pts;
+    });
+    App.net.broadcast({ type: 'round_complete', ranks, ptsEarned });
+    App.ui.showRoundResults(ranks, ptsEarned);
+  }
+};
+
+/* 8. CAÇA AO TESOURO */
+Minigames.caca = {
+  name: "Caça ao Tesouro",
+  desc: "Pegue moedas douradas! Moedas vermelhas tiram pontos de você.",
+  controls: "keyboard",
+  init() {
+    this.pStates = {};
+    this.running = false;
+    this.roundTimer = App.settings.duration;
+    this.lastTick = 0;
+    this.coins = [];
+    this.scores = {};
+    
+    // Moedas iniciais
+    for (let i=0; i<12; i++) {
+      this.coins.push({
+        x: 60 + Math.random() * 680, y: 60 + Math.random() * 480,
+        r: 10, isTrap: Math.random() > 0.8
+      });
+    }
+
+    let idx = 0;
+    for (let p in App.players) {
+      this.pStates[p] = { x: 150 + idx * 80, y: 300, color: App.players[p].color, name: App.players[p].name };
+      this.scores[p] = 0;
+      idx++;
+    }
+  },
+  start() { this.running = true; this.lastTick = Date.now(); },
+  update() {
+    if (!this.running) return;
+    const now = Date.now();
+    if (now - this.lastTick >= 1000) {
+      this.roundTimer--;
+      this.lastTick = now;
+      if (this.roundTimer <= 0) this.finishGame();
+    }
+
+    // Movimentação & Coleta
+    for (let p in App.players) {
+      const state = this.pStates[p];
+      let moveDir = { x: 0, y: 0 };
+      if (p === App.myId) {
+        moveDir = App.input.getDir();
+      } else {
+        moveDir = App.players[p].inputDir || { x: 0, y: 0 };
+      }
+      state.x += moveDir.x * 5.5;
+      state.y += moveDir.y * 5.5;
+      state.x = Math.max(30, Math.min(770, state.x));
+      state.y = Math.max(30, Math.min(570, state.y));
+
+      // Testar coleta
+      this.coins.forEach((c, cIdx) => {
+        const d = Math.hypot(state.x - c.x, state.y - c.y);
+        if (d < 22) {
+          if (c.isTrap) {
+            this.scores[p] = Math.max(0, this.scores[p] - 15);
+            App.audio.play('hit');
+          } else {
+            this.scores[p] += 10;
+            App.audio.play('score');
+            if (App.sessionStats.coinCount[p] === undefined) App.sessionStats.coinCount[p] = 0;
+            App.sessionStats.coinCount[p]++;
+          }
+          // Respawn
+          this.coins[cIdx] = {
+            x: 60 + Math.random() * 680, y: 60 + Math.random() * 480,
+            r: 10, isTrap: Math.random() > 0.85
+          };
+        }
+      });
+    }
+
+    App.net.broadcast({
+      type: 'game_state', pStates: this.pStates, coins: this.coins, gameScores: this.scores, timer: this.roundTimer
+    });
+  },
+  render(ctx) {
+    // Moedas
+    this.coins.forEach(c => {
+      ctx.fillStyle = c.isTrap ? "#ef4444" : "#f59e0b";
+      ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+
+    // Players
+    for (let p in this.pStates) {
+      const state = this.pStates[p];
+      ctx.fillStyle = state.color;
+      ctx.beginPath(); ctx.arc(state.x, state.y, 14, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "10px Share Tech Mono";
+      ctx.fillText(state.name, state.x - 20, state.y - 18);
+    }
+  },
+  handleNetworkMessage(peerId, data) {
+    if (data.type === 'input') {
+      if (App.players[peerId]) App.players[peerId].inputDir = data.dir;
+    }
+  },
+  clientStateUpdate(data) {
+    this.pStates = data.pStates; this.coins = data.coins; this.scores = data.gameScores; this.roundTimer = data.timer;
+    App.ui.updateHUD(this.roundTimer, "CAÇA AO TESOURO", 100, this.scores);
+  },
+  playerDisconnected(peerId) {
+    delete this.pStates[peerId];
+  },
+  finishGame() {
+    this.running = false;
+    App.activeGame = null;
+    const ranks = Object.keys(this.pStates).map(k => {
+      return { id: k, name: App.players[k].name, color: App.players[k].color, score: this.scores[k] };
+    }).sort((a,b) => b.score - a.score);
+    
+    const basePts = [10, 7, 5, 2, 2, 2, 2, 2];
+    const ptsEarned = {};
+    ranks.forEach((r, idx) => {
+      const pts = basePts[idx] || 2;
+      ptsEarned[r.id] = pts;
+      App.scores[r.id] += pts;
+    });
+    App.net.broadcast({ type: 'round_complete', ranks, ptsEarned });
+    App.ui.showRoundResults(ranks, ptsEarned);
+  }
+};
+
+/* 9. MEMÓRIA RÁPIDA */
+Minigames.memoria = {
+  name: "Memória Rápida",
+  desc: "Veja a ordem dos quadrantes piscando e reproduza clicando com o mouse / toque!",
+  controls: "mouse",
+  init() {
+    this.running = false;
+    this.roundTimer = App.settings.duration;
+    this.lastTick = 0;
+    this.sequence = [];
+    this.playerProgress = {}; // {playerId: {step: 0, seqLength: 3}}
+    this.quads = [
+      { id: 0, x: 220, y: 120, w: 160, h: 160, color: "#ef4444" },
+      { id: 1, x: 420, y: 120, w: 160, h: 160, color: "#38bdf8" },
+      { id: 2, x: 220, y: 320, w: 160, h: 160, color: "#10b981" },
+      { id: 3, x: 420, y: 320, w: 160, h: 160, color: "#f59e0b" }
+    ];
+    this.flashQuad = -1;
+    this.flashTimer = 0;
+    this.scores = {};
+
+    for (let p in App.players) {
+      this.playerProgress[p] = { step: 0, length: 3, success: false, fail: false };
+      this.scores[p] = 0;
+    }
+    this.generateNewSequence();
+  },
+  generateNewSequence() {
+    this.sequence = [];
+    for(let i=0; i<6; i++) {
+      this.sequence.push(Math.floor(Math.random() * 4));
+    }
+    this.playSequenceVisual();
+  },
+  playSequenceVisual() {
+    let idx = 0;
+    this.flashTimer = setInterval(() => {
+      if (idx < this.sequence.length) {
+        this.flashQuad = this.sequence[idx];
+        App.audio.play('click');
+        setTimeout(() => { this.flashQuad = -1; }, 500);
+        idx++;
+      } else {
+        clearInterval(this.flashTimer);
+        this.flashQuad = -1;
+      }
+    }, 900);
+  },
+  start() { this.running = true; this.lastTick = Date.now(); },
+  update() {
+    if (!this.running) return;
+    const now = Date.now();
+    if (now - this.lastTick >= 1000) {
+      this.roundTimer--;
+      this.lastTick = now;
+      if (this.roundTimer <= 0) this.finishGame();
+    }
+    
+    App.net.broadcast({
+      type: 'game_state', flashQuad: this.flashQuad, progress: this.playerProgress, timer: this.roundTimer, gameScores: this.scores
+    });
+  },
+  render(ctx) {
+    this.quads.forEach(q => {
+      ctx.fillStyle = (this.flashQuad === q.id) ? "#fff" : q.color;
+      ctx.fillRect(q.x, q.y, q.w, q.h);
+      ctx.strokeStyle = "rgba(0,0,0,0.3)";
+      ctx.strokeRect(q.x, q.y, q.w, q.h);
+    });
+
+    // Barra de progresso para o próprio jogador
+    const me = this.playerProgress[App.myId || App.peer?.id];
+    if (me) {
+      ctx.fillStyle = "#fff";
+      ctx.font = "14px Share Tech Mono";
+      ctx.fillText(`ETAPA: ${me.step} / ${me.length}`, 350, 80);
+      if (me.fail) { ctx.fillStyle = "#ef4444"; ctx.fillText("TENTATIVA INCORRETA! AGUARDE REINÍCIO.", 260, 520); }
+      if (me.success) { ctx.fillStyle = "#10b981"; ctx.fillText("PERFEITO!", 360, 520); }
+    }
+  },
+  handleNetworkMessage(peerId, data) {
+    if (data.type === 'click_quad') {
+      const prog = this.playerProgress[peerId];
+      if (!prog || prog.success || prog.fail) return;
+
+      const target = this.sequence[prog.step];
+      if (data.quadId === target) {
+        prog.step++;
+        if (prog.step >= prog.length) {
+          prog.success = true;
+          this.scores[peerId] += 20;
+          App.audio.play('score');
+          setTimeout(() => {
+            prog.step = 0; prog.length = Math.min(6, prog.length + 1); prog.success = false;
+          }, 1500);
+        }
+      } else {
+        prog.fail = true;
+        App.audio.play('hit');
+        setTimeout(() => { prog.step = 0; prog.fail = false; }, 2000);
+      }
+    }
+  },
+  clientStateUpdate(data) {
+    this.flashQuad = data.flashQuad; this.playerProgress = data.progress; this.roundTimer = data.timer; this.scores = data.gameScores;
+    App.ui.updateHUD(this.roundTimer, "MEMÓRIA RÁPIDA", 100, this.scores);
+  },
+  playerDisconnected(peerId) {
+    delete this.playerProgress[peerId];
+  },
+  finishGame() {
+    clearInterval(this.flashTimer);
+    this.running = false;
+    App.activeGame = null;
+    const ranks = Object.keys(this.scores).map(k => {
+      return { id: k, name: App.players[k].name, color: App.players[k].color, score: this.scores[k] };
+    }).sort((a,b) => b.score - a.score);
+    
+    const basePts = [10, 7, 5, 2, 2, 2, 2, 2];
+    const ptsEarned = {};
+    ranks.forEach((r, idx) => {
+      const pts = basePts[idx] || 2;
+      ptsEarned[r.id] = pts;
+      App.scores[r.id] += pts;
+    });
+    App.net.broadcast({ type: 'round_complete', ranks, ptsEarned });
+    App.ui.showRoundResults(ranks, ptsEarned);
+  }
+};
+
+/* 10. DUELO DE REFLEXO */
+Minigames.reflexo = {
+  name: "Duelo de Reflexo",
+  desc: "Espere o quadrante piscar em AZUL e pressione Espaço / Toque o mais rápido possível!",
+  controls: "reflex",
+  init() {
+    this.running = false;
+    this.roundTimer = 10;
+    this.lastTick = 0;
+    this.signalTriggered = false;
+    this.triggerTime = 0;
+    this.results = {}; // {playerId: reactionTime}
+    this.earlyClickers = {};
+
+    for (let p in App.players) {
+      this.results[p] = -1;
+    }
+    // Tempo aleatório para dar o sinal verde
+    this.delayTimer = setTimeout(() => {
+      this.triggerSignal();
+    }, 2000 + Math.random() * 4000);
+  },
+  triggerSignal() {
+    this.signalTriggered = true;
+    this.triggerTime = Date.now();
+    App.audio.play('go');
+  },
+  start() { this.running = true; this.lastTick = Date.now(); },
+  update() {
+    if (!this.running) return;
+    const now = Date.now();
+    if (now - this.lastTick >= 1000) {
+      this.roundTimer--;
+      this.lastTick = now;
+      if (this.roundTimer <= 0) this.finishGame();
+    }
+
+    App.net.broadcast({
+      type: 'game_state', triggered: this.signalTriggered, results: this.results, early: this.earlyClickers, timer: this.roundTimer
+    });
+  },
+  render(ctx) {
+    ctx.fillStyle = this.signalTriggered ? "#00f" : "#201111";
+    ctx.fillRect(100, 100, 600, 400);
+    ctx.strokeStyle = "rgba(255,255,255,0.1)";
+    ctx.strokeRect(100, 100, 600, 400);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 20px Share Tech Mono";
+    if (this.signalTriggered) {
+      ctx.fillText("CLIQUE AGORA!!", 320, 280);
+    } else {
+      ctx.fillText("PREPARE-SE...", 330, 280);
+    }
+
+    // Mostrar tempos abaixo
+    let idx = 0;
+    for (let p in this.results) {
+      ctx.fillStyle = App.players[p]?.color || "#fff";
+      const name = App.players[p]?.name || "Jogador";
+      const time = this.results[p];
+      let tText = "Aguardando...";
+      if (this.earlyClickers[p]) tText = "PREMATURO!";
+      else if (time > 0) tText = `${time} ms`;
+      ctx.fillText(`${name}: ${tText}`, 150, 430 + idx * 24);
+      idx++;
+    }
+  },
+  handleNetworkMessage(peerId, data) {
+    if (data.type === 'click_reflex') {
+      if (this.results[peerId] > 0 || this.earlyClickers[peerId]) return;
+
+      if (!this.signalTriggered) {
+        this.earlyClickers[peerId] = true;
+        App.audio.play('hit');
+      } else {
+        const diff = Date.now() - this.triggerTime;
+        this.results[peerId] = diff;
+        App.audio.play('score');
+        
+        if (diff < App.sessionStats.fastestTime) {
+          App.sessionStats.fastestTime = diff;
+          App.sessionStats.fastest = App.players[peerId]?.name || "-";
+        }
+      }
+      
+      // Checar se todos clicaram
+      let allDone = true;
+      for (let p in App.players) {
+        if (this.results[p] === -1 && !this.earlyClickers[p]) allDone = false;
+      }
+      if (allDone) {
+        this.finishGame();
+      }
+    }
+  },
+  clientStateUpdate(data) {
+    this.signalTriggered = data.triggered; this.results = data.results; this.earlyClickers = data.early; this.roundTimer = data.timer;
+    App.ui.updateHUD(this.roundTimer, "DUELO DE REFLEXO", 100);
+  },
+  playerDisconnected(peerId) {
+    delete this.results[peerId];
+  },
+  finishGame() {
+    clearTimeout(this.delayTimer);
+    this.running = false;
+    App.activeGame = null;
+    
+    const ranks = Object.keys(this.results).map(k => {
+      return { id: k, name: App.players[k].name, color: App.players[k].color, time: this.results[k], early: this.earlyClickers[k] };
+    }).sort((a,b) => {
+      if (a.early) return 1;
+      if (b.early) return -1;
+      if (a.time === -1) return 1;
+      if (b.time === -1) return -1;
+      return a.time - b.time;
+    });
+    
+    const basePts = [10, 7, 5, 2, 2, 2, 2, 2];
+    const ptsEarned = {};
+    ranks.forEach((r, idx) => {
+      const pts = (r.early || r.time === -1) ? 0 : (basePts[idx] || 2);
+      ptsEarned[r.id] = pts;
+      App.scores[r.id] += pts;
+    });
+    App.net.broadcast({ type: 'round_complete', ranks, ptsEarned });
+    App.ui.showRoundResults(ranks, ptsEarned);
+  }
+};
+
+/* ============================================================
+   EVENTOS DE CLIQUE EM CANVAS E CONTROLES DE RETRATO / PAISAGEM
+   ============================================================ */
+document.getElementById('game-canvas').addEventListener('pointerdown', e => {
+  if (!App.activeGame || !App.activeGame.running) return;
+  const rect = document.getElementById('game-canvas').getBoundingClientRect();
+  const scaleX = 800 / rect.width;
+  const scaleY = 600 / rect.height;
+  const cx = (e.clientX - rect.left) * scaleX;
+  const cy = (e.clientY - rect.top) * scaleY;
   
-  _renderTTTGrid();
-  _updateTTTStatus();
-
-  _sendToPar({
-    type: 'sync_game',
-    game: 'ttt',
-    board: tttBoard,
-    nextSymbol: tttActivePlayerSymbol,
-    winner: tttWinner
-  });
-}
-
-function _syncTTTData(data) {
-  tttBoard = data.board;
-  tttActivePlayerSymbol = data.nextSymbol;
-  tttWinner = data.winner;
-  _renderTTTGrid();
-  _updateTTTStatus();
-}
-
-function _checkTTTWinCondition() {
-  var winPatterns = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8], // Linhas
-    [0, 3, 6], [1, 4, 7], [2, 5, 8], // Colunas
-    [0, 4, 8], [2, 4, 6]             // Diagonais
-  ];
-
-  for (var i = 0; i < winPatterns.length; i++) {
-    var p = winPatterns[i];
-    if (tttBoard[p[0]] && tttBoard[p[0]] === tttBoard[p[1]] && tttBoard[p[0]] === tttBoard[p[2]]) {
-      tttWinner = tttBoard[p[0]];
-      return;
+  if (App.activeGame.name === "Memória Rápida") {
+    App.activeGame.quads.forEach(q => {
+      if (cx > q.x && cx < q.x + q.w && cy > q.y && cy < q.y + q.h) {
+        if (App.isHost) {
+          App.activeGame.handleNetworkMessage(App.myId, { type: 'click_quad', quadId: q.id });
+        } else {
+          App.net.sendToHost({ type: 'click_quad', quadId: q.id });
+        }
+      }
+    });
+  } else if (App.activeGame.name === "Duelo de Reflexo") {
+    if (App.isHost) {
+      App.activeGame.handleNetworkMessage(App.myId, { type: 'click_reflex' });
+    } else {
+      App.net.sendToHost({ type: 'click_reflex' });
     }
   }
+});
 
-  if (!tttBoard.includes(null)) {
-    tttWinner = 'draw';
+/* Teclado Duelo de Reflexo */
+window.addEventListener('keydown', e => {
+  if (e.key === ' ' || e.key === 'Spacebar') {
+    if (App.activeGame && App.activeGame.name === "Duelo de Reflexo" && App.activeGame.running) {
+      if (App.isHost) App.activeGame.handleNetworkMessage(App.myId, { type: 'click_reflex' });
+      else App.net.sendToHost({ type: 'click_reflex' });
+    }
+  }
+});
+
+/* Adaptação e Envio de Inputs de Cliente para o Host */
+setInterval(() => {
+  if (App.activeScreen === 'game' && !App.isHost && App.activeGame && App.activeGame.running) {
+    const dir = App.input.getDir();
+    App.net.sendToHost({
+      type: 'input',
+      dir: dir,
+      action: App.input.actionPressed
+    });
+  }
+}, 45);
+
+/* ============================================================
+   UTILITÁRIOS HUD E INICIALIZAÇÃO
+   ============================================================ */
+App.ui.updateHUD = function(timerVal, name, hpVal, gameScores) {
+  document.getElementById('hud-timer').textContent = timerVal;
+  document.getElementById('hud-current-game').textContent = name;
+  document.getElementById('hud-hp-fill').style.width = hpVal + "%";
+  
+  const scoresPanel = document.getElementById('hud-mini-scores');
+  scoresPanel.innerHTML = '';
+  if (gameScores) {
+    for (let p in gameScores) {
+      const pData = App.players[p];
+      if (pData) {
+        scoresPanel.innerHTML += `
+          <div class="mini-score-row">
+            <span class="mini-score-dot" style="background:${pData.color}"></span>
+            <span>${pData.name}: ${gameScores[p]} pts</span>
+          </div>
+        `;
+      }
+    }
+  }
+};
+
+/* Configurar Layouts de Celular Inteligente */
+function checkLayout() {
+  const controls = document.getElementById('game-touch-controls');
+  const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  if (isTouch) {
+    controls.classList.add('active');
+    App.deviceType = "mobile";
+  } else {
+    controls.classList.remove('active');
+    App.deviceType = "desktop";
   }
 }
+window.addEventListener('resize', checkLayout);
+window.addEventListener('orientationchange', checkLayout);
 
+/* Inicialização Local */
+(function() {
+  const saved = localStorage.getItem('bz_prefs');
+  if (saved) {
+    try {
+      App.localPrefs = JSON.parse(saved);
+      document.getElementById('inp-name').value = App.localPrefs.name;
+    } catch(e) {}
+  } else {
+    const defaultNames = ["Mercador", "Explorador", "Coletor", "Invasor", "Nômade"];
+    App.localPrefs.name = defaultNames[Math.floor(Math.random() * defaultNames.length)];
+    const randomColors = ["#38bdf8", "#4ade80", "#f472b6", "#fbbf24", "#fb923c", "#f87171"];
+    App.localPrefs.color = randomColors[Math.floor(Math.random() * randomColors.length)];
+    const avs = ["👤", "🦊", "🐯", "🤖", "🤠", "👽", "🐙", "🧙"];
+    App.localPrefs.avatar = avs[Math.floor(Math.random() * avs.length)];
+    document.getElementById('inp-name').value = App.localPrefs.name;
+  }
+  
+  checkLayout();
+  App.input.init();
+  Canvas.init();
+})();
 </script>
 </body>
 </html>
+
